@@ -3,7 +3,7 @@ import {
   type PayloadAction,
   createSlice
 } from '@reduxjs/toolkit';
-import type { ScreenshotInfo } from '../hooks/dispatchWhenScreenshotReceivedViaWebSocket';
+import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';

@@ -1,4 +1,4 @@
-import type { ScreenshotInfo } from '../hooks/dispatchWhenScreenshotReceivedViaWebSocket';
+import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
 import { Field } from '../logics/Field';

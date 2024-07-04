@@ -1,7 +1,6 @@
 import type { Board } from './Board';
-import { type BoardEditMode, HowToEditBoard } from './BoardEditMode';
+import type { BoardEditMode } from './BoardEditMode';
 import { OptimizationTarget } from './OptimizationTarget';
-import { PuyoType } from './puyo';
 import { SolutionMethod } from './solution';
 
 export class Session {
