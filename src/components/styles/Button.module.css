@@ -1,0 +1,31 @@
+.button {
+  margin: 4px 2px;
+  padding: 0.2em 0.6em;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  font-size: 1em;
+  font-weight: bold;
+  font-family: inherit;
+  background-color: #111;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+.button[disabled] {
+  border-color: #888;
+}
+
+.button:not([disabled]):hover {
+  border-color: #646cff;
+}
+
+.button:not([disabled]):focus, .button:not([disabled]):focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  .button {
+    border-color: #000;
+    background: #fff;
+  }
+}

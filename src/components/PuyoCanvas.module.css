@@ -1,0 +1,17 @@
+.board {
+  width: 480px;
+  height: 390px;
+  background: #888;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.crosshair {
+  cursor: crosshair;
+}
+
+.notAllowed {
+  cursor: not-allowed;
+}

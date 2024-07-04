@@ -1,0 +1,38 @@
+:root {
+  font-family: system-ui, Helvetica, Arial, sans-serif;
+  font-weight: normal;
+  line-height: 1.25;
+
+  color-scheme: light dark;
+  color: var(--primary-color);
+  background-color: var(--main-bg-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --primary-color: rgba(255, 255, 255, 0.87);
+  --main-bg-color: #242424;
+}
+
+body {
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary-color: #213547;
+    --main-bg-color: #fff;
+  }
+}

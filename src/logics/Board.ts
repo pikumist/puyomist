@@ -1,0 +1,18 @@
+import type { TraceMode } from './TraceMode';
+import type { PuyoType } from './puyo';
+
+/** 連鎖の種やとくべつルール、SS取り込み時のボード情報 */
+export interface Board {
+  /** 盤面情報 */
+  matrix: (PuyoType | undefined)[][];
+  /** ネクストぷよリスト */
+  nextPuyos?: (PuyoType | undefined)[];
+  /** 大連鎖チャンス中かどうか */
+  isChanceMode?: boolean;
+  /** なぞりモード */
+  traceMode?: TraceMode;
+  /** ぷよ消しに必要な最低数 (4 か 3) */
+  minimumPuyoNumForPopping?: number;
+  /** 連鎖倍率 */
+  chainLeverage?: number;
+}

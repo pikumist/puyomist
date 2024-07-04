@@ -1,0 +1,32 @@
+.settings {
+  min-width: 280px;
+  max-width: 280px;
+  margin-left: 16px;
+}
+
+.setting {
+  margin-bottom: 4px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.w3 {
+  width: 3em;
+}
+
+.w3dot5 {
+  width: 3.5em;
+}
+
+.label {
+  margin-right: 0.25em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 100px 100px;
+}
