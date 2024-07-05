@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { detectBoard } from '../logics/board-detection';
-import { boardDetected, screenshotReceived } from '../reducers/puyoAppSlice';
+import {
+  boardDetectedAndSolve,
+  screenshotReceived
+} from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
 import styles from './ScreenshotCanvas.module.css';
 
@@ -121,9 +124,9 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
         const errorOrBoard = detectBoard(ctx, width, height);
 
         if (typeof errorOrBoard === 'string') {
-          dispatch(boardDetected({ error: errorOrBoard }));
+          dispatch(boardDetectedAndSolve(errorOrBoard));
         } else {
-          dispatch(boardDetected({ board: errorOrBoard }));
+          dispatch(boardDetectedAndSolve(undefined, errorOrBoard));
         }
       };
     }

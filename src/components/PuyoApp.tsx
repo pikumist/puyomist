@@ -5,7 +5,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import type React from 'react';
 import { useCallback } from 'react';
-import { ssBoardKey } from '../logics/boards';
+import { screenshotBoardId } from '../logics/boards';
 import PuyoCanvas from './PuyoCanvas';
 import ScreenshotCanvas from './ScreenshotCanvas';
 import BoardSetting from './settings/BoardSetting';
@@ -68,7 +68,7 @@ const PuyoApp: React.FC = () => {
           <div className={`${layout.horizontal} ${layout.gap8}`}>
             <BoardSetting boardId={state.boardId} />
             <NextConfig
-              disabled={state.boardId === ssBoardKey}
+              disabled={state.boardId === screenshotBoardId}
               nextSelection={state.nextSelection}
             />
           </div>

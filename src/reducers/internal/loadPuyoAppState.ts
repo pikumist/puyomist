@@ -1,7 +1,7 @@
 import { getBoostArea } from '../../logics/BoostArea';
 import { Field } from '../../logics/Field';
 import type { PuyoCoord } from '../../logics/PuyoCoord';
-import { ssBoardKey } from '../../logics/boards';
+import { screenshotBoardId } from '../../logics/boards';
 import { type Session, session as g_session } from '../../logics/session';
 import type { PuyoAppState } from '../PuyoAppState';
 import { reflectBoardInField } from './reflectBoardInField';
@@ -29,7 +29,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
       })
       .filter(Boolean) as ReadonlySet<PuyoCoord>[]
   );
-  if (boardId === ssBoardKey) {
+  if (boardId === screenshotBoardId) {
     if (lastScreenshotBoard) {
       field.resetFieldByBoard(lastScreenshotBoard);
     }

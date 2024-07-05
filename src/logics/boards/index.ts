@@ -50,10 +50,10 @@ export const boardKeyNameMap = new Map<string, string>([
   ['specialRule5', 'キュアブイ']
 ]);
 
-export const ssBoardKey = 'ss';
+export const screenshotBoardId = 'ss';
 
 export const boardIdToNameMap = new Map([
-  [ssBoardKey, 'スクリーンショット'],
+  [screenshotBoardId, 'スクリーンショット'],
   ...(possibleSpecialBoardIds.map((boardId) => {
     const [boardKey, no] = boardId.split('/');
     return [boardId, `${boardKeyNameMap.get(boardKey)}/${no}`];
