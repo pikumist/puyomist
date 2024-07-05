@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { PuyoCoord } from '../logics/PuyoCoord';
-import { ssBoardKey } from '../logics/boards';
+import { screenshotBoardId } from '../logics/boards';
 import {
   PuyoAttribute,
   getPuyoAttribute,
@@ -43,7 +43,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
   const isEdit = Boolean(
     boardEditMode && boardEditMode.howToEdit !== HowToEditBoard.None
   );
-  const editable = boardId === ssBoardKey;
+  const editable = boardId === screenshotBoardId;
   const cellUnitPixels = width / PuyoCoord.XNum;
 
   const getContext = useCallback((): CanvasRenderingContext2D => {

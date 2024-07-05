@@ -3,7 +3,7 @@ import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
 import { Field } from '../logics/Field';
 import { OptimizationTarget } from '../logics/OptimizationTarget';
-import { ssBoardKey } from '../logics/boards';
+import { screenshotBoardId } from '../logics/boards';
 import type { ChainDamage } from '../logics/damage';
 import { SolutionMethod, type SolvedResult } from '../logics/solution';
 
@@ -52,7 +52,7 @@ export interface PuyoAppState {
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
-  boardId: ssBoardKey,
+  boardId: screenshotBoardId,
   nextSelection: 'random',
   optimizationTarget: OptimizationTarget.PuyoTsukaiCount,
   solutionMethod: SolutionMethod.solve3,

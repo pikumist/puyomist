@@ -4,14 +4,14 @@ import {
   createSlice
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
-import type { Board } from '../logics/Board';
+import { type Board, emptyBoard } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import { Field } from '../logics/Field';
 import type { OptimizationTarget } from '../logics/OptimizationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import type { TraceMode } from '../logics/TraceMode';
-import { ssBoardKey } from '../logics/boards';
+import { screenshotBoardId } from '../logics/boards';
 import type { ChainDamage } from '../logics/damage';
 import {
   PuyoType,
@@ -140,14 +140,14 @@ const puyoAppSlice = createSlice({
           break;
       }
 
-      state.boardId = ssBoardKey;
+      state.boardId = screenshotBoardId;
       state.field.resetFieldByBoard(state.lastScreenshotBoard);
       state.field = state.field.clone();
     },
 
     /** 盤面リセットボタンがクリックされたとき */
     boardResetButtonClicked: (state) => {
-      if (state.boardId === ssBoardKey) {
+      if (state.boardId === screenshotBoardId) {
         if (state.lastScreenshotBoard) {
           state.field.resetFieldByBoard(state.lastScreenshotBoard);
         }
@@ -168,7 +168,7 @@ const puyoAppSlice = createSlice({
       const boardId = action.payload;
       state.boardId = boardId;
 
-      if (boardId === ssBoardKey) {
+      if (boardId === screenshotBoardId) {
         if (state.lastScreenshotBoard) {
           state.field.resetFieldByBoard(state.lastScreenshotBoard);
           state.field = state.field.clone();
@@ -342,13 +342,10 @@ const puyoAppSlice = createSlice({
       const { error, board } = action.payload;
       state.screenshotErrorMessage = error;
 
-      if (!board) {
-        return;
-      }
-
-      state.lastScreenshotBoard = board;
-      state.boardId = ssBoardKey;
-      state.field.resetFieldByBoard(board);
+      const bd = board ?? emptyBoard;
+      state.lastScreenshotBoard = bd;
+      state.boardId = screenshotBoardId;
+      state.field.resetFieldByBoard(bd);
       state.field = state.field.clone();
     }
   }
@@ -450,4 +447,15 @@ export const playSolutionButtonClicked =
     state.field.setTraceCoords(optimalSolution.traceCoords);
 
     dispatch(tracingFinished());
+  };
+
+/** 盤面判定が完了したら自動で最適化計算 */
+export const boardDetectedAndSolve =
+  (error?: string | undefined, board?: Board | undefined) =>
+  (dispatch: AppDispatch, getState: () => RootState) => {
+    dispatch(boardDetected({ error, board }));
+    dispatch(solutionResetButtonClicked());
+    if (!getState().puyoApp.screenshotErrorMessage) {
+      dispatch(solveButtonClicked());
+    }
   };

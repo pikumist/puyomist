@@ -1,3 +1,4 @@
+import { PuyoCoord } from './PuyoCoord';
 import type { TraceMode } from './TraceMode';
 import type { PuyoType } from './puyo';
 
@@ -16,3 +17,11 @@ export interface Board {
   /** 連鎖倍率 */
   chainLeverage?: number;
 }
+
+/** 盤面が特定できないときに読み込ませる空盤面 */
+export const emptyBoard = {
+  matrix: [...new Array(PuyoCoord.YNum)].map((_) => {
+    return [...new Array(PuyoCoord.XNum)];
+  }),
+  nextPuyos: [...new Array(PuyoCoord.XNum)]
+};
