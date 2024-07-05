@@ -94,7 +94,7 @@ const puyoAppSlice = createSlice({
 
       const { matrixCoord, nextX } = action.payload;
 
-      if (!matrixCoord && !nextX) {
+      if (!matrixCoord && !Number.isInteger(nextX)) {
         return;
       }
 
