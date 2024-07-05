@@ -1,11 +1,9 @@
 import type { FileInfo } from '../../isomorphic/FileInfo';
 import { screenshotReceived } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
-import type { ScreenshotInfo } from './internal/ScreenshotInfo';
 import { ScreenshotReceiver } from './internal/ScreenshotReceiver';
 import { fileInfoToBlobUrl } from './internal/fileInfoToBlobUrl';
 
-let screenshotInfo: ScreenshotInfo | undefined;
 let appDispatch: AppDispatch;
 
 /**
@@ -13,10 +11,8 @@ let appDispatch: AppDispatch;
  * localhostでのみ有効。
  */
 export const dispatchWhenScreenshotReceivedViaWebSocket = (
-  currentScreenshotInfo: ScreenshotInfo | undefined,
   dispatch: AppDispatch
 ) => {
-  screenshotInfo = currentScreenshotInfo;
   appDispatch = dispatch;
 };
 

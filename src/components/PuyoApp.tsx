@@ -43,7 +43,7 @@ const PuyoApp: React.FC = () => {
     (state) => state.puyoApp
   );
   const dispatch = useDispatch<AppDispatch>();
-  dispatchWhenScreenshotReceivedViaWebSocket(state.screenshotInfo, dispatch);
+  dispatchWhenScreenshotReceivedViaWebSocket(dispatch);
 
   const onBoardRestButtonCliecked = useCallback(() => {
     dispatch(boardResetButtonClicked());
