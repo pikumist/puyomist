@@ -24,16 +24,11 @@ if (window.location.hostname === 'localhost') {
   const receiver = new ScreenshotReceiver({
     onFileInfo: (fileInfo: FileInfo) => {
       const blobUrl = fileInfoToBlobUrl(fileInfo);
-      if (screenshotInfo) {
-        URL.revokeObjectURL(screenshotInfo.blobUrl);
-      }
-
-      const newScreenshotInfo = {
+      const screenshotInfo = {
         ...fileInfo,
         blobUrl
       };
-
-      appDispatch?.(screenshotReceived(newScreenshotInfo));
+      appDispatch?.(screenshotReceived(screenshotInfo));
     }
   });
   receiver.start();

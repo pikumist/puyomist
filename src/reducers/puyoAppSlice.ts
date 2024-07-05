@@ -323,7 +323,11 @@ const puyoAppSlice = createSlice({
     /// スクリーンショット系
     ///
 
+    /** スクリーンショット画像を受け取ったとき */
     screenshotReceived: (state, action: PayloadAction<ScreenshotInfo>) => {
+      if (state.screenshotInfo?.blobUrl) {
+        URL.revokeObjectURL(state.screenshotInfo.blobUrl);
+      }
       state.screenshotInfo = action.payload;
     },
 

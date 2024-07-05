@@ -1,20 +1,17 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { detectBoard } from '../logics/board-detection';
-import { boardDetected } from '../reducers/puyoAppSlice';
+import { boardDetected, screenshotReceived } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
 import styles from './ScreenshotCanvas.module.css';
 
 interface ScreenshotCanvasProps {
   /** スクリーンショット画像の情報 */
-  screenshotInfo:
-    | {
-        fileName: string;
-        blobUrl: string;
-      }
-    | undefined;
+  screenshotInfo: ScreenshotInfo | undefined;
 
+  /** 盤面判定失敗時のエラーメッセージ */
   errorMessage: string | undefined;
 }
 
@@ -28,9 +25,77 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
 
   const [naturalWidth, setNaturalWidth] = useState(0);
   const [naturalHeight, setNaturalHeight] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: onBoardDetectionを指定すると無限ループする
+  const handleFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files) {
+        return;
+      }
+
+      const file = files[0];
+      if (!file || file.type.indexOf('image/') < 0) {
+        return;
+      }
+
+      const {
+        webkitRelativePath: filePath,
+        name: fileName,
+        type: mime,
+        size
+      } = file;
+
+      const screenshotInfo: ScreenshotInfo = {
+        filePath,
+        fileName,
+        mime,
+        size,
+        blobUrl: URL.createObjectURL(file)
+      };
+
+      dispatch(screenshotReceived(screenshotInfo));
+    },
+    [dispatch]
+  );
+
+  const onInputChanged = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleFiles(e.target.files);
+    },
+    [handleFiles]
+  );
+
+  const onCanvasClicked = useCallback(() => {
+    const input = inputRef.current!;
+    input.click();
+  }, []);
+
+  const onCanvasDragOver = useCallback(
+    (e: React.DragEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      setIsDragOver(true);
+    },
+    []
+  );
+
+  const onCanvasDragLeave = useCallback(() => {
+    setIsDragOver(false);
+  }, []);
+
+  const onCanvasDrop = useCallback(
+    (e: React.DragEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles]
+  );
+
+  const conditionalDragOverClass = isDragOver ? styles.dragover : '';
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const blobURl = screenshotInfo?.blobUrl ?? white1x1Png;
@@ -64,11 +129,28 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
     }
 
     img.src = blobURl;
-  }, [screenshotInfo]);
+  }, [screenshotInfo, dispatch]);
 
   return (
     <div>
-      <canvas className={styles.screenshot} ref={canvasRef} />
+      <div>
+        <input
+          ref={inputRef}
+          id="fileInput"
+          type="file"
+          accept="image/*"
+          onChange={onInputChanged}
+        />
+      </div>
+      <canvas
+        className={`${styles.screenshot} ${conditionalDragOverClass}`}
+        ref={canvasRef}
+        onClick={onCanvasClicked}
+        onKeyDown={onCanvasClicked}
+        onDragOver={onCanvasDragOver}
+        onDragLeave={onCanvasDragLeave}
+        onDrop={onCanvasDrop}
+      />
       <div>
         <div>{screenshotInfo?.fileName}</div>
         <div>
