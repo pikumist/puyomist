@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { Board } from './Board';
-import { Field } from './Field';
 import { OptimizationTarget } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
+import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, G, H, P, R, W, Y } from './boards/alias';
 import type { ChainDamage } from './damage';
 import { type ColoredPuyoAttribute, PuyoAttribute, PuyoType } from './puyo';
 
-describe('Field', () => {
+describe('Simulator', () => {
   const calcCsp = (chainDamage: ChainDamage, attr: PuyoAttribute) => {
     const c = chainDamage.chainNum;
     const s = chainDamage.damageTerms[attr]?.separatedBlocksNum;
@@ -49,7 +49,7 @@ describe('Field', () => {
       {
         board: {
           // biome-ignore format:
-          matrix: [
+          field: [
             [R, P, H, P, Y, G, Y, Y],
             [R, Y, P, H, Y, G, P, G],
             [B, Y, G, B, H, Y, G, P],
@@ -65,7 +65,7 @@ describe('Field', () => {
       {
         board: {
           // biome-ignore format:
-          matrix: [
+          field: [
             [R, R, H, P, Y, Y, Y, Y],
             [R, R, P, H, Y, G, P, G],
             [B, Y, G, B, H, Y, G, P],
@@ -141,7 +141,7 @@ describe('Field', () => {
       {
         board: {
           // biome-ignore format:
-          matrix: [
+          field: [
             [Y, P, R, G, Y, G, B, G],
             [P, G, P, H, W, Y, R, G],
             [P, P, B, B, Y, B, G, R],
@@ -157,7 +157,7 @@ describe('Field', () => {
       {
         board: {
           // biome-ignore format:
-          matrix: [
+          field: [
             [Y, P, R, G, G, G, G, G],
             [P, G, P, H, W, Y, R, G],
             [P, P, B, B, B, B, G, R],
@@ -231,7 +231,7 @@ describe('Field', () => {
       {
         board: {
           // biome-ignore format:
-          matrix: [
+          field: [
             [U, U, U, U, U, U, U, G],
             [U, U, U, H, W, Y, U, G],
             [U, U, B, B, B, B, U, R],
@@ -283,11 +283,11 @@ describe('Field', () => {
       }
     ])('should detect blocks to be popped', ({ board, expected }) => {
       // Arrange
-      const field = new Field();
-      field.resetFieldByBoard(board);
+      const sim = new Simulator();
+      sim.resetWithBoard(board);
 
       // Act
-      const actual = (field as any).detectPopBlocks2();
+      const actual = (sim as any).detectPopBlocks2();
 
       // Assert
       expect(actual).toEqual(expected);
@@ -619,19 +619,19 @@ describe('Field', () => {
         expected
       }) => {
         // Arrange
-        const field = new Field();
+        const sim = new Simulator();
         const board = getSpecialBoard(boardId);
-        field.resetFieldByBoard(board);
-        field.setMaxTraceNum(maxTraceNum);
-        field.setPoppingLeverage(poppingLeverage);
-        field.resetNextPuyosAsSameType(nextPuyoType);
-        field.setTraceCoords(traceCoords as PuyoCoord[]);
+        sim.resetWithBoard(board);
+        sim.setMaxTraceNum(maxTraceNum);
+        sim.setPoppingLeverage(poppingLeverage);
+        sim.resetNextPuyosAsSameType(nextPuyoType);
+        sim.setTraceCoords(traceCoords as PuyoCoord[]);
 
         // Act
-        field.continueChainsToTheEnd()!;
+        sim.doChains()!;
 
         // Assert
-        const chainDamages = field.getChainDamages();
+        const chainDamages = sim.getChainDamages();
         expect(chainDamages).toEqual(expected);
       }
     );
@@ -685,15 +685,15 @@ describe('Field', () => {
         expected
       }) => {
         // Arrange
-        const field = new Field();
+        const sim = new Simulator();
         const board = getSpecialBoard(boardId);
-        field.resetFieldByBoard(board);
-        field.setMaxTraceNum(maxTraceNum);
-        field.setPoppingLeverage(poppingLeverage);
-        field.resetNextPuyosAsSameType(nextPuyoType);
+        sim.resetWithBoard(board);
+        sim.setMaxTraceNum(maxTraceNum);
+        sim.setPoppingLeverage(poppingLeverage);
+        sim.resetNextPuyosAsSameType(nextPuyoType);
 
         // Act
-        const actual = field.solve2(optTarget)!;
+        const actual = sim.solve2(optTarget)!;
 
         // Assert
         expect(actual.optimizationTarget).toBe(optTarget);

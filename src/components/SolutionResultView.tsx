@@ -1,6 +1,6 @@
 import type React from 'react';
-import { Field } from '../logics/Field';
 import { getOptimizationTargetDescription } from '../logics/OptimizationTarget';
+import { Simulator } from '../logics/Simulator';
 import {
   type ColoredPuyoAttribute,
   getPuyoAttributeName
@@ -42,7 +42,7 @@ const SolutionResultView: React.FC<IProps> = (props) => {
             <div>
               ぷよ使いカウント: {result?.optimalSolution?.puyoTsukaiCount}
             </div>
-            {Field.colorAttrs.map((attr) => {
+            {Simulator.colorAttrs.map((attr) => {
               const description = getPuyoAttributeName(attr);
               return (
                 <div key={attr}>

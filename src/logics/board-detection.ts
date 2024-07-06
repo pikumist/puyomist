@@ -235,12 +235,12 @@ const detectPuyoAttr = (rgb: number[]) => {
 };
 
 /**
- * RGB2色から盤面ぷよの種別を判別する。
+ * RGB2色からフィールド内ぷよの種別を判別する。
  * @param rgbList
  * @param isChanceMode
  * @returns
  */
-const detectMatrixPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
+const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
   const [rgb1, rgb2] = rgbList;
 
   const puyoAttr = detectPuyoAttr(rgb1);
@@ -343,12 +343,12 @@ const detectNextPuyos = (
 };
 
 /**
- * 盤面行列のぷよを判定する。
+ * フィールドを判定する。
  * @param ctx
  * @param boardMeta
  * @returns
  */
-const detectPuyoMatrix = (
+const detectField = (
   ctx: CanvasRenderingContext2D,
   boardMeta: BoardMeta
 ): (PuyoType | undefined)[][] => {
@@ -360,7 +360,7 @@ const detectPuyoMatrix = (
     [0.75, 0.72]
   ];
 
-  const matrix: (PuyoType | undefined)[][] = [[], [], [], [], [], []];
+  const field: (PuyoType | undefined)[][] = [[], [], [], [], [], []];
 
   for (let i = 0; i < PuyoCoord.YNum; i++) {
     const yList = offsets.map(([_, offsetY]) => {
@@ -375,7 +375,7 @@ const detectPuyoMatrix = (
         return getPixel(ctx, xList[oi], yList[oi]);
       });
 
-      const puyoType = detectMatrixPuyoType(rgbaList, boardMeta.isChanceMode);
+      const puyoType = detectFieldPuyoType(rgbaList, boardMeta.isChanceMode);
 
       //const hsv2 = rgbToHsv(rgbaList[1][0], rgbaList[1][1], rgbaList[1][2]);
       //console.log({ i, j, puyoType, hsv2 });
@@ -385,11 +385,11 @@ const detectPuyoMatrix = (
       ctx.fillStyle = '#000';
       ctx.fillRect(xList[1], yList[1], 1, 1);
 
-      matrix[i][j] = puyoType;
+      field[i][j] = puyoType;
     }
   }
 
-  return matrix;
+  return field;
 };
 
 /**
@@ -414,7 +414,7 @@ export const detectBoard = (
     ? [...new Array(8)].map((_) => undefined)
     : detectNextPuyos(ctx, boardMeta);
 
-  const matrix = detectPuyoMatrix(ctx, boardMeta);
+  const field = detectField(ctx, boardMeta);
 
-  return { isChanceMode, matrix, nextPuyos };
+  return { isChanceMode, field, nextPuyos };
 };

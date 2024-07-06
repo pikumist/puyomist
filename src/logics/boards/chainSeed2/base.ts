@@ -12,7 +12,7 @@ import type { PuyoType } from '../../puyo';
  * - アナスタシア・ホーシン
  */
 export default {
-  matrix: [] as PuyoType[][],
+  field: [] as PuyoType[][],
   traceMode: TraceMode.Normal,
   minimumPuyoNumForPopping: 4
 } as Board;

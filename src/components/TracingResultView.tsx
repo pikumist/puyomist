@@ -1,6 +1,6 @@
 import type React from 'react';
-import { Field } from '../logics/Field';
 import type { PuyoCoord } from '../logics/PuyoCoord';
+import { Simulator } from '../logics/Simulator';
 import type { ChainDamage } from '../logics/damage';
 import { PuyoAttribute } from '../logics/puyo';
 import DamageDetail from './DamageDetail';
@@ -16,7 +16,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
   const puyoTsukaiCount = chainDamages
-    ? Field.calcTotalPuyoTsukaiCount(chainDamages)
+    ? Simulator.calcTotalPuyoTsukaiCount(chainDamages)
     : '';
 
   return (

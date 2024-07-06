@@ -35,7 +35,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     (state) => state.puyoApp
   );
   const dispatch = useDispatch<AppDispatch>();
-  const { boardId, boardEditMode, field, animating, solvedResult } = state;
+  const { boardId, boardEditMode, simulator, animating, solvedResult } = state;
   const optimalTraceCoords = solvedResult?.optimalSolution?.traceCoords;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -51,7 +51,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     return canvas!.getContext('2d') as CanvasRenderingContext2D;
   }, []);
 
-  const detectHitNextX = useCallback(
+  const detectHitInNext = useCallback(
     (px: number, py: number) => {
       const rawXi = px / cellUnitPixels;
       const rawYi = (py / cellUnitPixels) * 2;
@@ -66,7 +66,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     [cellUnitPixels]
   );
 
-  const detectHitMatrixCell = useCallback(
+  const detectHitInField = useCallback(
     (px: number, py: number) => {
       const rawXi = px / cellUnitPixels;
       const rawYi = (py - cellUnitPixels / 2) / cellUnitPixels;
@@ -102,11 +102,11 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
         const px = ~~(e.clientX - rect.left);
         const py = ~~(e.clientY - rect.top);
 
-        const coord = detectHitMatrixCell(px, py);
+        const coord = detectHitInField(px, py);
         if (coord) {
-          dispatch(puyoEdited({ matrixCoord: coord }));
+          dispatch(puyoEdited({ fieldCoord: coord }));
         } else {
-          const nextX = detectHitNextX(px, py) ?? undefined;
+          const nextX = detectHitInNext(px, py) ?? undefined;
           if (Number.isInteger(nextX)) {
             dispatch(puyoEdited({ nextX }));
           }
@@ -122,7 +122,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
       const px = ~~(e.clientX - rect.left);
       const py = ~~(e.clientY - rect.top);
 
-      const coord = detectHitMatrixCell(px, py);
+      const coord = detectHitInField(px, py);
       if (coord) {
         dispatch(tracingCoordAdded(coord));
       }
@@ -145,7 +145,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     const px = ~~(e.clientX - rect.left);
     const py = ~~(e.clientY - rect.top);
 
-    const coord = detectHitMatrixCell(px, py);
+    const coord = detectHitInField(px, py);
     if (coord) {
       dispatch(tracingCoordAdded(coord));
     }
@@ -208,7 +208,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#fff';
 
-    for (const boostArea of field.getBoostAreaCoordSetList()) {
+    for (const boostArea of simulator.getBoostAreaCoordSetList()) {
       for (const coord of boostArea) {
         ctx.strokeRect(
           Math.round(coord.x * cellUnitPixels) + 5,
@@ -220,7 +220,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     }
 
     ctx.setLineDash([]);
-  }, [getContext, cellUnitPixels, field]);
+  }, [getContext, cellUnitPixels, simulator]);
 
   const DrawScene = () => {
     const ctx = getContext();
@@ -230,7 +230,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     DrawGrid();
     DrawBoostAreas();
 
-    const nextPuyos = field.getNextPuyos();
+    const nextPuyos = simulator.getNextPuyos();
     for (const [x, puyoType] of nextPuyos.entries()) {
       if (!puyoType) {
         continue;
@@ -276,11 +276,11 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
       }
     }
 
-    const matrix = field.getCellMatrix();
+    const field = simulator.getField();
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = matrix[y][x];
+        const puyoType = field[y][x];
         const coord = PuyoCoord.xyToCoord(x, y)!;
 
         if (!puyoType) {
@@ -352,7 +352,7 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
           );
         }
 
-        if (field.getCurrentTracingCoords().includes(coord)) {
+        if (simulator.getCurrentTracingCoords().includes(coord)) {
           ctx.fillStyle = '#0008';
           ctx.fillRect(
             x * cellUnitPixels + 0.25 * cellUnitPixels,
