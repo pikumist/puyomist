@@ -35,8 +35,9 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     (state) => state.puyoApp
   );
   const dispatch = useDispatch<AppDispatch>();
-  const { boardId, boardEditMode, simulator, animating, solvedResult } = state;
-  const optimalTraceCoords = solvedResult?.optimalSolution?.traceCoords;
+  const { boardId, boardEditMode, simulator, animating, explorationResult } =
+    state;
+  const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [touching, setTouching] = useState(false);

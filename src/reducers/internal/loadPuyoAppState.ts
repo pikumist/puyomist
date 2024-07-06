@@ -50,7 +50,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     animating: false,
     chainDamages: [],
     solving: false,
-    solvedResult: undefined,
+    explorationResult: undefined,
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined
   };

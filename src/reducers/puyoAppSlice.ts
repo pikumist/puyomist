@@ -19,11 +19,14 @@ import {
   toNormalColoredType,
   toPlusColoredType
 } from '../logics/puyo';
-import { SolutionMethod, type SolvedResult } from '../logics/solution';
+import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
 import { reflectBoardInSimulator } from './internal/reflectBoardInSimulator';
 import { reflectNextInSimulator } from './internal/reflectNextInSimulator';
-import { createSolve2, createSolve3 } from './internal/solve';
+import {
+  createSolveAllInParallel,
+  createSolveAllInSerial
+} from './internal/solve';
 import type { AppDispatch, RootState } from './store';
 
 export const PUYO_APP_SLICE_KEY = 'puyoApp';
@@ -302,24 +305,24 @@ const puyoAppSlice = createSlice({
     },
 
     /** 解が求まったとき */
-    solved: (state, action: PayloadAction<SolvedResult | undefined>) => {
-      const solvedResult = action.payload;
+    solved: (state, action: PayloadAction<ExplorationResult | undefined>) => {
+      const result = action.payload;
 
-      if (solvedResult?.optimalSolution) {
+      if (result?.optimalSolution) {
         // ワーカー経由で壊れてしまう座標を修正する。
-        solvedResult.optimalSolution.traceCoords =
-          solvedResult.optimalSolution.traceCoords.map(
+        result.optimalSolution.traceCoords =
+          result.optimalSolution.traceCoords.map(
             (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
           );
       }
 
-      state.solvedResult = solvedResult;
+      state.explorationResult = result;
       state.solving = false;
     },
 
     /** 最適解リセットボタンがクリックされたとき */
     solutionResetButtonClicked: (state) => {
-      state.solvedResult = undefined;
+      state.explorationResult = undefined;
     },
 
     ///
@@ -421,14 +424,20 @@ export const solveButtonClicked =
 
     dispatch(solvingStarted());
 
-    let solve: () => Promise<SolvedResult | undefined>;
+    let solve: () => Promise<ExplorationResult | undefined>;
 
     switch (state.solutionMethod) {
-      case SolutionMethod.solve2:
-        solve = createSolve2(state.simulator, state.optimizationTarget);
+      case SolutionMethod.solveAllInSerial:
+        solve = createSolveAllInSerial(
+          state.simulator,
+          state.optimizationTarget
+        );
         break;
-      case SolutionMethod.solve3:
-        solve = createSolve3(state.simulator, state.optimizationTarget);
+      case SolutionMethod.solveAllInParallel:
+        solve = createSolveAllInParallel(
+          state.simulator,
+          state.optimizationTarget
+        );
         break;
     }
 
@@ -442,7 +451,7 @@ export const solveButtonClicked =
 export const playSolutionButtonClicked =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState().puyoApp;
-    const optimalSolution = state.solvedResult?.optimalSolution;
+    const optimalSolution = state.explorationResult?.optimalSolution;
     if (!optimalSolution) {
       return;
     }

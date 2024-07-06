@@ -97,13 +97,13 @@ const PuyoApp: React.FC = () => {
                 <IconButton
                   tooltipId="clearSolutionBtnTooltip"
                   icon={faBroom}
-                  disabled={Boolean(!state.solvedResult)}
+                  disabled={Boolean(!state.explorationResult)}
                   onClicked={onSolutionResetButtonClicked}
                 />
                 <IconButton
                   tooltipId="playSolutionBtnTooltip"
                   text="▶"
-                  disabled={Boolean(!state.solvedResult)}
+                  disabled={Boolean(!state.explorationResult)}
                   onClicked={onPlaySolutionButtonClicked}
                 />
                 <IconButton
@@ -114,7 +114,7 @@ const PuyoApp: React.FC = () => {
               </div>
               <SolutionResultView
                 solving={state.solving}
-                result={state.solvedResult}
+                result={state.explorationResult}
               />
             </div>
           </div>

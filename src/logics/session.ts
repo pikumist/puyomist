@@ -79,7 +79,8 @@ export class Session {
 
   getSolutionMethod(): SolutionMethod {
     const solutionMethod =
-      this.storage.getItem(Session.solutionMethodKey) || SolutionMethod.solve3;
+      this.storage.getItem(Session.solutionMethodKey) ||
+      SolutionMethod.solveAllInParallel;
     return solutionMethod as SolutionMethod;
   }
 

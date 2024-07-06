@@ -33,7 +33,7 @@ export interface SolutionResult {
 }
 
 /** solve() メソッドの呼び出し結果 */
-export interface SolvedResult {
+export interface ExplorationResult {
   /** 探索法 */
   solutionMethod?: SolutionMethod;
   /** 最適化対象 */
@@ -191,13 +191,35 @@ export class SolutionState {
   }
 }
 
-/** solve2() 時のキャリー */
+/** 探索中のキャリー情報 */
 export interface SolutionCarry {
+  /** 探索数 */
   solutionNums: number;
+  /** 最適解 */
   optimalSolution: SolutionResult | undefined;
 }
 
+/** 探索法 */
 export enum SolutionMethod {
-  solve2 = 'solve2',
-  solve3 = 'solve3'
+  /** 全探索(シングルスレッド) */
+  solveAllInSerial = 'solveAllInSerial',
+  /** 全探索(マルチスレッド) */
+  solveAllInParallel = 'solveAllInParallel'
 }
+
+const solutionMethodMap = new Map<SolutionMethod, string>([
+  [SolutionMethod.solveAllInSerial, '全探索(シングルスレッド)'],
+  [SolutionMethod.solveAllInParallel, '全探索(マルチスレッド)']
+]);
+
+/** 取りうる探索法リスト */
+export const possibleSolutionMethodList: ReadonlyArray<SolutionMethod> = [
+  ...solutionMethodMap.keys()
+];
+
+/** 探索法の説明を取得する。 */
+export const getSolutionMethodDescription = (
+  solutionMethod: SolutionMethod
+) => {
+  return solutionMethodMap.get(solutionMethod);
+};

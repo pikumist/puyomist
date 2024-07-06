@@ -1,7 +1,11 @@
 import type React from 'react';
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { SolutionMethod } from '../../logics/solution';
+import {
+  type SolutionMethod,
+  getSolutionMethodDescription,
+  possibleSolutionMethodList
+} from '../../logics/solution';
 import { solutionMethodItemSelected } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
 import setting from '../styles/Setting.module.css';
@@ -34,10 +38,10 @@ const SolutionMethodSetting: React.FC<IProps> = (props) => {
         value={method}
         onChange={onItemSelected}
       >
-        {[SolutionMethod.solve2, SolutionMethod.solve3].map((method) => {
+        {possibleSolutionMethodList.map((method) => {
           return (
             <option value={method} key={method}>
-              {method}
+              {getSolutionMethodDescription(method)}
             </option>
           );
         })}
