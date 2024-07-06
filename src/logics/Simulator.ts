@@ -1,4 +1,5 @@
 import type { Board } from './Board';
+import type { AttributeChain, Chain } from './Chain';
 import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import {
@@ -9,13 +10,7 @@ import {
   isPlusPuyo
 } from './PuyoType';
 import { TraceMode } from './TraceMode';
-import {
-  type ChainDamage,
-  type DamageTerm,
-  calcChainFactor,
-  calcDamageTerm,
-  calcPoppingFactor
-} from './damage';
+import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
 import { choice, shuffle } from './generics/random';
 import { sleep } from './generics/sleep';
 
@@ -56,7 +51,7 @@ export class Simulator {
   private chainAnimating = false;
   private animationDuration = Simulator.defaultAnimationDuration;
   private currentChainNum = 0;
-  private chainDamages: ChainDamage[] = [];
+  private chains: Chain[] = [];
 
   /**
    * インスタンスの指定があればそれをコピーする。そうでなければ初期化する。
@@ -77,7 +72,7 @@ export class Simulator {
       this.chainAnimating = simulator.chainAnimating;
       this.animationDuration = simulator.animationDuration;
       this.currentChainNum = simulator.currentChainNum;
-      this.chainDamages = [...simulator.chainDamages];
+      this.chains = [...simulator.chains];
     } else {
       this.field = [...new Array(PuyoCoord.YNum)].map(
         () => new Array(PuyoCoord.XNum)
@@ -189,9 +184,9 @@ export class Simulator {
     return this.traceCoords;
   }
 
-  /** 全連鎖ダメージ情報を取得する。 */
-  public getChainDamages() {
-    return this.chainDamages;
+  /** 全連鎖情報を取得する。 */
+  public getChains() {
+    return this.chains;
   }
 
   /** シミュレーターをクリアする。 */
@@ -359,13 +354,13 @@ export class Simulator {
 
   /**
    * 総プリズムダメージを計算する。
-   * @param chainDamages
+   * @param chains
    * @param attr
    * @returns
    */
-  public static calcTotalPrismDamage(chainDamages: ChainDamage[]): number {
-    const prismDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms[PuyoAttribute.Prism]?.strength || 0);
+  public static calcTotalPrismDamage(chains: Chain[]): number {
+    const prismDamage = chains.reduce((m, chain) => {
+      return m + (chain.attributes[PuyoAttribute.Prism]?.strength || 0);
     }, 0);
 
     return prismDamage;
@@ -373,44 +368,44 @@ export class Simulator {
 
   /**
    * 対象属性における総ダメージを計算する。
-   * @param chainDamages
+   * @param chains
    * @param targetAttr
    * @returns
    */
   public static calcTotalDamageOfTargetAttr(
-    chainDamages: ChainDamage[],
+    chains: Chain[],
     targetAttr: PuyoAttribute
   ): number {
-    const totalAttrDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms[targetAttr]?.strength || 0);
+    const totalAttrDamage = chains.reduce((m, chain) => {
+      return m + (chain.attributes[targetAttr]?.strength || 0);
     }, 0);
-    return totalAttrDamage + Simulator.calcTotalPrismDamage(chainDamages);
+    return totalAttrDamage + Simulator.calcTotalPrismDamage(chains);
   }
 
   /**
    * ぷよ使いカウントの総数を計算する。
-   * @param chainDamages
+   * @param chains
    * @returns
    */
-  public static calcTotalPuyoTsukaiCount(chainDamages: ChainDamage[]): number {
-    return chainDamages.reduce((m, chain) => {
+  public static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
+    return chains.reduce((m, chain) => {
       return m + chain.puyoTsukaiCount;
     }, 0);
   }
 
   /** なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける */
   public async doChains(animate?: {
-    onAnimateStep: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
-    onAnimateEnd: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
+    onAnimateStep: (simulator: Simulator, chains: Chain[]) => void;
+    onAnimateEnd: (simulator: Simulator, chains: Chain[]) => void;
   }) {
     const invokeOnAnimateField = async () => {
       await sleep(this.animationDuration);
-      animate?.onAnimateStep(this, this.chainDamages);
+      animate?.onAnimateStep(this, this.chains);
     };
 
     this.chainAnimating = true;
     this.currentChainNum = 0;
-    this.chainDamages = [];
+    this.chains = [];
 
     // animate オブジェクトがないときの await を出来るだけ回避したいので、
     // やや冗長になっている。
@@ -453,11 +448,11 @@ export class Simulator {
       }
     }
 
-    const chainDamages = this.chainDamages;
+    const chains = this.chains;
     this.currentChainNum = 0;
     this.chainAnimating = false;
 
-    animate?.onAnimateEnd(this, chainDamages);
+    animate?.onAnimateEnd(this, chains);
   }
 
   /**
@@ -602,7 +597,7 @@ export class Simulator {
    * 引っ付いて消えるぷよのブロックがあれば消す。
    * @returns 消しが発生しないとき、undefined。消しが発生するとき、色ごとのダメージ。
    */
-  private popPuyoBlocks(): ChainDamage | undefined {
+  private popPuyoBlocks(): Chain | undefined {
     const blocks = this.detectPopBlocks2();
     const popped = blocks.length > 0;
 
@@ -614,11 +609,11 @@ export class Simulator {
     const poppedPuyoNum = this.calcPoppedPuyoNum(blocks);
     const puyoTsukaiCount = this.calcPuyoTsukaiCount(blocks);
 
-    const result: ChainDamage = {
+    const result: Chain = {
       chainNum,
       poppedPuyoNum,
       puyoTsukaiCount,
-      damageTerms: {} as Record<PuyoAttribute, DamageTerm>
+      attributes: {} as Record<PuyoAttribute, AttributeChain>
     };
 
     for (const attr of [
@@ -635,7 +630,7 @@ export class Simulator {
           continue;
         }
         const poppedNum = prismBlock.coords.size;
-        result.damageTerms[attr] = {
+        result.attributes[attr] = {
           strength: 3 * poppedNum,
           poppedNum,
           separatedBlocksNum: 1
@@ -663,7 +658,7 @@ export class Simulator {
           calcChainFactor(chainNum, this.chainLeverage)
         );
 
-        result.damageTerms[attr] = {
+        result.attributes[attr] = {
           strength: damageStrength,
           poppedNum: sameColorPoppedNum,
           separatedBlocksNum
@@ -671,7 +666,7 @@ export class Simulator {
       }
     }
 
-    this.chainDamages.push(result);
+    this.chains.push(result);
 
     for (const block of blocks) {
       if (block.attr === PuyoAttribute.Kata) {
@@ -762,8 +757,8 @@ export class Simulator {
    * なぞり消しモードが通常であれば、なぞり中のぷよを消す。
    * 色変えモードであれば、なぞり中のぷよの色を変えその結果消える箇所を消す。
    */
-  private popTracingPuyos(): boolean | ChainDamage | undefined {
-    let popped: boolean | ChainDamage | undefined = false;
+  private popTracingPuyos(): boolean | Chain | undefined {
+    let popped: boolean | Chain | undefined = false;
 
     if (this.traceMode === TraceMode.Normal) {
       for (const c of this.traceCoords) {

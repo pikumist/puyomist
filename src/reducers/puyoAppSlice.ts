@@ -7,6 +7,7 @@ import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { type Board, emptyBoard } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
+import type { Chain } from '../logics/Chain';
 import type { OptimizationTarget } from '../logics/OptimizationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
@@ -18,7 +19,6 @@ import {
 import { Simulator } from '../logics/Simulator';
 import type { TraceMode } from '../logics/TraceMode';
 import { screenshotBoardId } from '../logics/boards';
-import type { ChainDamage } from '../logics/damage';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
 import { reflectBoardInSimulator } from './internal/reflectBoardInSimulator';
@@ -68,20 +68,20 @@ const puyoAppSlice = createSlice({
     /** アニメーションステップ(連鎖の1コマ)が発生したとき */
     animationStep: (
       state,
-      action: PayloadAction<{ simulator: Simulator; damages: ChainDamage[] }>
+      action: PayloadAction<{ simulator: Simulator; damages: Chain[] }>
     ) => {
       const { simulator, damages } = action.payload;
-      state.chainDamages = [...damages];
+      state.chains = [...damages];
       state.simulator = simulator.clone();
     },
 
     /** アニメーションが終了したとき */
     animationEnd: (
       state,
-      action: PayloadAction<{ simulator: Simulator; damages: ChainDamage[] }>
+      action: PayloadAction<{ simulator: Simulator; damages: Chain[] }>
     ) => {
       const { simulator, damages } = action.payload;
-      state.chainDamages = [...damages];
+      state.chains = [...damages];
       state.animating = false;
       state.simulator = simulator.clone();
     },
@@ -162,7 +162,7 @@ const puyoAppSlice = createSlice({
         );
       }
       state.simulator = state.simulator.clone();
-      state.chainDamages = [];
+      state.chains = [];
     },
 
     ///
@@ -405,10 +405,10 @@ export const tracingFinished =
     const simulator = new Simulator(getState().puyoApp.simulator);
 
     simulator.doChains({
-      onAnimateStep: (simulator: Simulator, damages: ChainDamage[]) => {
+      onAnimateStep: (simulator: Simulator, damages: Chain[]) => {
         dispatch(animationStep({ simulator, damages }));
       },
-      onAnimateEnd: (simulator: Simulator, damages: ChainDamage[]) => {
+      onAnimateEnd: (simulator: Simulator, damages: Chain[]) => {
         dispatch(animationEnd({ simulator, damages }));
       }
     });

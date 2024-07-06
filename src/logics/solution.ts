@@ -1,8 +1,8 @@
+import type { Chain } from './Chain';
 import type { OptimizationTarget } from './OptimizationTarget';
 import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { bitFieldAddIndex, bitFieldHasIndex } from './bit-field';
-import type { ChainDamage } from './damage';
 
 /** 各属性における総ダメージ */
 export interface TotalDamages {
@@ -20,7 +20,7 @@ export interface TotalDamages {
   [PuyoAttribute.Purple]: number;
 }
 
-/** なぞり消し(塗り)した結果 */
+/** なぞり消し(塗り)しで発生した連鎖等の情報 */
 export interface SolutionResult {
   /** なぞったぷよ */
   traceCoords: PuyoCoord[];
@@ -28,8 +28,8 @@ export interface SolutionResult {
   puyoTsukaiCount: number;
   /** 各属性における総ダメージ */
   totalDamages: TotalDamages;
-  /** 連鎖ダメージ情報 (元情報) */
-  chainDamages: ChainDamage[];
+  /** 全連鎖情報 */
+  chains: Chain[];
 }
 
 /** solve() メソッドの呼び出し結果 */

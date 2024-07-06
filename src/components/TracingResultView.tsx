@@ -1,22 +1,22 @@
 import type React from 'react';
+import type { Chain } from '../logics/Chain';
 import { PuyoAttribute } from '../logics/PuyoAttribute';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
-import type { ChainDamage } from '../logics/damage';
 import DamageDetail from './DamageDetail';
 
 type IProps = {
   tracingCoords: PuyoCoord[];
-  chainDamages: ChainDamage[];
+  chains: Chain[];
 };
 
 /** なぞり消し結果View */
 const TracingResultView: React.FC<IProps> = (props) => {
-  const { tracingCoords, chainDamages } = props;
+  const { tracingCoords, chains } = props;
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
-  const puyoTsukaiCount = chainDamages
-    ? Simulator.calcTotalPuyoTsukaiCount(chainDamages)
+  const puyoTsukaiCount = chains
+    ? Simulator.calcTotalPuyoTsukaiCount(chains)
     : '';
 
   return (
@@ -30,7 +30,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
         PuyoAttribute.Yellow,
         PuyoAttribute.Purple
       ].map((attr) => (
-        <DamageDetail key={attr} attr={attr} chainDamages={chainDamages} />
+        <DamageDetail key={attr} attr={attr} chains={chains} />
       ))}
     </>
   );

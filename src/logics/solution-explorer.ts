@@ -201,15 +201,13 @@ const calcSolutionResult = (
   sim.setTraceCoords(traceCoords);
   sim.doChains();
 
-  const puyoTsukaiCount = Simulator.calcTotalPuyoTsukaiCount(
-    sim.getChainDamages()
-  );
+  const puyoTsukaiCount = Simulator.calcTotalPuyoTsukaiCount(sim.getChains());
 
   const totalDamages: Partial<TotalDamages> = Object.fromEntries(
     Simulator.colorAttrs.map((targetAttr) => {
       return [
         targetAttr,
-        Simulator.calcTotalDamageOfTargetAttr(sim.getChainDamages(), targetAttr)
+        Simulator.calcTotalDamageOfTargetAttr(sim.getChains(), targetAttr)
       ];
     })
   );
@@ -221,6 +219,6 @@ const calcSolutionResult = (
     traceCoords,
     puyoTsukaiCount,
     totalDamages: totalDamages as TotalDamages,
-    chainDamages: sim.getChainDamages()
+    chains: sim.getChains()
   };
 };

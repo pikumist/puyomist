@@ -84,7 +84,7 @@ const PuyoApp: React.FC = () => {
               />
               <TracingResultView
                 tracingCoords={state.simulator.getCurrentTracingCoords()}
-                chainDamages={state.chainDamages}
+                chains={state.chains}
               />
             </div>
             <div className={layout.flex1}>

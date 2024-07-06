@@ -274,7 +274,7 @@ describe('Simulator', () => {
             chainNum: 1,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 1,
                 poppedNum: 3,
@@ -286,7 +286,7 @@ describe('Simulator', () => {
             chainNum: 2,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 3.8000000000000003,
                 poppedNum: 3,
@@ -298,7 +298,7 @@ describe('Simulator', () => {
             chainNum: 3,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 5.8999999999999995,
                 poppedNum: 3,
@@ -310,7 +310,7 @@ describe('Simulator', () => {
             chainNum: 4,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
                 poppedNum: 3,
@@ -322,7 +322,7 @@ describe('Simulator', () => {
             chainNum: 5,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 9.4,
                 poppedNum: 3,
@@ -334,7 +334,7 @@ describe('Simulator', () => {
             chainNum: 6,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 10.799999999999999,
                 poppedNum: 3,
@@ -346,7 +346,7 @@ describe('Simulator', () => {
             chainNum: 7,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 12.200000000000001,
                 poppedNum: 3,
@@ -358,7 +358,7 @@ describe('Simulator', () => {
             chainNum: 8,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 13.6,
                 poppedNum: 3,
@@ -370,7 +370,7 @@ describe('Simulator', () => {
             chainNum: 9,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 15,
                 poppedNum: 3,
@@ -382,7 +382,7 @@ describe('Simulator', () => {
             chainNum: 10,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 16.400000000000002,
                 poppedNum: 3,
@@ -394,7 +394,7 @@ describe('Simulator', () => {
             chainNum: 11,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 17.800000000000004,
                 poppedNum: 3,
@@ -406,7 +406,7 @@ describe('Simulator', () => {
             chainNum: 12,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19.2,
                 poppedNum: 3,
@@ -418,7 +418,7 @@ describe('Simulator', () => {
             chainNum: 13,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 20.599999999999998,
                 poppedNum: 3,
@@ -430,7 +430,7 @@ describe('Simulator', () => {
             chainNum: 14,
             poppedPuyoNum: 10,
             puyoTsukaiCount: 10,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 90.19999999999999,
                 poppedNum: 10,
@@ -457,7 +457,7 @@ describe('Simulator', () => {
             chainNum: 1,
             poppedPuyoNum: 6,
             puyoTsukaiCount: 7,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 1.3,
                 poppedNum: 6,
@@ -469,7 +469,7 @@ describe('Simulator', () => {
             chainNum: 2,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 5,
                 poppedNum: 4,
@@ -481,7 +481,7 @@ describe('Simulator', () => {
             chainNum: 3,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
                 poppedNum: 4,
@@ -493,7 +493,7 @@ describe('Simulator', () => {
             chainNum: 4,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 11,
                 poppedNum: 4,
@@ -505,7 +505,7 @@ describe('Simulator', () => {
             chainNum: 5,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 13,
                 poppedNum: 4,
@@ -517,7 +517,7 @@ describe('Simulator', () => {
             chainNum: 6,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 15,
                 poppedNum: 4,
@@ -529,7 +529,7 @@ describe('Simulator', () => {
             chainNum: 7,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 17,
                 poppedNum: 4,
@@ -541,7 +541,7 @@ describe('Simulator', () => {
             chainNum: 8,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19,
                 poppedNum: 4,
@@ -553,7 +553,7 @@ describe('Simulator', () => {
             chainNum: 9,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 21,
                 poppedNum: 4,
@@ -565,7 +565,7 @@ describe('Simulator', () => {
             chainNum: 10,
             poppedPuyoNum: 13,
             puyoTsukaiCount: 13,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 108.09999999999998,
                 poppedNum: 13,
@@ -576,7 +576,7 @@ describe('Simulator', () => {
         ]
       }
     ])(
-      'should calculate chainDamages',
+      'should calculate chains',
       ({
         maxTraceNum,
         poppingLeverage,
@@ -598,8 +598,8 @@ describe('Simulator', () => {
         sim.doChains()!;
 
         // Assert
-        const chainDamages = sim.getChainDamages();
-        expect(chainDamages).toEqual(expected);
+        const chains = sim.getChains();
+        expect(chains).toEqual(expected);
       }
     );
   });

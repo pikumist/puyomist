@@ -1,10 +1,10 @@
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
+import type { Chain } from '../logics/Chain';
 import { OptimizationTarget } from '../logics/OptimizationTarget';
 import { Simulator } from '../logics/Simulator';
 import { screenshotBoardId } from '../logics/boards';
-import type { ChainDamage } from '../logics/damage';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 
 export interface PuyoAppState {
@@ -35,8 +35,8 @@ export interface PuyoAppState {
   /** アニメーション中かどうか */
   animating: boolean;
 
-  /** 連鎖ダメージ情報 */
-  chainDamages: ChainDamage[];
+  /** 全連鎖情報 */
+  chains: Chain[];
 
   /** 最適化計算中かどうか */
   solving: boolean;
@@ -61,7 +61,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardEditMode: undefined,
   simulator: new Simulator(),
   animating: false,
-  chainDamages: [],
+  chains: [],
   solving: false,
   explorationResult: undefined,
   screenshotInfo: undefined,
