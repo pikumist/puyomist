@@ -6,7 +6,7 @@ import type { PuyoType } from '../../puyo';
  * - なつぞらのアマノネ
  */
 export default {
-  matrix: [] as PuyoType[][],
+  field: [] as PuyoType[][],
   traceMode: TraceMode.ToPurple,
   minimumPuyoNumForPopping: 4,
   chainLeverage: 10.5

@@ -30,20 +30,8 @@ import {
   type TotalDamages
 } from './solution';
 
-/**
- * フィールドは、インフィールドとネクストぷよで構成される。
- *
- * インフィールドは 8x6 のぷよが入るセル行列からなる。
- * | 位置 | セルインデックス | XY座標 |
- * | -- | -- | -- |
- * | 左上 | 0 | {x: 0, y: 0} |
- * | 右上 | 7 | {x: 7, y: 0} |
- * | 左下 | 40 | {x: 0, y: 8} |
- * | 右下 | 47 | {x: 7, y: 8} |
- *
- * ネクストぷよは 8つのぷよからなる。(実際は無限に上に連なっているはずだが割愛)
- */
-export class Field {
+/** 連鎖シミュレーター */
+export class Simulator {
   public static readonly colorAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Red,
     PuyoAttribute.Blue,
@@ -65,43 +53,47 @@ export class Field {
   private static totalCountOfdetectPopBlocks = 0;
   private static totalTimeOfdetectPopBlocks = 0;
 
-  private readonly cellMatrix: (PuyoType | undefined)[][];
+  /** フィールドは 8x6 のぷよ行列 */
+  private readonly field: (PuyoType | undefined)[][];
+
+  /** ネクストぷよは 8つのぷよからなる。(実際は無限に上に連なっているはずだが割愛) */
   private nextPuyos: (PuyoType | undefined)[];
+
   private boostAreaCoordSetList: ReadonlySet<PuyoCoord>[] = [];
   private isChanceMode = false;
   private traceCoords: PuyoCoord[] = [];
-  private minimumPuyoNumForPopping = Field.defaultMinimumPuyoNumForPopping;
-  private maxTraceNum = Field.defaultMaxTraceNum;
+  private minimumPuyoNumForPopping = Simulator.defaultMinimumPuyoNumForPopping;
+  private maxTraceNum = Simulator.defaultMaxTraceNum;
   private traceMode = TraceMode.Normal;
   private poppingLeverage = 1.0;
   private chainLeverage = 1.0;
   private chainAnimating = false;
-  private animationDuration = Field.defaultAnimationDuration;
+  private animationDuration = Simulator.defaultAnimationDuration;
   private currentChainNum = 0;
   private chainDamages: ChainDamage[] = [];
 
   /**
-   * フィールドの指定があればそれをコピーする。そうでなければ初期化する。
-   * @param field
+   * インスタンスの指定があればそれをコピーする。そうでなければ初期化する。
+   * @param simulator
    */
-  constructor(field?: Field) {
-    if (field) {
-      this.cellMatrix = field.cellMatrix.map((row) => [...row]);
-      this.nextPuyos = [...field.nextPuyos];
-      this.boostAreaCoordSetList = [...field.boostAreaCoordSetList];
-      this.isChanceMode = field.isChanceMode;
-      this.traceCoords = [...field.traceCoords];
-      this.minimumPuyoNumForPopping = field.minimumPuyoNumForPopping;
-      this.maxTraceNum = field.maxTraceNum;
-      this.traceMode = field.traceMode;
-      this.poppingLeverage = field.poppingLeverage;
-      this.chainLeverage = field.chainLeverage;
-      this.chainAnimating = field.chainAnimating;
-      this.animationDuration = field.animationDuration;
-      this.currentChainNum = field.currentChainNum;
-      this.chainDamages = [...field.chainDamages];
+  constructor(simulator?: Simulator) {
+    if (simulator) {
+      this.field = simulator.field.map((row) => [...row]);
+      this.nextPuyos = [...simulator.nextPuyos];
+      this.boostAreaCoordSetList = [...simulator.boostAreaCoordSetList];
+      this.isChanceMode = simulator.isChanceMode;
+      this.traceCoords = [...simulator.traceCoords];
+      this.minimumPuyoNumForPopping = simulator.minimumPuyoNumForPopping;
+      this.maxTraceNum = simulator.maxTraceNum;
+      this.traceMode = simulator.traceMode;
+      this.poppingLeverage = simulator.poppingLeverage;
+      this.chainLeverage = simulator.chainLeverage;
+      this.chainAnimating = simulator.chainAnimating;
+      this.animationDuration = simulator.animationDuration;
+      this.currentChainNum = simulator.currentChainNum;
+      this.chainDamages = [...simulator.chainDamages];
     } else {
-      this.cellMatrix = [...new Array(PuyoCoord.YNum)].map(
+      this.field = [...new Array(PuyoCoord.YNum)].map(
         () => new Array(PuyoCoord.XNum)
       );
       this.nextPuyos = new Array<PuyoType | undefined>(PuyoCoord.XNum);
@@ -175,8 +167,8 @@ export class Field {
   }
 
   /** フィールドの中にあるぷよ行列を取得する。 */
-  public getCellMatrix(): (PuyoType | undefined)[][] {
-    return this.cellMatrix;
+  public getField(): (PuyoType | undefined)[][] {
+    return this.field;
   }
 
   /** ネクストぷよ配列を取得する。 */
@@ -206,21 +198,21 @@ export class Field {
     return this.traceCoords.length;
   }
 
-  /** 現在のなぞり座標リストを取得する */
+  /** 現在のなぞり座標リストを取得する。 */
   public getCurrentTracingCoords() {
     return this.traceCoords;
   }
 
-  /** 全連鎖ダメージ情報を取得する */
+  /** 全連鎖ダメージ情報を取得する。 */
   public getChainDamages() {
     return this.chainDamages;
   }
 
-  /** フィールドをクリアする。 */
+  /** シミュレーターをクリアする。 */
   public clear(): void {
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        this.cellMatrix[y][x] = undefined;
+        this.field[y][x] = undefined;
       }
     }
     for (let i = 0; i < PuyoCoord.XNum; i++) {
@@ -228,14 +220,14 @@ export class Field {
     }
 
     this.isChanceMode = false;
-    this.maxTraceNum = Field.defaultMaxTraceNum;
+    this.maxTraceNum = Simulator.defaultMaxTraceNum;
     this.chainAnimating = false;
-    this.animationDuration = Field.defaultAnimationDuration;
+    this.animationDuration = Simulator.defaultAnimationDuration;
     this.currentChainNum = 0;
   }
 
-  public clone(): Field {
-    return new Field(this);
+  public clone(): Simulator {
+    return new Simulator(this);
   }
 
   /*
@@ -266,10 +258,10 @@ export class Field {
   }
 
   /**
-   * 連鎖の種やとくべつルールなど固定のボードからフィールドをリセットする
+   * 連鎖の種やとくべつルールなど固定のボードからシミュレーターをリセットする
    * @param board 連鎖の種やとくべつルールなど固定のボード
    */
-  public resetFieldByBoard(board: Board): void {
+  public resetWithBoard(board: Board): void {
     this.chainAnimating = false;
     this.currentChainNum = 0;
 
@@ -290,11 +282,11 @@ export class Field {
       }
     }
 
-    const matrix = board.matrix;
+    const field = board.field;
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        this.cellMatrix[y][x] = matrix[y][x];
+        this.field[y][x] = field[y][x];
       }
     }
   }
@@ -327,14 +319,14 @@ export class Field {
         for (let i = 0; i < candidateTypes.length; i++) {
           const type = candidateTypes[i];
 
-          this.cellMatrix[y][x] = type;
+          this.field[y][x] = type;
 
           if (this.detectPopBlocks2().length === 0) {
             ok = true;
             break;
           }
 
-          this.cellMatrix[y][x] = undefined;
+          this.field[y][x] = undefined;
         }
 
         if (!ok) {
@@ -357,7 +349,7 @@ export class Field {
       return;
     }
 
-    const puyoType = this.cellMatrix[puyoCoord.y][puyoCoord.x];
+    const puyoType = this.field[puyoCoord.y][puyoCoord.x];
     if (!puyoType) {
       return;
     }
@@ -382,12 +374,12 @@ export class Field {
   public solve2(
     optimizationTarget: OptimizationTarget
   ): SolvedResult | undefined {
-    Field.totalCountOfdetectPopBlocks = 0;
-    Field.totalTimeOfdetectPopBlocks = 0;
+    Simulator.totalCountOfdetectPopBlocks = 0;
+    Simulator.totalTimeOfdetectPopBlocks = 0;
 
     const startTime = Date.now();
 
-    const originalField = new Field(this);
+    const originalField = new Simulator(this);
 
     const carry: SolutionCarry = {
       solutionNums: 0,
@@ -401,7 +393,7 @@ export class Field {
           createfilledOneBitFieldBeforeIndex(coord.index),
           new Map()
         );
-        Field.advanceTrace(
+        Simulator.advanceTrace(
           originalField,
           optimizationTarget,
           state,
@@ -416,11 +408,11 @@ export class Field {
 
     console.log(
       'total count of detectPopBlocks',
-      Field.totalCountOfdetectPopBlocks
+      Simulator.totalCountOfdetectPopBlocks
     );
     console.log(
       'total time of detectPopBlocks',
-      Field.totalTimeOfdetectPopBlocks
+      Simulator.totalTimeOfdetectPopBlocks
     );
 
     return {
@@ -435,12 +427,12 @@ export class Field {
     optimizationTarget: OptimizationTarget,
     index: number
   ): SolvedResult | undefined {
-    Field.totalCountOfdetectPopBlocks = 0;
-    Field.totalTimeOfdetectPopBlocks = 0;
+    Simulator.totalCountOfdetectPopBlocks = 0;
+    Simulator.totalTimeOfdetectPopBlocks = 0;
 
     const startTime = Date.now();
 
-    const originalField = new Field(this);
+    const originalField = new Simulator(this);
 
     const carry: SolutionCarry = {
       solutionNums: 0,
@@ -453,18 +445,24 @@ export class Field {
     );
     const coord = PuyoCoord.indexToCoord(index)!;
 
-    Field.advanceTrace(originalField, optimizationTarget, state, carry, coord);
+    Simulator.advanceTrace(
+      originalField,
+      optimizationTarget,
+      state,
+      carry,
+      coord
+    );
 
     const endTime = Date.now();
     const elapsedTime = endTime - startTime;
 
     console.log(
       'total count of detectPopBlocks',
-      Field.totalCountOfdetectPopBlocks
+      Simulator.totalCountOfdetectPopBlocks
     );
     console.log(
       'total time of detectPopBlocks',
-      Field.totalTimeOfdetectPopBlocks
+      Simulator.totalTimeOfdetectPopBlocks
     );
 
     return {
@@ -482,20 +480,22 @@ export class Field {
    * @returns
    */
   private static calcSolutionResult(
-    originalField: Field,
+    originalField: Simulator,
     traceCoords: PuyoCoord[]
   ): SolutionResult {
-    const field = new Field(originalField);
+    const field = new Simulator(originalField);
     field.setTraceCoords(traceCoords);
-    field.continueChainsToTheEnd();
+    field.doChains();
 
-    const puyoTsukaiCount = Field.calcTotalPuyoTsukaiCount(field.chainDamages);
+    const puyoTsukaiCount = Simulator.calcTotalPuyoTsukaiCount(
+      field.chainDamages
+    );
 
     const totalDamages: Partial<TotalDamages> = Object.fromEntries(
-      Field.colorAttrs.map((targetAttr) => {
+      Simulator.colorAttrs.map((targetAttr) => {
         return [
           targetAttr,
-          Field.calcTotalDamageOfTargetAttr(field.chainDamages, targetAttr)
+          Simulator.calcTotalDamageOfTargetAttr(field.chainDamages, targetAttr)
         ];
       })
     );
@@ -523,7 +523,7 @@ export class Field {
       return;
     }
 
-    carry.optimalSolution = Field.betterSolution(
+    carry.optimalSolution = Simulator.betterSolution(
       optTarget,
       carry.optimalSolution,
       solutionResult
@@ -582,7 +582,7 @@ export class Field {
   }
 
   private static advanceTrace(
-    originalField: Field,
+    originalField: Simulator,
     optTarget: OptimizationTarget,
     state: SolutionState,
     carry: SolutionCarry,
@@ -597,14 +597,14 @@ export class Field {
     const s = SolutionState.clone(state);
     s.addTraceCoord(coord);
 
-    Field.updateCarry(
+    Simulator.updateCarry(
       carry,
       optTarget,
-      Field.calcSolutionResult(originalField, s.getTraceCoords())
+      Simulator.calcSolutionResult(originalField, s.getTraceCoords())
     );
 
     for (const nextCoord of s.enumerateCandidates()) {
-      Field.advanceTrace(originalField, optTarget, s, carry, nextCoord)!;
+      Simulator.advanceTrace(originalField, optTarget, s, carry, nextCoord)!;
     }
   }
 
@@ -635,7 +635,7 @@ export class Field {
     const totalAttrDamage = chainDamages.reduce((m, chain) => {
       return m + (chain.damageTerms[targetAttr]?.strength || 0);
     }, 0);
-    return totalAttrDamage + Field.calcTotalPrismDamage(chainDamages);
+    return totalAttrDamage + Simulator.calcTotalPrismDamage(chainDamages);
   }
 
   /**
@@ -650,13 +650,13 @@ export class Field {
   }
 
   /** なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける */
-  public async continueChainsToTheEnd(animate?: {
-    onAnimateField: (field: Field, chainDamages: ChainDamage[]) => void;
-    onAnimateEnd: (field: Field, chainDamages: ChainDamage[]) => void;
+  public async doChains(animate?: {
+    onAnimateStep: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
+    onAnimateEnd: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
   }) {
     const invokeOnAnimateField = async () => {
       await sleep(this.animationDuration);
-      animate?.onAnimateField(this, this.chainDamages);
+      animate?.onAnimateStep(this, this.chainDamages);
     };
 
     this.chainAnimating = true;
@@ -671,7 +671,7 @@ export class Field {
         await invokeOnAnimateField();
       }
 
-      while (this.dropPuyosOfInField()) {
+      while (this.dropInField()) {
         if (animate) {
           await invokeOnAnimateField();
         }
@@ -682,7 +682,7 @@ export class Field {
         }
       }
 
-      while (this.dropNextPuyosIntoInField()) {
+      while (this.dropNextIntoField()) {
         if (animate) {
           await invokeOnAnimateField();
         }
@@ -690,7 +690,7 @@ export class Field {
           if (animate) {
             await invokeOnAnimateField();
           }
-          while (this.dropPuyosOfInField()) {
+          while (this.dropInField()) {
             if (animate) {
               await invokeOnAnimateField();
             }
@@ -719,7 +719,7 @@ export class Field {
     attr: PuyoAttribute;
     coords: Set<PuyoCoord>;
   }[] {
-    Field.totalCountOfdetectPopBlocks++;
+    Simulator.totalCountOfdetectPopBlocks++;
 
     const start = performance.now();
 
@@ -727,7 +727,7 @@ export class Field {
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = this.cellMatrix[y][x];
+        const puyoType = this.field[y][x];
         if (!puyoType || !isColoredPuyoType(puyoType)) {
           continue;
         }
@@ -757,8 +757,7 @@ export class Field {
             if (!neighborCoord) {
               return false;
             }
-            const neighborType =
-              this.cellMatrix[neighborCoord.y][neighborCoord.x];
+            const neighborType = this.field[neighborCoord.y][neighborCoord.x];
             const neighborAttr = getPuyoAttribute(neighborType);
             return neighborAttr === puyoAttr;
           }
@@ -808,7 +807,7 @@ export class Field {
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = this.cellMatrix[y][x];
+        const puyoType = this.field[y][x];
 
         if (!puyoType) {
           continue;
@@ -816,7 +815,7 @@ export class Field {
 
         const puyoAttr = getPuyoAttribute(puyoType);
 
-        if (!puyoAttr || !Field.specialAttrs.includes(puyoAttr)) {
+        if (!puyoAttr || !Simulator.specialAttrs.includes(puyoAttr)) {
           continue;
         }
 
@@ -852,7 +851,7 @@ export class Field {
     const result = coloredBlocksToBePopped.concat(specialBlocksToBePopped);
     const end = performance.now();
 
-    Field.totalTimeOfdetectPopBlocks += end - start;
+    Simulator.totalTimeOfdetectPopBlocks += end - start;
 
     return result;
   }
@@ -904,7 +903,7 @@ export class Field {
         const separatedBlocksNum = sameColorBlocks.length;
         const sameColorPoppedNum = sameColorBlocks.reduce((m, block) => {
           const puyoNumInBlock = [...block.coords]
-            .map((c) => (isPlusPuyo(this.cellMatrix[c.y][c.x]) ? 2 : 1))
+            .map((c) => (isPlusPuyo(this.field[c.y][c.x]) ? 2 : 1))
             .reduce((m, n) => m + n, 0);
           return m + puyoNumInBlock;
         }, 0);
@@ -935,11 +934,11 @@ export class Field {
     for (const block of blocks) {
       if (block.attr === PuyoAttribute.Kata) {
         for (const c of block.coords) {
-          this.cellMatrix[c.y][c.x] = PuyoType.Ojyama;
+          this.field[c.y][c.x] = PuyoType.Ojyama;
         }
       } else {
         for (const c of block.coords) {
-          this.cellMatrix[c.y][c.x] = undefined;
+          this.field[c.y][c.x] = undefined;
         }
       }
     }
@@ -955,7 +954,7 @@ export class Field {
       if (isColoredPuyoAttribute(block.attr)) {
         let num = 0;
         for (const coord of block.coords) {
-          const puyoType = this.cellMatrix[coord.y][coord.x]!;
+          const puyoType = this.field[coord.y][coord.x]!;
           const isPlus = isPlusPuyo(puyoType);
           num += isPlus ? 2 : 1;
         }
@@ -964,7 +963,7 @@ export class Field {
 
       // 色ぷよ以外のブロックの場合
       const num = [...block.coords.values()].filter((coord) => {
-        const puyoType = this.cellMatrix[coord.y][coord.x]!;
+        const puyoType = this.field[coord.y][coord.x]!;
         // TODO: 固ぷよが同時消し数に含まれるかどうか要調査
         // https://kayagrv.com/entry/2019/10/05/%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E8%A8%88%E7%AE%97%E5%BC%8F%E5%9F%BA%E7%A4%8E
         return puyoType !== PuyoType.Kata && puyoType !== PuyoType.Heart;
@@ -990,7 +989,7 @@ export class Field {
       if (isColoredPuyoAttribute(block.attr)) {
         let num = 0;
         for (const coord of block.coords) {
-          const puyoType = this.cellMatrix[coord.y][coord.x]!;
+          const puyoType = this.field[coord.y][coord.x]!;
           const plusFactor = isPlusPuyo(puyoType) ? 2 : 1;
           const boostFactor = this.coordIsInBoostArea(coord) ? 3 : 1;
           num += plusFactor * boostFactor;
@@ -1026,7 +1025,7 @@ export class Field {
 
     if (this.traceMode === TraceMode.Normal) {
       for (const c of this.traceCoords) {
-        this.cellMatrix[c.y][c.x] = undefined;
+        this.field[c.y][c.x] = undefined;
         popped = true;
       }
     } else {
@@ -1035,11 +1034,11 @@ export class Field {
         throw new Error('traceMode is invalid.');
       }
       for (const c of this.traceCoords) {
-        const puyoType = this.cellMatrix[c.y][c.x];
+        const puyoType = this.field[c.y][c.x];
         if (!puyoType) {
           continue;
         }
-        this.cellMatrix[c.y][c.x] = convertPuyoType(puyoType, puyoAttr);
+        this.field[c.y][c.x] = convertPuyoType(puyoType, puyoAttr);
       }
       popped = this.popPuyoBlocks();
     }
@@ -1049,14 +1048,14 @@ export class Field {
     return popped;
   }
 
-  /** インフィールドのセルに隙間があればぷよを落として隙間を埋める。 (ネクストぷよはそのまま) */
-  private dropPuyosOfInField(): boolean {
+  /** フィールドのセルに隙間があればぷよを落として隙間を埋める。 (ネクストぷよはそのまま) */
+  private dropInField(): boolean {
     let dropped = false;
 
     for (let x = 0; x < PuyoCoord.XNum; x++) {
       const colPuyosFromBottom = [...new Array(PuyoCoord.YNum)]
         .map((_, y) => {
-          return this.cellMatrix[y][x];
+          return this.field[y][x];
         })
         .reverse()
         .filter(Boolean);
@@ -1064,8 +1063,8 @@ export class Field {
       for (let ry = 0; ry < PuyoCoord.YNum; ry++) {
         const puyo = colPuyosFromBottom[ry];
         const prevY = PuyoCoord.YNum - 1 - ry;
-        const prevPuyo = this.cellMatrix[prevY][x];
-        this.cellMatrix[prevY][x] = puyo;
+        const prevPuyo = this.field[prevY][x];
+        this.field[prevY][x] = puyo;
 
         if (prevPuyo !== puyo) {
           dropped = true;
@@ -1076,13 +1075,13 @@ export class Field {
     return dropped;
   }
 
-  /** ネクストぷよをインフィールドに落として隙間を埋める。 */
-  private dropNextPuyosIntoInField(): boolean {
+  /** ネクストぷよをフィールドに落として隙間を埋める。 */
+  private dropNextIntoField(): boolean {
     let dropped = false;
 
     for (let x = 0; x < PuyoCoord.XNum; x++) {
       const colPuyos = [...new Array(PuyoCoord.YNum)].map((_, y) => {
-        return this.cellMatrix[y][x];
+        return this.field[y][x];
       });
       const colPuyoNum = colPuyos.reduce((m, puyo) => (puyo ? m + 1 : m), 0);
 
@@ -1094,7 +1093,7 @@ export class Field {
       const nextPuyo = this.nextPuyos[x] ?? PuyoType.Padding;
 
       for (let y = initialY; y >= 0; y--) {
-        this.cellMatrix[y][x] = y === initialY ? nextPuyo : PuyoType.Padding;
+        this.field[y][x] = y === initialY ? nextPuyo : PuyoType.Padding;
       }
 
       this.nextPuyos[x] = undefined;

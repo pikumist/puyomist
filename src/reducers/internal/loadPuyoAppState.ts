@@ -1,11 +1,11 @@
 import { getBoostArea } from '../../logics/BoostArea';
-import { Field } from '../../logics/Field';
 import type { PuyoCoord } from '../../logics/PuyoCoord';
+import { Simulator } from '../../logics/Simulator';
 import { screenshotBoardId } from '../../logics/boards';
 import { type Session, session as g_session } from '../../logics/session';
 import type { PuyoAppState } from '../PuyoAppState';
-import { reflectBoardInField } from './reflectBoardInField';
-import { reflectNextInField } from './reflectNextInField';
+import { reflectBoardInSimulator } from './reflectBoardInSimulator';
+import { reflectNextInSimulator } from './reflectNextInSimulator';
 
 export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const s = session ?? g_session;
@@ -18,11 +18,11 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const boostAreaKeyList = s.getBoostAreaKeyList();
   const boardEditMode = s.getBoardEditMode();
 
-  const field = new Field();
-  field.setMaxTraceNum(s.getMaxTraceNum());
-  field.setPoppingLeverage(s.getPoppingLeverage());
-  field.setAnimationDuration(s.getAnimationDuration());
-  field.setBoostAreaCoordSetList(
+  const simulator = new Simulator();
+  simulator.setMaxTraceNum(s.getMaxTraceNum());
+  simulator.setPoppingLeverage(s.getPoppingLeverage());
+  simulator.setAnimationDuration(s.getAnimationDuration());
+  simulator.setBoostAreaCoordSetList(
     boostAreaKeyList
       .map((key) => {
         return getBoostArea(key)?.coordSet;
@@ -31,11 +31,11 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   );
   if (boardId === screenshotBoardId) {
     if (lastScreenshotBoard) {
-      field.resetFieldByBoard(lastScreenshotBoard);
+      simulator.resetWithBoard(lastScreenshotBoard);
     }
   } else {
-    reflectBoardInField(field, boardId);
-    reflectNextInField(field, nextSelection);
+    reflectBoardInSimulator(simulator, boardId);
+    reflectNextInSimulator(simulator, nextSelection);
   }
 
   return {
@@ -46,7 +46,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     lastScreenshotBoard,
     boostAreaKeyList,
     boardEditMode,
-    field,
+    simulator,
     animating: false,
     chainDamages: [],
     solving: false,

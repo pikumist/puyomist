@@ -7,7 +7,7 @@ import type { PuyoType } from '../../puyo';
  * - スペース☆エコロ
  */
 export default {
-  matrix: [] as PuyoType[][],
+  field: [] as PuyoType[][],
   traceMode: TraceMode.Normal,
   minimumPuyoNumForPopping: 3,
   chainLeverage: 7.0

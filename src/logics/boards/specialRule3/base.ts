@@ -6,7 +6,7 @@ import type { PuyoType } from '../../puyo';
  * - あたり＆プーボ
  */
 export default {
-  matrix: [] as PuyoType[][],
+  field: [] as PuyoType[][],
   traceMode: TraceMode.ToYellow,
   minimumPuyoNumForPopping: 4,
   chainLeverage: 10.5

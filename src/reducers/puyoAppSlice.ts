@@ -7,9 +7,9 @@ import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { type Board, emptyBoard } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
-import { Field } from '../logics/Field';
 import type { OptimizationTarget } from '../logics/OptimizationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
+import { Simulator } from '../logics/Simulator';
 import type { TraceMode } from '../logics/TraceMode';
 import { screenshotBoardId } from '../logics/boards';
 import type { ChainDamage } from '../logics/damage';
@@ -21,8 +21,8 @@ import {
 } from '../logics/puyo';
 import { SolutionMethod, type SolvedResult } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
-import { reflectBoardInField } from './internal/reflectBoardInField';
-import { reflectNextInField } from './internal/reflectNextInField';
+import { reflectBoardInSimulator } from './internal/reflectBoardInSimulator';
+import { reflectNextInSimulator } from './internal/reflectNextInSimulator';
 import { createSolve2, createSolve3 } from './internal/solve';
 import type { AppDispatch, RootState } from './store';
 
@@ -47,14 +47,14 @@ const puyoAppSlice = createSlice({
 
     /** なぞり消し座標の追加があったとき */
     tracingCoordAdded: (state, action: PayloadAction<PuyoCoord>) => {
-      state.field.addTracingPuyo(action.payload);
-      state.field = state.field.clone();
+      state.simulator.addTracingPuyo(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** なぞり消しがキャンセルされたとき */
     tracingCanceled: (state) => {
-      state.field.clearTraceCoords();
-      state.field = state.field.clone();
+      state.simulator.clearTraceCoords();
+      state.simulator = state.simulator.clone();
     },
 
     /** アニメーションが開始したとき */
@@ -65,51 +65,51 @@ const puyoAppSlice = createSlice({
     /** アニメーションステップ(連鎖の1コマ)が発生したとき */
     animationStep: (
       state,
-      action: PayloadAction<{ field: Field; damages: ChainDamage[] }>
+      action: PayloadAction<{ simulator: Simulator; damages: ChainDamage[] }>
     ) => {
-      const { field, damages } = action.payload;
+      const { simulator, damages } = action.payload;
       state.chainDamages = [...damages];
-      state.field = field.clone();
+      state.simulator = simulator.clone();
     },
 
     /** アニメーションが終了したとき */
     animationEnd: (
       state,
-      action: PayloadAction<{ field: Field; damages: ChainDamage[] }>
+      action: PayloadAction<{ simulator: Simulator; damages: ChainDamage[] }>
     ) => {
-      const { field, damages } = action.payload;
+      const { simulator, damages } = action.payload;
       state.chainDamages = [...damages];
       state.animating = false;
-      state.field = field.clone();
+      state.simulator = simulator.clone();
     },
 
     /** 盤面(ネクストを含む)内のぷよが編集されたとき */
     puyoEdited: (
       state,
-      action: PayloadAction<{ matrixCoord?: PuyoCoord; nextX?: number }>
+      action: PayloadAction<{ fieldCoord?: PuyoCoord; nextX?: number }>
     ) => {
       if (!state.lastScreenshotBoard || !state.boardEditMode) {
         return;
       }
 
-      const { matrixCoord, nextX } = action.payload;
+      const { fieldCoord, nextX } = action.payload;
 
-      if (!matrixCoord && !Number.isInteger(nextX)) {
+      if (!fieldCoord && !Number.isInteger(nextX)) {
         return;
       }
 
       const getTargetPuyoType = () => {
-        if (matrixCoord) {
-          const coord = matrixCoord;
-          return state.lastScreenshotBoard!.matrix[coord.y][coord.x];
+        if (fieldCoord) {
+          const coord = fieldCoord;
+          return state.lastScreenshotBoard!.field[coord.y][coord.x];
         }
         return state.lastScreenshotBoard!.nextPuyos![nextX!];
       };
 
       const setTargetPuyoType = (puyoType: PuyoType) => {
-        if (matrixCoord) {
-          const coord = matrixCoord;
-          state.lastScreenshotBoard!.matrix[coord.y][coord.x] = puyoType;
+        if (fieldCoord) {
+          const coord = fieldCoord;
+          state.lastScreenshotBoard!.field[coord.y][coord.x] = puyoType;
         } else {
           state.lastScreenshotBoard!.nextPuyos![nextX!] = puyoType;
         }
@@ -141,21 +141,24 @@ const puyoAppSlice = createSlice({
       }
 
       state.boardId = screenshotBoardId;
-      state.field.resetFieldByBoard(state.lastScreenshotBoard);
-      state.field = state.field.clone();
+      state.simulator.resetWithBoard(state.lastScreenshotBoard);
+      state.simulator = state.simulator.clone();
     },
 
     /** 盤面リセットボタンがクリックされたとき */
     boardResetButtonClicked: (state) => {
       if (state.boardId === screenshotBoardId) {
         if (state.lastScreenshotBoard) {
-          state.field.resetFieldByBoard(state.lastScreenshotBoard);
+          state.simulator.resetWithBoard(state.lastScreenshotBoard);
         }
       } else {
-        reflectBoardInField(state.field as Field, state.boardId);
-        reflectNextInField(state.field as Field, state.nextSelection);
+        reflectBoardInSimulator(state.simulator as Simulator, state.boardId);
+        reflectNextInSimulator(
+          state.simulator as Simulator,
+          state.nextSelection
+        );
       }
-      state.field = state.field.clone();
+      state.simulator = state.simulator.clone();
       state.chainDamages = [];
     },
 
@@ -170,12 +173,12 @@ const puyoAppSlice = createSlice({
 
       if (boardId === screenshotBoardId) {
         if (state.lastScreenshotBoard) {
-          state.field.resetFieldByBoard(state.lastScreenshotBoard);
-          state.field = state.field.clone();
+          state.simulator.resetWithBoard(state.lastScreenshotBoard);
+          state.simulator = state.simulator.clone();
         }
       } else {
-        reflectBoardInField(state.field as Field, boardId);
-        state.field = state.field.clone();
+        reflectBoardInSimulator(state.simulator as Simulator, boardId);
+        state.simulator = state.simulator.clone();
       }
     },
 
@@ -183,44 +186,44 @@ const puyoAppSlice = createSlice({
     nextItemSelected: (state, action: PayloadAction<string>) => {
       const nextSelection = action.payload;
       state.nextSelection = nextSelection;
-      reflectNextInField(state.field as Field, nextSelection);
-      state.field = state.field.clone();
+      reflectNextInSimulator(state.simulator as Simulator, nextSelection);
+      state.simulator = state.simulator.clone();
     },
 
     /** なぞり消しモードの項目が選択されたとき */
     traceModeItemSelected: (state, action: PayloadAction<TraceMode>) => {
-      state.field.setTraceMode(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setTraceMode(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** ぷよが消えるのに必要な個数が変更されたとき */
     minimumPuyoNumForPoppingChanged: (state, action: PayloadAction<number>) => {
-      state.field.setMinimumPuyoNumForPopping(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setMinimumPuyoNumForPopping(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** 最大なぞり数が変更されたとき */
     maxTraceNumChanged: (state, action: PayloadAction<number>) => {
-      state.field.setMaxTraceNum(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setMaxTraceNum(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** なぞり消し倍率が変更されたとき */
     poppingLeverageChanged: (state, action: PayloadAction<number>) => {
-      state.field.setPoppingLeverage(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setPoppingLeverage(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** 連鎖倍率が変更されたとき */
     chainLeverageChanged: (state, action: PayloadAction<number>) => {
-      state.field.setChainLeverage(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setChainLeverage(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** アニメーション時間間隔が変更されたとき */
     animationDurationChanged: (state, action: PayloadAction<number>) => {
-      state.field.setAnimationDuration(action.payload);
-      state.field = state.field.clone();
+      state.simulator.setAnimationDuration(action.payload);
+      state.simulator = state.simulator.clone();
     },
 
     /** 最適化対象の項目が選択されたとき */
@@ -254,12 +257,12 @@ const puyoAppSlice = createSlice({
         keyList.splice(i, 1);
       }
 
-      state.field.setBoostAreaCoordSetList(
+      state.simulator.setBoostAreaCoordSetList(
         keyList
           .map((key) => getBoostArea(key)?.coordSet)
           .filter(Boolean) as ReadonlySet<PuyoCoord>[]
       );
-      state.field = state.field.clone();
+      state.simulator = state.simulator.clone();
       state.boostAreaKeyList = keyList;
     },
 
@@ -345,8 +348,8 @@ const puyoAppSlice = createSlice({
       const bd = board ?? emptyBoard;
       state.lastScreenshotBoard = bd;
       state.boardId = screenshotBoardId;
-      state.field.resetFieldByBoard(bd);
-      state.field = state.field.clone();
+      state.simulator.resetWithBoard(bd);
+      state.simulator = state.simulator.clone();
     }
   }
 });
@@ -396,14 +399,14 @@ export const tracingFinished =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
     dispatch(animationStart());
 
-    const field = new Field(getState().puyoApp.field);
+    const simulator = new Simulator(getState().puyoApp.simulator);
 
-    field.continueChainsToTheEnd({
-      onAnimateField: (field: Field, damages: ChainDamage[]) => {
-        dispatch(animationStep({ field, damages }));
+    simulator.doChains({
+      onAnimateStep: (simulator: Simulator, damages: ChainDamage[]) => {
+        dispatch(animationStep({ simulator, damages }));
       },
-      onAnimateEnd: (field: Field, damages: ChainDamage[]) => {
-        dispatch(animationEnd({ field, damages }));
+      onAnimateEnd: (simulator: Simulator, damages: ChainDamage[]) => {
+        dispatch(animationEnd({ simulator, damages }));
       }
     });
   };
@@ -422,10 +425,10 @@ export const solveButtonClicked =
 
     switch (state.solutionMethod) {
       case SolutionMethod.solve2:
-        solve = createSolve2(state.field, state.optimizationTarget);
+        solve = createSolve2(state.simulator, state.optimizationTarget);
         break;
       case SolutionMethod.solve3:
-        solve = createSolve3(state.field, state.optimizationTarget);
+        solve = createSolve3(state.simulator, state.optimizationTarget);
         break;
     }
 
@@ -444,7 +447,7 @@ export const playSolutionButtonClicked =
       return;
     }
 
-    state.field.setTraceCoords(optimalSolution.traceCoords);
+    state.simulator.setTraceCoords(optimalSolution.traceCoords);
 
     dispatch(tracingFinished());
   };

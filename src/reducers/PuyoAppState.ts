@@ -1,8 +1,8 @@
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
-import { Field } from '../logics/Field';
 import { OptimizationTarget } from '../logics/OptimizationTarget';
+import { Simulator } from '../logics/Simulator';
 import { screenshotBoardId } from '../logics/boards';
 import type { ChainDamage } from '../logics/damage';
 import { SolutionMethod, type SolvedResult } from '../logics/solution';
@@ -29,8 +29,8 @@ export interface PuyoAppState {
   /** 盤面編集モード */
   boardEditMode: BoardEditMode | undefined;
 
-  /** フィールド (盤面+設定) */
-  field: Field;
+  /** TODO: 内部ステートを抜き出す */
+  simulator: Simulator;
 
   /** アニメーション中かどうか */
   animating: boolean;
@@ -59,7 +59,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   lastScreenshotBoard: undefined,
   boostAreaKeyList: [],
   boardEditMode: undefined,
-  field: new Field(),
+  simulator: new Simulator(),
   animating: false,
   chainDamages: [],
   solving: false,

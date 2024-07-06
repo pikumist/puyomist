@@ -4,7 +4,7 @@ import base from './base';
 
 export default {
   ...base,
-  matrix: [
+  field: [
     [R, B, P, Y, Y, P, P, P],
     [B, P, W, H, P, Y, G, G],
     [B, B, P, P, G, G, P, G],

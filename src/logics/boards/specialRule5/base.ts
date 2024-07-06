@@ -6,7 +6,7 @@ import type { PuyoType } from '../../puyo';
  * - キュアブルーム＆イーグレット
  */
 export default {
-  matrix: [] as PuyoType[][],
+  field: [] as PuyoType[][],
   traceMode: TraceMode.ToRed,
   minimumPuyoNumForPopping: 4,
   chainLeverage: 10.5
