@@ -1,47 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { Board } from './Board';
-import { OptimizationTarget } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, G, H, P, R, W, Y } from './boards/alias';
-import type { ChainDamage } from './damage';
-import { type ColoredPuyoAttribute, PuyoAttribute, PuyoType } from './puyo';
+import { PuyoAttribute, PuyoType } from './puyo';
 
 describe('Simulator', () => {
-  const calcCsp = (chainDamage: ChainDamage, attr: PuyoAttribute) => {
-    const c = chainDamage.chainNum;
-    const s = chainDamage.damageTerms[attr]?.separatedBlocksNum;
-    const p = chainDamage.poppedPuyoNum;
-    if (s) {
-      return `${c}-${s}-${p}`;
-    }
-  };
-
-  const findMostDamageChain = (
-    chainDamages: ChainDamage[],
-    attr: PuyoAttribute
-  ): ChainDamage | undefined => {
-    const effectiveChainDamages = chainDamages.filter((chainDamage) => {
-      return chainDamage.damageTerms[attr]?.strength;
-    });
-    const mostDamageChain = effectiveChainDamages.reduce(
-      (m, chainDamage) => {
-        if (!m) {
-          return chainDamage;
-        }
-        return chainDamage.damageTerms[attr]?.strength! >=
-          m.damageTerms[attr]?.strength!
-          ? chainDamage
-          : m;
-      },
-      undefined as ChainDamage | undefined
-    );
-
-    return mostDamageChain;
-  };
-
   describe('detectPopBlocks2()', () => {
     const U = undefined;
 
@@ -294,7 +260,7 @@ describe('Simulator', () => {
     });
   });
 
-  describe('continueChainsToTheEnd()', () => {
+  describe('doChains()', () => {
     it.each([
       {
         maxTraceNum: 5,
@@ -633,82 +599,6 @@ describe('Simulator', () => {
         // Assert
         const chainDamages = sim.getChainDamages();
         expect(chainDamages).toEqual(expected);
-      }
-    );
-  });
-
-  describe('solve2()', () => {
-    it.each([
-      {
-        attr: PuyoAttribute.Green,
-        optTarget: OptimizationTarget.GreenDamage,
-        maxTraceNum: 5,
-        poppingLeverage: 1.0,
-        boardId: 'specialRule1/1',
-        nextPuyoType: PuyoType.Green,
-        expected: {
-          candidatesNum: 15359,
-          traceCoords: [PuyoCoord.xyToCoord(5, 2), PuyoCoord.xyToCoord(6, 2)],
-          totalAttrDamage: 109.0,
-          csp: '14-2-10'
-        }
-      },
-      {
-        attr: PuyoAttribute.Blue,
-        optTarget: OptimizationTarget.BlueDamage,
-        maxTraceNum: 5,
-        poppingLeverage: 1.0,
-        boardId: 'specialRule2/1',
-        nextPuyoType: PuyoType.Blue,
-        expected: {
-          candidatesNum: 15359,
-          traceCoords: [
-            PuyoCoord.xyToCoord(3, 0),
-            PuyoCoord.xyToCoord(4, 1),
-            PuyoCoord.xyToCoord(5, 0),
-            PuyoCoord.xyToCoord(4, 2),
-            PuyoCoord.xyToCoord(3, 3)
-          ],
-          totalAttrDamage: 109.4,
-          csp: '10-2-13'
-        }
-      }
-    ])(
-      'should find optimal solution for attr damage in the field ',
-      ({
-        attr,
-        optTarget,
-        maxTraceNum,
-        poppingLeverage,
-        boardId,
-        nextPuyoType,
-        expected
-      }) => {
-        // Arrange
-        const sim = new Simulator();
-        const board = getSpecialBoard(boardId);
-        sim.resetWithBoard(board);
-        sim.setMaxTraceNum(maxTraceNum);
-        sim.setPoppingLeverage(poppingLeverage);
-        sim.resetNextPuyosAsSameType(nextPuyoType);
-
-        // Act
-        const actual = sim.solve2(optTarget)!;
-
-        // Assert
-        expect(actual.optimizationTarget).toBe(optTarget);
-        expect(actual.candidatesNum).toBe(expected.candidatesNum);
-        expect(actual.optimalSolution?.traceCoords).toEqual(
-          expected.traceCoords
-        );
-        expect(
-          actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
-        ).toBeCloseTo(expected.totalAttrDamage);
-        const csp = calcCsp(
-          findMostDamageChain(actual.optimalSolution?.chainDamages!, attr)!,
-          attr
-        );
-        expect(csp).toBe(expected.csp);
       }
     );
   });

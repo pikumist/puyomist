@@ -1,17 +1,18 @@
 import { releaseProxy } from 'comlink';
 import type { OptimizationTarget } from '../../logics/OptimizationTarget';
-import { Simulator } from '../../logics/Simulator';
+import type { Simulator } from '../../logics/Simulator';
 import type { SolutionResult } from '../../logics/solution';
+import { betterSolution } from '../../logics/solution-explorer';
 import { createWorker } from '../../logics/solution-worker-shim';
 
-export const createSolve2 =
+export const createSolveAllInSerial =
   (simulator: Simulator, optimizationTarget: OptimizationTarget) =>
   async () => {
     const { workerProxy } = createWorker();
-    return await workerProxy.solve2(simulator, optimizationTarget);
+    return await workerProxy.solveAllTraces(simulator, optimizationTarget);
   };
 
-export const createSolve3 =
+export const createSolveAllInParallel =
   (simulator: Simulator, optimizationTarget: OptimizationTarget) =>
   async () => {
     const startTime = Date.now();
@@ -20,7 +21,7 @@ export const createSolve3 =
       [...new Array(48)].map((_, i) => {
         const { workerInstance, workerProxy } = createWorker();
         return workerProxy
-          .solve3(simulator, optimizationTarget, i)
+          .solveIncludingTraceIndex(simulator, optimizationTarget, i)
           .then((result) => {
             console.log(i, result?.candidatesNum, `${result?.elapsedTime}ms`);
             workerProxy[releaseProxy]();
@@ -42,11 +43,7 @@ export const createSolve3 =
         if (!s?.optimalSolution) {
           return m;
         }
-        return Simulator.betterSolution(
-          optimizationTarget,
-          m,
-          s.optimalSolution
-        );
+        return betterSolution(optimizationTarget, m, s.optimalSolution);
       },
       undefined as SolutionResult | undefined
     );

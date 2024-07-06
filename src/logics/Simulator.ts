@@ -1,8 +1,6 @@
 import type { Board } from './Board';
-import { OptimizationTarget } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { TraceMode } from './TraceMode';
-import { createfilledOneBitFieldBeforeIndex } from './bit-field';
 import {
   type ChainDamage,
   type DamageTerm,
@@ -13,7 +11,6 @@ import {
 import { choice, shuffle } from './generics/random';
 import { sleep } from './generics/sleep';
 import {
-  type ColoredPuyoAttribute,
   PuyoAttribute,
   PuyoType,
   convertPuyoType,
@@ -22,13 +19,6 @@ import {
   isColoredPuyoType,
   isPlusPuyo
 } from './puyo';
-import {
-  type SolutionCarry,
-  type SolutionResult,
-  SolutionState,
-  type SolvedResult,
-  type TotalDamages
-} from './solution';
 
 /** 連鎖シミュレーター */
 export class Simulator {
@@ -49,9 +39,6 @@ export class Simulator {
   private static readonly defaultMinimumPuyoNumForPopping = 4;
   private static readonly defaultMaxTraceNum = 5;
   private static readonly defaultAnimationDuration = 200;
-
-  private static totalCountOfdetectPopBlocks = 0;
-  private static totalTimeOfdetectPopBlocks = 0;
 
   /** フィールドは 8x6 のぷよ行列 */
   private readonly field: (PuyoType | undefined)[][];
@@ -371,243 +358,6 @@ export class Simulator {
     this.traceCoords = [];
   }
 
-  public solve2(
-    optimizationTarget: OptimizationTarget
-  ): SolvedResult | undefined {
-    Simulator.totalCountOfdetectPopBlocks = 0;
-    Simulator.totalTimeOfdetectPopBlocks = 0;
-
-    const startTime = Date.now();
-
-    const originalField = new Simulator(this);
-
-    const carry: SolutionCarry = {
-      solutionNums: 0,
-      optimalSolution: undefined
-    };
-
-    for (let y = 0; y < PuyoCoord.YNum; y++) {
-      for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const coord = PuyoCoord.xyToCoord(x, y)!;
-        const state = new SolutionState(
-          createfilledOneBitFieldBeforeIndex(coord.index),
-          new Map()
-        );
-        Simulator.advanceTrace(
-          originalField,
-          optimizationTarget,
-          state,
-          carry,
-          coord
-        );
-      }
-    }
-
-    const endTime = Date.now();
-    const elapsedTime = endTime - startTime;
-
-    console.log(
-      'total count of detectPopBlocks',
-      Simulator.totalCountOfdetectPopBlocks
-    );
-    console.log(
-      'total time of detectPopBlocks',
-      Simulator.totalTimeOfdetectPopBlocks
-    );
-
-    return {
-      optimizationTarget,
-      elapsedTime,
-      candidatesNum: carry.solutionNums,
-      optimalSolution: carry.optimalSolution
-    };
-  }
-
-  public solve3(
-    optimizationTarget: OptimizationTarget,
-    index: number
-  ): SolvedResult | undefined {
-    Simulator.totalCountOfdetectPopBlocks = 0;
-    Simulator.totalTimeOfdetectPopBlocks = 0;
-
-    const startTime = Date.now();
-
-    const originalField = new Simulator(this);
-
-    const carry: SolutionCarry = {
-      solutionNums: 0,
-      optimalSolution: undefined
-    };
-
-    const state = new SolutionState(
-      createfilledOneBitFieldBeforeIndex(index),
-      new Map()
-    );
-    const coord = PuyoCoord.indexToCoord(index)!;
-
-    Simulator.advanceTrace(
-      originalField,
-      optimizationTarget,
-      state,
-      carry,
-      coord
-    );
-
-    const endTime = Date.now();
-    const elapsedTime = endTime - startTime;
-
-    console.log(
-      'total count of detectPopBlocks',
-      Simulator.totalCountOfdetectPopBlocks
-    );
-    console.log(
-      'total time of detectPopBlocks',
-      Simulator.totalTimeOfdetectPopBlocks
-    );
-
-    return {
-      optimizationTarget,
-      elapsedTime,
-      candidatesNum: carry.solutionNums,
-      optimalSolution: carry.optimalSolution
-    };
-  }
-
-  /**
-   * フィールドに対してなぞり消しを行って結果を求める。
-   * @param originalField
-   * @param traceCoords
-   * @returns
-   */
-  private static calcSolutionResult(
-    originalField: Simulator,
-    traceCoords: PuyoCoord[]
-  ): SolutionResult {
-    const field = new Simulator(originalField);
-    field.setTraceCoords(traceCoords);
-    field.doChains();
-
-    const puyoTsukaiCount = Simulator.calcTotalPuyoTsukaiCount(
-      field.chainDamages
-    );
-
-    const totalDamages: Partial<TotalDamages> = Object.fromEntries(
-      Simulator.colorAttrs.map((targetAttr) => {
-        return [
-          targetAttr,
-          Simulator.calcTotalDamageOfTargetAttr(field.chainDamages, targetAttr)
-        ];
-      })
-    );
-    totalDamages.total = Object.keys(totalDamages).reduce((m, attr) => {
-      return m + totalDamages[attr as '1']!;
-    }, 0);
-
-    return {
-      traceCoords,
-      puyoTsukaiCount,
-      totalDamages: totalDamages as TotalDamages,
-      chainDamages: field.chainDamages
-    };
-  }
-
-  private static updateCarry(
-    carry: SolutionCarry,
-    optTarget: OptimizationTarget,
-    solutionResult: SolutionResult
-  ): void {
-    carry.solutionNums++;
-
-    if (!carry.optimalSolution) {
-      carry.optimalSolution = solutionResult;
-      return;
-    }
-
-    carry.optimalSolution = Simulator.betterSolution(
-      optTarget,
-      carry.optimalSolution,
-      solutionResult
-    );
-  }
-
-  /**
-   * s1 と s2 とで良い解法の方を返す。優劣付けれらない場合は s1 を返す。
-   * @param s1
-   * @param s2
-   * @returns
-   */
-  public static betterSolution(
-    optTarget: OptimizationTarget,
-    s1: SolutionResult,
-    s2: SolutionResult
-  ): SolutionResult {
-    switch (optTarget) {
-      case OptimizationTarget.TotalDamage: {
-        if (
-          s2.totalDamages.total > s1.totalDamages.total ||
-          (s2.totalDamages.total === s1.totalDamages.total &&
-            s2.traceCoords.length < s1.traceCoords.length)
-        ) {
-          return s2;
-        }
-        return s1;
-      }
-      case OptimizationTarget.RedDamage:
-      case OptimizationTarget.BlueDamage:
-      case OptimizationTarget.GreenDamage:
-      case OptimizationTarget.YellowDamage:
-      case OptimizationTarget.PurpleDamage: {
-        const attr: ColoredPuyoAttribute =
-          optTarget - OptimizationTarget.RedDamage + PuyoAttribute.Red;
-        if (
-          s2.totalDamages[attr] > s1.totalDamages[attr] ||
-          (s2.totalDamages[attr] === s1.totalDamages[attr] &&
-            s2.traceCoords.length < s1.traceCoords.length)
-        ) {
-          return s2;
-        }
-        return s1;
-      }
-      case OptimizationTarget.PuyoTsukaiCount: {
-        if (
-          s2.puyoTsukaiCount > s1.puyoTsukaiCount ||
-          (s2.puyoTsukaiCount === s1.puyoTsukaiCount &&
-            s2.traceCoords.length < s1.traceCoords.length)
-        ) {
-          return s2;
-        }
-        return s1;
-      }
-    }
-  }
-
-  private static advanceTrace(
-    originalField: Simulator,
-    optTarget: OptimizationTarget,
-    state: SolutionState,
-    carry: SolutionCarry,
-    coord: PuyoCoord
-  ): void {
-    if (
-      !state.checkIfAddableCoord(coord, originalField.getActualMaxTraceNum())
-    ) {
-      return;
-    }
-
-    const s = SolutionState.clone(state);
-    s.addTraceCoord(coord);
-
-    Simulator.updateCarry(
-      carry,
-      optTarget,
-      Simulator.calcSolutionResult(originalField, s.getTraceCoords())
-    );
-
-    for (const nextCoord of s.enumerateCandidates()) {
-      Simulator.advanceTrace(originalField, optTarget, s, carry, nextCoord)!;
-    }
-  }
-
   /**
    * 総プリズムダメージを計算する。
    * @param chainDamages
@@ -719,10 +469,6 @@ export class Simulator {
     attr: PuyoAttribute;
     coords: Set<PuyoCoord>;
   }[] {
-    Simulator.totalCountOfdetectPopBlocks++;
-
-    const start = performance.now();
-
     const blocksByColor: Set<PuyoCoord>[][] = [[], [], [], [], []];
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
@@ -849,9 +595,6 @@ export class Simulator {
     }
 
     const result = coloredBlocksToBePopped.concat(specialBlocksToBePopped);
-    const end = performance.now();
-
-    Simulator.totalTimeOfdetectPopBlocks += end - start;
 
     return result;
   }

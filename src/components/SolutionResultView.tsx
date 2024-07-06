@@ -5,14 +5,14 @@ import {
   type ColoredPuyoAttribute,
   getPuyoAttributeName
 } from '../logics/puyo';
-import type { SolvedResult } from '../logics/solution';
+import type { ExplorationResult } from '../logics/solution';
 
 type IProps = {
   /** 探索中かどうか */
   solving: boolean;
 
   /** 解 */
-  result: SolvedResult | undefined;
+  result: ExplorationResult | undefined;
 };
 
 /** 探索結果View */

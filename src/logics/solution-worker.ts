@@ -2,6 +2,10 @@ import { expose } from 'comlink';
 import type { OptimizationTarget } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { Simulator } from './Simulator';
+import {
+  solveAllTraces as _solveAllTraces,
+  solveIncludingTraceIndex as _solveIncludingTraceIndex
+} from './solution-explorer';
 
 const fixFieldBoostAreas = (simulator: Simulator): void => {
   const boostAreaCoordSetList = (simulator as any).boostAreaCoordSetList.map(
@@ -14,24 +18,24 @@ const fixFieldBoostAreas = (simulator: Simulator): void => {
   (simulator as any).boostAreaCoordSetList = boostAreaCoordSetList;
 };
 
-export async function solve2(
+export async function solveAllTraces(
   simulator: Simulator,
   optimizationTarget: OptimizationTarget
 ) {
   fixFieldBoostAreas(simulator);
-  return new Simulator(simulator).solve2(optimizationTarget);
+  return _solveAllTraces(new Simulator(simulator), optimizationTarget);
 }
 
-export async function solve3(
+export async function solveIncludingTraceIndex(
   simulator: Simulator,
   optimizationTarget: OptimizationTarget,
   index: number
 ) {
   fixFieldBoostAreas(simulator);
-  return new Simulator(simulator).solve3(optimizationTarget, index);
+  return _solveIncludingTraceIndex(simulator, optimizationTarget, index);
 }
 
 expose({
-  solve2,
-  solve3
+  solveAllTraces,
+  solveIncludingTraceIndex
 });

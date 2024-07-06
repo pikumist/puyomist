@@ -5,7 +5,7 @@ import { OptimizationTarget } from '../logics/OptimizationTarget';
 import { Simulator } from '../logics/Simulator';
 import { screenshotBoardId } from '../logics/boards';
 import type { ChainDamage } from '../logics/damage';
-import { SolutionMethod, type SolvedResult } from '../logics/solution';
+import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 
 export interface PuyoAppState {
   /** 盤面ID */
@@ -41,8 +41,8 @@ export interface PuyoAppState {
   /** 最適化計算中かどうか */
   solving: boolean;
 
-  /** 最適化計算結果 */
-  solvedResult: SolvedResult | undefined;
+  /** 最適解探索結果 */
+  explorationResult: ExplorationResult | undefined;
 
   /** スクリーンショット情報 */
   screenshotInfo: ScreenshotInfo | undefined;
@@ -55,7 +55,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: screenshotBoardId,
   nextSelection: 'random',
   optimizationTarget: OptimizationTarget.PuyoTsukaiCount,
-  solutionMethod: SolutionMethod.solve3,
+  solutionMethod: SolutionMethod.solveAllInParallel,
   lastScreenshotBoard: undefined,
   boostAreaKeyList: [],
   boardEditMode: undefined,
@@ -63,7 +63,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   animating: false,
   chainDamages: [],
   solving: false,
-  solvedResult: undefined,
+  explorationResult: undefined,
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined
 };
