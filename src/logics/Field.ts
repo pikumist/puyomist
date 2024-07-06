@@ -5,6 +5,7 @@ import { TraceMode } from './TraceMode';
 import { createfilledOneBitFieldBeforeIndex } from './bit-field';
 import {
   type ChainDamage,
+  type DamageTerm,
   calcChainFactor,
   calcDamageTerm,
   calcPoppingFactor
@@ -615,7 +616,7 @@ export class Field {
    */
   public static calcTotalPrismDamage(chainDamages: ChainDamage[]): number {
     const prismDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms.get(PuyoAttribute.Prism)?.strength || 0);
+      return m + (chain.damageTerms[PuyoAttribute.Prism]?.strength || 0);
     }, 0);
 
     return prismDamage;
@@ -632,7 +633,7 @@ export class Field {
     targetAttr: PuyoAttribute
   ): number {
     const totalAttrDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms.get(targetAttr)?.strength || 0);
+      return m + (chain.damageTerms[targetAttr]?.strength || 0);
     }, 0);
     return totalAttrDamage + Field.calcTotalPrismDamage(chainDamages);
   }
@@ -876,7 +877,7 @@ export class Field {
       chainNum,
       poppedPuyoNum,
       puyoTsukaiCount,
-      damageTerms: new Map()
+      damageTerms: {} as Record<PuyoAttribute, DamageTerm>
     };
 
     for (const attr of [
@@ -893,11 +894,11 @@ export class Field {
           continue;
         }
         const poppedNum = prismBlock.coords.size;
-        result.damageTerms.set(attr, {
+        result.damageTerms[attr] = {
           strength: 3 * poppedNum,
           poppedNum,
           separatedBlocksNum: 1
-        });
+        };
       } else {
         const sameColorBlocks = blocks.filter((block) => block.attr === attr);
         const separatedBlocksNum = sameColorBlocks.length;
@@ -921,11 +922,11 @@ export class Field {
           calcChainFactor(chainNum, this.chainLeverage)
         );
 
-        result.damageTerms.set(attr, {
+        result.damageTerms[attr] = {
           strength: damageStrength,
           poppedNum: sameColorPoppedNum,
           separatedBlocksNum
-        });
+        };
       }
     }
 

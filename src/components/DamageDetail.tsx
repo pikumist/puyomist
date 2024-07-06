@@ -18,20 +18,20 @@ const DamageDetail: React.FC<IProps> = (props) => {
 
   const chainDamagesByAttr = chainDamages
     .filter((chain) => {
-      const damageTerm = chain.damageTerms.get(attr);
+      const damageTerm = chain.damageTerms[attr];
       return typeof damageTerm !== 'undefined';
     })
     .map((chain) => {
       return {
         chainNum: chain.chainNum,
         poppedPuyoNum: chain.poppedPuyoNum,
-        damageTerm: chain.damageTerms.get(attr)!
+        damageTerm: chain.damageTerms[attr]
       };
     });
 
   const totalDamageByPrism = chainDamages
     .map((chain) => {
-      return chain.damageTerms.get(PuyoAttribute.Prism);
+      return chain.damageTerms[PuyoAttribute.Prism];
     })
     .reduce((m, damageTerm) => {
       return m + (damageTerm?.strength ?? 0);

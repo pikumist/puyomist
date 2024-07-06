@@ -10,17 +10,13 @@ export const store = configureStore({
           'puyoApp/tracingCoordAdded',
           'puyoApp/puyoEdited',
           'puyoApp/solved',
-          'puyoApp/animationFrame',
+          'puyoApp/animationStep',
           'puyoApp/animationEnd'
         ],
         // Ignore these field paths in all actions
         ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
         // Ignore these paths in the state
-        ignoredPaths: [
-          'puyoApp.field',
-          'puyoApp.solvedResult',
-          'puyoApp.chainDamages'
-        ]
+        ignoredPaths: ['puyoApp.field', 'puyoApp.solvedResult']
       }
     }),
 
