@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Board } from './Board';
+import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, G, H, P, R, W, Y } from './boards/alias';
-import { PuyoAttribute, PuyoType } from './puyo';
 
 describe('Simulator', () => {
   describe('detectPopBlocks2()', () => {

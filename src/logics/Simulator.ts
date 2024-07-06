@@ -1,5 +1,13 @@
 import type { Board } from './Board';
+import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import {
+  PuyoType,
+  convertPuyoType,
+  getPuyoAttribute,
+  isColoredPuyoType,
+  isPlusPuyo
+} from './PuyoType';
 import { TraceMode } from './TraceMode';
 import {
   type ChainDamage,
@@ -10,15 +18,6 @@ import {
 } from './damage';
 import { choice, shuffle } from './generics/random';
 import { sleep } from './generics/sleep';
-import {
-  PuyoAttribute,
-  PuyoType,
-  convertPuyoType,
-  getPuyoAttribute,
-  isColoredPuyoAttribute,
-  isColoredPuyoType,
-  isPlusPuyo
-} from './puyo';
 
 /** 連鎖シミュレーター */
 export class Simulator {

@@ -1,8 +1,8 @@
 import type React from 'react';
+import { PuyoAttribute } from '../logics/PuyoAttribute';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
 import type { ChainDamage } from '../logics/damage';
-import { PuyoAttribute } from '../logics/puyo';
 import DamageDetail from './DamageDetail';
 
 type IProps = {

@@ -1,4 +1,4 @@
-import type { PuyoType } from './puyo';
+import type { PuyoType } from './PuyoType';
 
 /** 盤面編集モード */
 export interface BoardEditMode {

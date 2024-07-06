@@ -1,7 +1,8 @@
 import type { Board } from './Board';
+import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { rgbToHsv } from './generics/rgbToHsv';
-import { PuyoAttribute, PuyoType, isColoredPuyoAttribute } from './puyo';
 
 export interface Rect {
   left: number;

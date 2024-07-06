@@ -3,10 +3,10 @@
  */
 
 import { OptimizationTarget } from './OptimizationTarget';
+import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { Simulator } from './Simulator';
 import { createfilledOneBitFieldBeforeIndex } from './bit-field';
-import { type ColoredPuyoAttribute, PuyoAttribute } from './puyo';
 import {
   type ExplorationResult,
   type SolutionCarry,

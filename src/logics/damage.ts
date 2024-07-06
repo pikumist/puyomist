@@ -1,4 +1,4 @@
-import type { PuyoAttribute } from './puyo';
+import type { PuyoAttribute } from './PuyoAttribute';
 
 export interface DamageTerm {
   /** N 連鎖目におけるこの色のダメージ量 */

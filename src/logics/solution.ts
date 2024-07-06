@@ -1,8 +1,8 @@
 import type { OptimizationTarget } from './OptimizationTarget';
+import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { bitFieldAddIndex, bitFieldHasIndex } from './bit-field';
 import type { ChainDamage } from './damage';
-import { PuyoAttribute } from './puyo';
 
 /** 各属性における総ダメージ */
 export interface TotalDamages {

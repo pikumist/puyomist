@@ -2,15 +2,15 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HowToEditBoard } from '../logics/BoardEditMode';
+import { PuyoAttribute } from '../logics/PuyoAttribute';
 import { PuyoCoord } from '../logics/PuyoCoord';
-import { screenshotBoardId } from '../logics/boards';
 import {
-  PuyoAttribute,
   getPuyoAttribute,
   getPuyoRgb,
   isChancePuyo,
   isPlusPuyo
-} from '../logics/puyo';
+} from '../logics/PuyoType';
+import { screenshotBoardId } from '../logics/boards';
 import {
   puyoEdited,
   tracingCanceled,

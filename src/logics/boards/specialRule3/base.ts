@@ -1,6 +1,6 @@
 import type { Board } from '../../Board';
+import type { PuyoType } from '../../PuyoType';
 import { TraceMode } from '../../TraceMode';
-import type { PuyoType } from '../../puyo';
 
 /**
  * - あたり＆プーボ

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { OptimizationTarget } from './OptimizationTarget';
+import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { getSpecialBoard } from './boards';
 import type { ChainDamage } from './damage';
-import { type ColoredPuyoAttribute, PuyoAttribute, PuyoType } from './puyo';
 import { solveAllTraces, solveIncludingTraceIndex } from './solution-explorer';
 
 describe('solution-explorer', () => {

@@ -1,6 +1,6 @@
 import type React from 'react';
+import { PuyoAttribute, getPuyoAttributeName } from '../logics/PuyoAttribute';
 import type { ChainDamage } from '../logics/damage';
-import { PuyoAttribute, getPuyoAttributeName } from '../logics/puyo';
 import styles from './DamageDetail.module.css';
 
 interface IProps {
