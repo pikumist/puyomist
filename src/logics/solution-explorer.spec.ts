@@ -1,40 +1,41 @@
 import { describe, expect, it } from 'vitest';
+import type { Chain } from './Chain';
 import { OptimizationTarget } from './OptimizationTarget';
+import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { getSpecialBoard } from './boards';
-import type { ChainDamage } from './damage';
-import { type ColoredPuyoAttribute, PuyoAttribute, PuyoType } from './puyo';
 import { solveAllTraces, solveIncludingTraceIndex } from './solution-explorer';
 
 describe('solution-explorer', () => {
-  const calcCsp = (chainDamage: ChainDamage, attr: PuyoAttribute) => {
-    const c = chainDamage.chainNum;
-    const s = chainDamage.damageTerms[attr]?.separatedBlocksNum;
-    const p = chainDamage.poppedPuyoNum;
+  const calcCsp = (chain: Chain, attr: PuyoAttribute) => {
+    const c = chain.chainNum;
+    const s = chain.attributes[attr]?.separatedBlocksNum;
+    const p = chain.poppedPuyoNum;
     if (s) {
       return `${c}-${s}-${p}`;
     }
   };
 
   const findMostDamageChain = (
-    chainDamages: ChainDamage[],
+    chains: Chain[],
     attr: PuyoAttribute
-  ): ChainDamage | undefined => {
-    const effectiveChainDamages = chainDamages.filter((chainDamage) => {
-      return chainDamage.damageTerms[attr]?.strength;
+  ): Chain | undefined => {
+    const effectiveChainDamages = chains.filter((chainDamage) => {
+      return chainDamage.attributes[attr]?.strength;
     });
     const mostDamageChain = effectiveChainDamages.reduce(
       (m, chainDamage) => {
         if (!m) {
           return chainDamage;
         }
-        return chainDamage.damageTerms[attr]?.strength! >=
-          m.damageTerms[attr]?.strength!
+        return chainDamage.attributes[attr]?.strength! >=
+          m.attributes[attr]?.strength!
           ? chainDamage
           : m;
       },
-      undefined as ChainDamage | undefined
+      undefined as Chain | undefined
     );
 
     return mostDamageChain;
@@ -108,7 +109,7 @@ describe('solution-explorer', () => {
           actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
         ).toBeCloseTo(expected.totalAttrDamage);
         const csp = calcCsp(
-          findMostDamageChain(actual.optimalSolution?.chainDamages!, attr)!,
+          findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
           attr
         );
         expect(csp).toBe(expected.csp);
@@ -191,7 +192,7 @@ describe('solution-explorer', () => {
           actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
         ).toBeCloseTo(expected.totalAttrDamage);
         const csp = calcCsp(
-          findMostDamageChain(actual.optimalSolution?.chainDamages!, attr)!,
+          findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
           attr
         );
         expect(csp).toBe(expected.csp);

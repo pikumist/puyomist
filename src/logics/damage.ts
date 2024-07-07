@@ -1,26 +1,3 @@
-import type { PuyoAttribute } from './puyo';
-
-export interface DamageTerm {
-  /** N 連鎖目におけるこの色のダメージ量 */
-  strength: number;
-  /** N 連鎖目における消した同色のぷよ数 */
-  poppedNum: number;
-  /** N 連鎖目のおける同色の分離数 */
-  separatedBlocksNum: number;
-}
-
-/** N 連鎖目におけるダメージ情報 */
-export interface ChainDamage {
-  /** N 連鎖目 */
-  chainNum: number;
-  /** 同時消しのぷよ数(同時消しダメージに影響する数) */
-  poppedPuyoNum: number;
-  /** ぷよ使いイベントでカウントされるぷよ数 (ハートが含まれブーストエリアも加味される。なぞって直接消えた分は含まれない) */
-  puyoTsukaiCount: number;
-  /** ぷよの種類ごとのダメージ項の情報。ダメージ量だけでなくその他情報も付随。 */
-  damageTerms: Record<PuyoAttribute, DamageTerm>;
-}
-
 /**
  * N 連鎖目のダメージ項を計算する。(ダメージは全連鎖を合計したもの)
  * @param cardAttackStrength カードの攻撃力

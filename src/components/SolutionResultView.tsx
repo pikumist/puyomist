@@ -1,10 +1,10 @@
 import type React from 'react';
 import { getOptimizationTargetDescription } from '../logics/OptimizationTarget';
-import { Simulator } from '../logics/Simulator';
 import {
   type ColoredPuyoAttribute,
   getPuyoAttributeName
-} from '../logics/puyo';
+} from '../logics/PuyoAttribute';
+import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
 
 type IProps = {

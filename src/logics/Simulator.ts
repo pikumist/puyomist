@@ -1,24 +1,19 @@
 import type { Board } from './Board';
+import type { AttributeChain, Chain } from './Chain';
+import { type Puyo, generatePuyoId } from './Puyo';
+import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
-import { TraceMode } from './TraceMode';
 import {
-  type ChainDamage,
-  type DamageTerm,
-  calcChainFactor,
-  calcDamageTerm,
-  calcPoppingFactor
-} from './damage';
-import { choice, shuffle } from './generics/random';
-import { sleep } from './generics/sleep';
-import {
-  PuyoAttribute,
   PuyoType,
   convertPuyoType,
   getPuyoAttribute,
-  isColoredPuyoAttribute,
   isColoredPuyoType,
   isPlusPuyo
-} from './puyo';
+} from './PuyoType';
+import { TraceMode } from './TraceMode';
+import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
+import { choice, shuffle } from './generics/random';
+import { sleep } from './generics/sleep';
 
 /** 連鎖シミュレーター */
 export class Simulator {
@@ -41,10 +36,10 @@ export class Simulator {
   private static readonly defaultAnimationDuration = 200;
 
   /** フィールドは 8x6 のぷよ行列 */
-  private readonly field: (PuyoType | undefined)[][];
+  private readonly field: (Puyo | undefined)[][];
 
   /** ネクストぷよは 8つのぷよからなる。(実際は無限に上に連なっているはずだが割愛) */
-  private nextPuyos: (PuyoType | undefined)[];
+  private nextPuyos: (Puyo | undefined)[];
 
   private boostAreaCoordSetList: ReadonlySet<PuyoCoord>[] = [];
   private isChanceMode = false;
@@ -57,7 +52,7 @@ export class Simulator {
   private chainAnimating = false;
   private animationDuration = Simulator.defaultAnimationDuration;
   private currentChainNum = 0;
-  private chainDamages: ChainDamage[] = [];
+  private chains: Chain[] = [];
 
   /**
    * インスタンスの指定があればそれをコピーする。そうでなければ初期化する。
@@ -78,12 +73,12 @@ export class Simulator {
       this.chainAnimating = simulator.chainAnimating;
       this.animationDuration = simulator.animationDuration;
       this.currentChainNum = simulator.currentChainNum;
-      this.chainDamages = [...simulator.chainDamages];
+      this.chains = [...simulator.chains];
     } else {
       this.field = [...new Array(PuyoCoord.YNum)].map(
         () => new Array(PuyoCoord.XNum)
       );
-      this.nextPuyos = new Array<PuyoType | undefined>(PuyoCoord.XNum);
+      this.nextPuyos = new Array(PuyoCoord.XNum);
       this.clear();
     }
   }
@@ -154,12 +149,12 @@ export class Simulator {
   }
 
   /** フィールドの中にあるぷよ行列を取得する。 */
-  public getField(): (PuyoType | undefined)[][] {
+  public getField(): (Puyo | undefined)[][] {
     return this.field;
   }
 
   /** ネクストぷよ配列を取得する。 */
-  public getNextPuyos(): (PuyoType | undefined)[] {
+  public getNextPuyos(): (Puyo | undefined)[] {
     return this.nextPuyos;
   }
 
@@ -190,9 +185,9 @@ export class Simulator {
     return this.traceCoords;
   }
 
-  /** 全連鎖ダメージ情報を取得する。 */
-  public getChainDamages() {
-    return this.chainDamages;
+  /** 全連鎖情報を取得する。 */
+  public getChains() {
+    return this.chains;
   }
 
   /** シミュレーターをクリアする。 */
@@ -230,17 +225,23 @@ export class Simulator {
     ];
 
     for (let x = 0; x < PuyoCoord.XNum; x++) {
-      this.nextPuyos[x] = choice(possibleNextPuyoTypes);
+      this.nextPuyos[x] = {
+        id: generatePuyoId(),
+        type: choice(possibleNextPuyoTypes)
+      };
     }
   }
 
   /**
    * ネクストぷよを同種のぷよでリセットする。
-   * @param type ぷよの種類
+   * @param type ぷよの型
    */
   public resetNextPuyosAsSameType(type: PuyoType): void {
     for (let x = 0; x < PuyoCoord.XNum; x++) {
-      this.nextPuyos[x] = type;
+      this.nextPuyos[x] = {
+        id: generatePuyoId(),
+        type
+      };
     }
   }
 
@@ -265,7 +266,13 @@ export class Simulator {
 
     if (board.nextPuyos) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        this.nextPuyos[x] = board.nextPuyos[x];
+        const type = board.nextPuyos[x];
+        this.nextPuyos[x] = type
+          ? {
+              id: generatePuyoId(),
+              type
+            }
+          : undefined;
       }
     }
 
@@ -273,7 +280,13 @@ export class Simulator {
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        this.field[y][x] = field[y][x];
+        const type = field[y][x];
+        this.field[y][x] = type
+          ? {
+              id: generatePuyoId(),
+              type
+            }
+          : undefined;
       }
     }
   }
@@ -302,13 +315,17 @@ export class Simulator {
         shuffle(candidateTypes);
 
         let ok = false;
+        const id = generatePuyoId();
 
         for (let i = 0; i < candidateTypes.length; i++) {
           const type = candidateTypes[i];
 
-          this.field[y][x] = type;
+          this.field[y][x] = {
+            id,
+            type
+          };
 
-          if (this.detectPopBlocks2().length === 0) {
+          if (this.detectPopBlocks().length === 0) {
             ok = true;
             break;
           }
@@ -336,8 +353,8 @@ export class Simulator {
       return;
     }
 
-    const puyoType = this.field[puyoCoord.y][puyoCoord.x];
-    if (!puyoType) {
+    const puyo = this.field[puyoCoord.y][puyoCoord.x];
+    if (!puyo) {
       return;
     }
 
@@ -360,13 +377,13 @@ export class Simulator {
 
   /**
    * 総プリズムダメージを計算する。
-   * @param chainDamages
+   * @param chains
    * @param attr
    * @returns
    */
-  public static calcTotalPrismDamage(chainDamages: ChainDamage[]): number {
-    const prismDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms[PuyoAttribute.Prism]?.strength || 0);
+  public static calcTotalPrismDamage(chains: Chain[]): number {
+    const prismDamage = chains.reduce((m, chain) => {
+      return m + (chain.attributes[PuyoAttribute.Prism]?.strength || 0);
     }, 0);
 
     return prismDamage;
@@ -374,44 +391,44 @@ export class Simulator {
 
   /**
    * 対象属性における総ダメージを計算する。
-   * @param chainDamages
+   * @param chains
    * @param targetAttr
    * @returns
    */
   public static calcTotalDamageOfTargetAttr(
-    chainDamages: ChainDamage[],
+    chains: Chain[],
     targetAttr: PuyoAttribute
   ): number {
-    const totalAttrDamage = chainDamages.reduce((m, chain) => {
-      return m + (chain.damageTerms[targetAttr]?.strength || 0);
+    const totalAttrDamage = chains.reduce((m, chain) => {
+      return m + (chain.attributes[targetAttr]?.strength || 0);
     }, 0);
-    return totalAttrDamage + Simulator.calcTotalPrismDamage(chainDamages);
+    return totalAttrDamage + Simulator.calcTotalPrismDamage(chains);
   }
 
   /**
    * ぷよ使いカウントの総数を計算する。
-   * @param chainDamages
+   * @param chains
    * @returns
    */
-  public static calcTotalPuyoTsukaiCount(chainDamages: ChainDamage[]): number {
-    return chainDamages.reduce((m, chain) => {
+  public static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
+    return chains.reduce((m, chain) => {
       return m + chain.puyoTsukaiCount;
     }, 0);
   }
 
   /** なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける */
   public async doChains(animate?: {
-    onAnimateStep: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
-    onAnimateEnd: (simulator: Simulator, chainDamages: ChainDamage[]) => void;
+    onAnimateStep: (simulator: Simulator, chains: Chain[]) => void;
+    onAnimateEnd: (simulator: Simulator, chains: Chain[]) => void;
   }) {
     const invokeOnAnimateField = async () => {
       await sleep(this.animationDuration);
-      animate?.onAnimateStep(this, this.chainDamages);
+      animate?.onAnimateStep(this, this.chains);
     };
 
     this.chainAnimating = true;
     this.currentChainNum = 0;
-    this.chainDamages = [];
+    this.chains = [];
 
     // animate オブジェクトがないときの await を出来るだけ回避したいので、
     // やや冗長になっている。
@@ -454,32 +471,33 @@ export class Simulator {
       }
     }
 
-    const chainDamages = this.chainDamages;
+    const chains = this.chains;
     this.currentChainNum = 0;
     this.chainAnimating = false;
 
-    animate?.onAnimateEnd(this, chainDamages);
+    animate?.onAnimateEnd(this, chains);
   }
 
   /**
-   * ぷよが消えるブロックを検出する。(改善版。5%~10%程度速い)
+   * ぷよが消えるブロックを検出する。
    * @returns 消えるぷよブロックの配列。消えるブロックがなければ長さ０の配列。
    */
-  private detectPopBlocks2(): {
+  private detectPopBlocks(): {
     attr: PuyoAttribute;
-    coords: Set<PuyoCoord>;
+    coordIdMap: Map<PuyoCoord, number>;
   }[] {
-    const blocksByColor: Set<PuyoCoord>[][] = [[], [], [], [], []];
+    const blocksByColor: Map<PuyoCoord, number>[][] = [[], [], [], [], []];
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = this.field[y][x];
-        if (!puyoType || !isColoredPuyoType(puyoType)) {
+        const puyo = this.field[y][x];
+        if (!puyo || !isColoredPuyoType(puyo.type)) {
           continue;
         }
 
+        const id = puyo.id;
         const coord = PuyoCoord.xyToCoord(x, y)!;
-        const puyoAttr = getPuyoAttribute(puyoType)! as
+        const puyoAttr = getPuyoAttribute(puyo.type)! as
           | PuyoAttribute.Red
           | PuyoAttribute.Blue
           | PuyoAttribute.Green
@@ -489,7 +507,7 @@ export class Simulator {
         const sameColorBlocks = blocksByColor[puyoAttr - PuyoAttribute.Red];
         const blockIndex = sameColorBlocks.findIndex((b) => b.has(coord));
 
-        let block: Set<PuyoCoord> | undefined;
+        let block: Map<PuyoCoord, number> | undefined;
 
         if (blockIndex > -1) {
           block = sameColorBlocks.splice(blockIndex, 1)[0];
@@ -503,28 +521,31 @@ export class Simulator {
             if (!neighborCoord) {
               return false;
             }
-            const neighborType = this.field[neighborCoord.y][neighborCoord.x];
-            const neighborAttr = getPuyoAttribute(neighborType);
+            const neighborPuyo = this.field[neighborCoord.y][neighborCoord.x];
+            const neighborAttr = getPuyoAttribute(neighborPuyo?.type);
             return neighborAttr === puyoAttr;
           }
         ) as PuyoCoord[];
 
-        const newBlock = block ?? new Set([coord]);
+        const newBlock = block ?? new Map([[coord, id]]);
 
         for (const neighborCoord of sameColorBiggerNeighborCoords) {
           const branchedBlockIndex = sameColorBlocks.findIndex((b) =>
             b.has(neighborCoord)
           );
-          let branchedBlock: Set<PuyoCoord> | undefined;
+          let branchedBlock: Map<PuyoCoord, number> | undefined;
           if (branchedBlockIndex > -1) {
             branchedBlock = sameColorBlocks.splice(branchedBlockIndex, 1)[0];
           }
           if (branchedBlock) {
-            for (const crd of branchedBlock) {
-              newBlock.add(crd);
+            for (const [coord, id] of branchedBlock) {
+              newBlock.set(coord, id);
             }
           } else {
-            newBlock.add(neighborCoord);
+            newBlock.set(
+              neighborCoord,
+              this.field[neighborCoord.y][neighborCoord.x]!.id
+            );
           }
         }
 
@@ -541,30 +562,31 @@ export class Simulator {
         .map((block) => {
           return {
             attr,
-            coords: block
+            coordIdMap: block
           };
         });
     });
 
     const specialBlocksToBePopped: {
       attr: PuyoAttribute;
-      coords: Set<PuyoCoord>;
+      coordIdMap: Map<PuyoCoord, number>;
     }[] = [];
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = this.field[y][x];
+        const puyo = this.field[y][x];
 
-        if (!puyoType) {
+        if (!puyo) {
           continue;
         }
 
-        const puyoAttr = getPuyoAttribute(puyoType);
+        const puyoAttr = getPuyoAttribute(puyo.type);
 
         if (!puyoAttr || !Simulator.specialAttrs.includes(puyoAttr)) {
           continue;
         }
 
+        const id = puyo.id;
         const coord = PuyoCoord.xyToCoord(x, y)!;
 
         const leftCoord = PuyoCoord.xyToCoord(x - 1, y);
@@ -574,7 +596,7 @@ export class Simulator {
 
         const neighborCoords = [leftCoord, topCoord, rightCoord, bottomCoord];
         const involvingCoord = neighborCoords.find((c) =>
-          coloredBlocksToBePopped.some((b) => b.coords.has(c!))
+          coloredBlocksToBePopped.some((b) => b.coordIdMap.has(c!))
         );
         const hit = involvingCoord !== undefined;
 
@@ -583,11 +605,11 @@ export class Simulator {
             (block) => block.attr === puyoAttr
           );
           if (block) {
-            block.coords.add(coord);
+            block.coordIdMap.set(coord, id);
           } else {
             specialBlocksToBePopped.push({
               attr: puyoAttr,
-              coords: new Set([coord])
+              coordIdMap: new Map([[coord, id]])
             });
           }
         }
@@ -603,8 +625,8 @@ export class Simulator {
    * 引っ付いて消えるぷよのブロックがあれば消す。
    * @returns 消しが発生しないとき、undefined。消しが発生するとき、色ごとのダメージ。
    */
-  private popPuyoBlocks(): ChainDamage | undefined {
-    const blocks = this.detectPopBlocks2();
+  private popPuyoBlocks(): Chain | undefined {
+    const blocks = this.detectPopBlocks();
     const popped = blocks.length > 0;
 
     if (!popped) {
@@ -615,11 +637,11 @@ export class Simulator {
     const poppedPuyoNum = this.calcPoppedPuyoNum(blocks);
     const puyoTsukaiCount = this.calcPuyoTsukaiCount(blocks);
 
-    const result: ChainDamage = {
+    const result: Chain = {
       chainNum,
       poppedPuyoNum,
       puyoTsukaiCount,
-      damageTerms: {} as Record<PuyoAttribute, DamageTerm>
+      attributes: {} as Record<PuyoAttribute, AttributeChain>
     };
 
     for (const attr of [
@@ -635,8 +657,8 @@ export class Simulator {
         if (!prismBlock) {
           continue;
         }
-        const poppedNum = prismBlock.coords.size;
-        result.damageTerms[attr] = {
+        const poppedNum = prismBlock.coordIdMap.size;
+        result.attributes[attr] = {
           strength: 3 * poppedNum,
           poppedNum,
           separatedBlocksNum: 1
@@ -645,8 +667,8 @@ export class Simulator {
         const sameColorBlocks = blocks.filter((block) => block.attr === attr);
         const separatedBlocksNum = sameColorBlocks.length;
         const sameColorPoppedNum = sameColorBlocks.reduce((m, block) => {
-          const puyoNumInBlock = [...block.coords]
-            .map((c) => (isPlusPuyo(this.field[c.y][c.x]) ? 2 : 1))
+          const puyoNumInBlock = [...block.coordIdMap]
+            .map(([c]) => (isPlusPuyo(this.field[c.y][c.x]!.type) ? 2 : 1))
             .reduce((m, n) => m + n, 0);
           return m + puyoNumInBlock;
         }, 0);
@@ -655,7 +677,7 @@ export class Simulator {
           continue;
         }
 
-        const damageStrength = calcDamageTerm(
+        const strength = calcDamageTerm(
           1,
           calcPoppingFactor(poppedPuyoNum, separatedBlocksNum, {
             minimumPuyoNumForPopping: this.minimumPuyoNumForPopping,
@@ -664,23 +686,26 @@ export class Simulator {
           calcChainFactor(chainNum, this.chainLeverage)
         );
 
-        result.damageTerms[attr] = {
-          strength: damageStrength,
+        result.attributes[attr] = {
+          strength,
           poppedNum: sameColorPoppedNum,
           separatedBlocksNum
         };
       }
     }
 
-    this.chainDamages.push(result);
+    this.chains.push(result);
 
     for (const block of blocks) {
       if (block.attr === PuyoAttribute.Kata) {
-        for (const c of block.coords) {
-          this.field[c.y][c.x] = PuyoType.Ojyama;
+        for (const [c] of block.coordIdMap) {
+          this.field[c.y][c.x] = {
+            id: this.field[c.y][c.x]!.id,
+            type: PuyoType.Ojyama
+          };
         }
       } else {
-        for (const c of block.coords) {
+        for (const [c] of block.coordIdMap) {
           this.field[c.y][c.x] = undefined;
         }
       }
@@ -690,26 +715,27 @@ export class Simulator {
   }
 
   private calcPoppedPuyoNum(
-    blocks: { attr: PuyoAttribute; coords: Set<PuyoCoord> }[]
+    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
   ) {
     return blocks.reduce((m, block) => {
       // 色ぷよのブロックの場合
       if (isColoredPuyoAttribute(block.attr)) {
         let num = 0;
-        for (const coord of block.coords) {
-          const puyoType = this.field[coord.y][coord.x]!;
-          const isPlus = isPlusPuyo(puyoType);
+        for (const [coord] of block.coordIdMap) {
+          const puyo = this.field[coord.y][coord.x]!;
+          const isPlus = isPlusPuyo(puyo.type);
           num += isPlus ? 2 : 1;
         }
         return m + num;
       }
 
       // 色ぷよ以外のブロックの場合
-      const num = [...block.coords.values()].filter((coord) => {
-        const puyoType = this.field[coord.y][coord.x]!;
+      const num = [...block.coordIdMap.keys()].filter((coord) => {
+        const puyo = this.field[coord.y][coord.x]!;
+        const type = puyo.type;
         // TODO: 固ぷよが同時消し数に含まれるかどうか要調査
         // https://kayagrv.com/entry/2019/10/05/%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E8%A8%88%E7%AE%97%E5%BC%8F%E5%9F%BA%E7%A4%8E
-        return puyoType !== PuyoType.Kata && puyoType !== PuyoType.Heart;
+        return type !== PuyoType.Kata && type !== PuyoType.Heart;
       }).length;
       return m + num;
     }, 0);
@@ -725,15 +751,15 @@ export class Simulator {
   }
 
   private calcPuyoTsukaiCount(
-    blocks: { attr: PuyoAttribute; coords: Set<PuyoCoord> }[]
+    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
   ) {
     return blocks.reduce((m, block) => {
       // 色ぷよのブロックの場合
       if (isColoredPuyoAttribute(block.attr)) {
         let num = 0;
-        for (const coord of block.coords) {
-          const puyoType = this.field[coord.y][coord.x]!;
-          const plusFactor = isPlusPuyo(puyoType) ? 2 : 1;
+        for (const [coord] of block.coordIdMap) {
+          const puyo = this.field[coord.y][coord.x]!;
+          const plusFactor = isPlusPuyo(puyo.type) ? 2 : 1;
           const boostFactor = this.coordIsInBoostArea(coord) ? 3 : 1;
           num += plusFactor * boostFactor;
         }
@@ -751,7 +777,7 @@ export class Simulator {
 
       // その他のブロック(ハート、プリズム、おじゃま)の場合
       let num = 0;
-      for (const coord of block.coords) {
+      for (const [coord] of block.coordIdMap) {
         const boostFactor = this.coordIsInBoostArea(coord) ? 3 : 1;
         num += boostFactor;
       }
@@ -763,8 +789,8 @@ export class Simulator {
    * なぞり消しモードが通常であれば、なぞり中のぷよを消す。
    * 色変えモードであれば、なぞり中のぷよの色を変えその結果消える箇所を消す。
    */
-  private popTracingPuyos(): boolean | ChainDamage | undefined {
-    let popped: boolean | ChainDamage | undefined = false;
+  private popTracingPuyos(): boolean | Chain | undefined {
+    let popped: boolean | Chain | undefined = false;
 
     if (this.traceMode === TraceMode.Normal) {
       for (const c of this.traceCoords) {
@@ -777,11 +803,14 @@ export class Simulator {
         throw new Error('traceMode is invalid.');
       }
       for (const c of this.traceCoords) {
-        const puyoType = this.field[c.y][c.x];
-        if (!puyoType) {
+        const puyo = this.field[c.y][c.x];
+        if (!puyo) {
           continue;
         }
-        this.field[c.y][c.x] = convertPuyoType(puyoType, puyoAttr);
+        this.field[c.y][c.x] = {
+          id: puyo.id,
+          type: convertPuyoType(puyo.type, puyoAttr)
+        };
       }
       popped = this.popPuyoBlocks();
     }
@@ -833,10 +862,16 @@ export class Simulator {
       }
 
       const initialY = PuyoCoord.YNum - 1 - colPuyoNum;
-      const nextPuyo = this.nextPuyos[x] ?? PuyoType.Padding;
+      const nextPuyo = this.nextPuyos[x] ?? {
+        id: generatePuyoId(),
+        type: PuyoType.Padding
+      };
 
       for (let y = initialY; y >= 0; y--) {
-        this.field[y][x] = y === initialY ? nextPuyo : PuyoType.Padding;
+        this.field[y][x] =
+          y === initialY
+            ? nextPuyo
+            : { id: generatePuyoId(), type: PuyoType.Padding };
       }
 
       this.nextPuyos[x] = undefined;

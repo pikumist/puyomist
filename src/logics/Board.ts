@@ -1,6 +1,6 @@
 import { PuyoCoord } from './PuyoCoord';
+import type { PuyoType } from './PuyoType';
 import type { TraceMode } from './TraceMode';
-import type { PuyoType } from './puyo';
 
 /** 連鎖の種やとくべつルール、SS取り込み時のボード情報 */
 export interface Board {

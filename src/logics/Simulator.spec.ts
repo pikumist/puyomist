@@ -1,14 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { Board } from './Board';
+import { __resetPuyoIdCount } from './Puyo';
+import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, G, H, P, R, W, Y } from './boards/alias';
-import { PuyoAttribute, PuyoType } from './puyo';
 
 describe('Simulator', () => {
-  describe('detectPopBlocks2()', () => {
+  beforeEach(() => {
+    __resetPuyoIdCount();
+  });
+
+  describe('detectPopBlocks()', () => {
     const U = undefined;
 
     it.each([
@@ -45,61 +51,61 @@ describe('Simulator', () => {
         expected: [
           {
             attr: PuyoAttribute.Red,
-            coords: new Set([
-              PuyoCoord.xyToCoord(0, 0),
-              PuyoCoord.xyToCoord(1, 0),
-              PuyoCoord.xyToCoord(0, 1),
-              PuyoCoord.xyToCoord(1, 1)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(0, 0), 1],
+              [PuyoCoord.xyToCoord(1, 0), 2],
+              [PuyoCoord.xyToCoord(0, 1), 9],
+              [PuyoCoord.xyToCoord(1, 1), 10]
             ])
           },
           {
             attr: PuyoAttribute.Blue,
-            coords: new Set([
-              PuyoCoord.xyToCoord(2, 3),
-              PuyoCoord.xyToCoord(3, 2),
-              PuyoCoord.xyToCoord(3, 3)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(2, 3), 27],
+              [PuyoCoord.xyToCoord(3, 2), 20],
+              [PuyoCoord.xyToCoord(3, 3), 28]
             ])
           },
           {
             attr: PuyoAttribute.Green,
-            coords: new Set([
-              PuyoCoord.xyToCoord(0, 5),
-              PuyoCoord.xyToCoord(1, 4),
-              PuyoCoord.xyToCoord(1, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(0, 5), 41],
+              [PuyoCoord.xyToCoord(1, 4), 34],
+              [PuyoCoord.xyToCoord(1, 5), 42]
             ])
           },
           {
             attr: PuyoAttribute.Green,
-            coords: new Set([
-              PuyoCoord.xyToCoord(6, 4),
-              PuyoCoord.xyToCoord(7, 4),
-              PuyoCoord.xyToCoord(7, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(6, 4), 39],
+              [PuyoCoord.xyToCoord(7, 4), 40],
+              [PuyoCoord.xyToCoord(7, 5), 48]
             ])
           },
           {
             attr: PuyoAttribute.Yellow,
-            coords: new Set([
-              PuyoCoord.xyToCoord(4, 0),
-              PuyoCoord.xyToCoord(5, 0),
-              PuyoCoord.xyToCoord(4, 1),
-              PuyoCoord.xyToCoord(6, 0),
-              PuyoCoord.xyToCoord(7, 0)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(4, 0), 5],
+              [PuyoCoord.xyToCoord(5, 0), 6],
+              [PuyoCoord.xyToCoord(4, 1), 13],
+              [PuyoCoord.xyToCoord(6, 0), 7],
+              [PuyoCoord.xyToCoord(7, 0), 8]
             ])
           },
           {
             attr: PuyoAttribute.Purple,
-            coords: new Set([
-              PuyoCoord.xyToCoord(2, 4),
-              PuyoCoord.xyToCoord(3, 4),
-              PuyoCoord.xyToCoord(2, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(2, 4), 35],
+              [PuyoCoord.xyToCoord(3, 4), 36],
+              [PuyoCoord.xyToCoord(2, 5), 43]
             ])
           },
           {
             attr: PuyoAttribute.Heart,
-            coords: new Set([
-              PuyoCoord.xyToCoord(2, 0),
-              PuyoCoord.xyToCoord(3, 1),
-              PuyoCoord.xyToCoord(4, 2)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(2, 0), 3],
+              [PuyoCoord.xyToCoord(3, 1), 12],
+              [PuyoCoord.xyToCoord(4, 2), 21]
             ])
           }
         ]
@@ -137,60 +143,60 @@ describe('Simulator', () => {
         expected: [
           {
             attr: PuyoAttribute.Blue,
-            coords: new Set([
-              PuyoCoord.xyToCoord(2, 2),
-              PuyoCoord.xyToCoord(3, 2),
-              PuyoCoord.xyToCoord(4, 2),
-              PuyoCoord.xyToCoord(5, 2)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(2, 2), 19],
+              [PuyoCoord.xyToCoord(3, 2), 20],
+              [PuyoCoord.xyToCoord(4, 2), 21],
+              [PuyoCoord.xyToCoord(5, 2), 22]
             ])
           },
           {
             attr: PuyoAttribute.Green,
-            coords: new Set([
-              PuyoCoord.xyToCoord(3, 0),
-              PuyoCoord.xyToCoord(4, 0),
-              PuyoCoord.xyToCoord(5, 0),
-              PuyoCoord.xyToCoord(6, 0),
-              PuyoCoord.xyToCoord(7, 0),
-              PuyoCoord.xyToCoord(7, 1)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(3, 0), 4],
+              [PuyoCoord.xyToCoord(4, 0), 5],
+              [PuyoCoord.xyToCoord(5, 0), 6],
+              [PuyoCoord.xyToCoord(6, 0), 7],
+              [PuyoCoord.xyToCoord(7, 0), 8],
+              [PuyoCoord.xyToCoord(7, 1), 16]
             ])
           },
           {
             attr: PuyoAttribute.Yellow,
-            coords: new Set([
-              PuyoCoord.xyToCoord(5, 3),
-              PuyoCoord.xyToCoord(6, 3),
-              PuyoCoord.xyToCoord(6, 4),
-              PuyoCoord.xyToCoord(7, 4)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(5, 3), 30],
+              [PuyoCoord.xyToCoord(6, 3), 31],
+              [PuyoCoord.xyToCoord(6, 4), 39],
+              [PuyoCoord.xyToCoord(7, 4), 40]
             ])
           },
           {
             attr: PuyoAttribute.Yellow,
-            coords: new Set([
-              PuyoCoord.xyToCoord(0, 3),
-              PuyoCoord.xyToCoord(1, 3),
-              PuyoCoord.xyToCoord(2, 3),
-              PuyoCoord.xyToCoord(1, 4),
-              PuyoCoord.xyToCoord(1, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(0, 3), 25],
+              [PuyoCoord.xyToCoord(1, 3), 26],
+              [PuyoCoord.xyToCoord(2, 3), 27],
+              [PuyoCoord.xyToCoord(1, 4), 34],
+              [PuyoCoord.xyToCoord(1, 5), 42]
             ])
           },
           {
             attr: PuyoAttribute.Purple,
-            coords: new Set([
-              PuyoCoord.xyToCoord(4, 3),
-              PuyoCoord.xyToCoord(4, 4),
-              PuyoCoord.xyToCoord(5, 4),
-              PuyoCoord.xyToCoord(5, 5),
-              PuyoCoord.xyToCoord(6, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(4, 3), 29],
+              [PuyoCoord.xyToCoord(4, 4), 37],
+              [PuyoCoord.xyToCoord(5, 4), 38],
+              [PuyoCoord.xyToCoord(5, 5), 46],
+              [PuyoCoord.xyToCoord(6, 5), 47]
             ])
           },
           {
             attr: PuyoAttribute.Heart,
-            coords: new Set([PuyoCoord.xyToCoord(3, 1)])
+            coordIdMap: new Map([[PuyoCoord.xyToCoord(3, 1), 12]])
           },
           {
             attr: PuyoAttribute.Prism,
-            coords: new Set([PuyoCoord.xyToCoord(4, 1)])
+            coordIdMap: new Map([[PuyoCoord.xyToCoord(4, 1), 13]])
           }
         ]
       },
@@ -211,39 +217,39 @@ describe('Simulator', () => {
         expected: [
           {
             attr: PuyoAttribute.Blue,
-            coords: new Set([
-              PuyoCoord.xyToCoord(2, 2),
-              PuyoCoord.xyToCoord(3, 2),
-              PuyoCoord.xyToCoord(4, 2),
-              PuyoCoord.xyToCoord(5, 2)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(2, 2), 6],
+              [PuyoCoord.xyToCoord(3, 2), 7],
+              [PuyoCoord.xyToCoord(4, 2), 8],
+              [PuyoCoord.xyToCoord(5, 2), 9]
             ])
           },
           {
             attr: PuyoAttribute.Yellow,
-            coords: new Set([
-              PuyoCoord.xyToCoord(0, 3),
-              PuyoCoord.xyToCoord(1, 3),
-              PuyoCoord.xyToCoord(1, 4),
-              PuyoCoord.xyToCoord(1, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(0, 3), 11],
+              [PuyoCoord.xyToCoord(1, 3), 12],
+              [PuyoCoord.xyToCoord(1, 4), 18],
+              [PuyoCoord.xyToCoord(1, 5), 25]
             ])
           },
           {
             attr: PuyoAttribute.Purple,
-            coords: new Set([
-              PuyoCoord.xyToCoord(4, 3),
-              PuyoCoord.xyToCoord(4, 4),
-              PuyoCoord.xyToCoord(5, 4),
-              PuyoCoord.xyToCoord(5, 5),
-              PuyoCoord.xyToCoord(6, 5)
+            coordIdMap: new Map([
+              [PuyoCoord.xyToCoord(4, 3), 14],
+              [PuyoCoord.xyToCoord(4, 4), 21],
+              [PuyoCoord.xyToCoord(5, 4), 22],
+              [PuyoCoord.xyToCoord(5, 5), 29],
+              [PuyoCoord.xyToCoord(6, 5), 30]
             ])
           },
           {
             attr: PuyoAttribute.Heart,
-            coords: new Set([PuyoCoord.xyToCoord(3, 1)])
+            coordIdMap: new Map([[PuyoCoord.xyToCoord(3, 1), 2]])
           },
           {
             attr: PuyoAttribute.Prism,
-            coords: new Set([PuyoCoord.xyToCoord(4, 1)])
+            coordIdMap: new Map([[PuyoCoord.xyToCoord(4, 1), 3]])
           }
         ]
       }
@@ -253,7 +259,7 @@ describe('Simulator', () => {
       sim.resetWithBoard(board);
 
       // Act
-      const actual = (sim as any).detectPopBlocks2();
+      const actual = (sim as any).detectPopBlocks();
 
       // Assert
       expect(actual).toEqual(expected);
@@ -273,7 +279,7 @@ describe('Simulator', () => {
             chainNum: 1,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 1,
                 poppedNum: 3,
@@ -285,7 +291,7 @@ describe('Simulator', () => {
             chainNum: 2,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 3.8000000000000003,
                 poppedNum: 3,
@@ -297,7 +303,7 @@ describe('Simulator', () => {
             chainNum: 3,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 5.8999999999999995,
                 poppedNum: 3,
@@ -309,7 +315,7 @@ describe('Simulator', () => {
             chainNum: 4,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
                 poppedNum: 3,
@@ -321,7 +327,7 @@ describe('Simulator', () => {
             chainNum: 5,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 9.4,
                 poppedNum: 3,
@@ -333,7 +339,7 @@ describe('Simulator', () => {
             chainNum: 6,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 10.799999999999999,
                 poppedNum: 3,
@@ -345,7 +351,7 @@ describe('Simulator', () => {
             chainNum: 7,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 12.200000000000001,
                 poppedNum: 3,
@@ -357,7 +363,7 @@ describe('Simulator', () => {
             chainNum: 8,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 13.6,
                 poppedNum: 3,
@@ -369,7 +375,7 @@ describe('Simulator', () => {
             chainNum: 9,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 15,
                 poppedNum: 3,
@@ -381,7 +387,7 @@ describe('Simulator', () => {
             chainNum: 10,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 16.400000000000002,
                 poppedNum: 3,
@@ -393,7 +399,7 @@ describe('Simulator', () => {
             chainNum: 11,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 17.800000000000004,
                 poppedNum: 3,
@@ -405,7 +411,7 @@ describe('Simulator', () => {
             chainNum: 12,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19.2,
                 poppedNum: 3,
@@ -417,7 +423,7 @@ describe('Simulator', () => {
             chainNum: 13,
             poppedPuyoNum: 3,
             puyoTsukaiCount: 3,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 20.599999999999998,
                 poppedNum: 3,
@@ -429,7 +435,7 @@ describe('Simulator', () => {
             chainNum: 14,
             poppedPuyoNum: 10,
             puyoTsukaiCount: 10,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 90.19999999999999,
                 poppedNum: 10,
@@ -456,7 +462,7 @@ describe('Simulator', () => {
             chainNum: 1,
             poppedPuyoNum: 6,
             puyoTsukaiCount: 7,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 1.3,
                 poppedNum: 6,
@@ -468,7 +474,7 @@ describe('Simulator', () => {
             chainNum: 2,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 5,
                 poppedNum: 4,
@@ -480,7 +486,7 @@ describe('Simulator', () => {
             chainNum: 3,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
                 poppedNum: 4,
@@ -492,7 +498,7 @@ describe('Simulator', () => {
             chainNum: 4,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 11,
                 poppedNum: 4,
@@ -504,7 +510,7 @@ describe('Simulator', () => {
             chainNum: 5,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 13,
                 poppedNum: 4,
@@ -516,7 +522,7 @@ describe('Simulator', () => {
             chainNum: 6,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 15,
                 poppedNum: 4,
@@ -528,7 +534,7 @@ describe('Simulator', () => {
             chainNum: 7,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 17,
                 poppedNum: 4,
@@ -540,7 +546,7 @@ describe('Simulator', () => {
             chainNum: 8,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19,
                 poppedNum: 4,
@@ -552,7 +558,7 @@ describe('Simulator', () => {
             chainNum: 9,
             poppedPuyoNum: 4,
             puyoTsukaiCount: 4,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Green]: {
                 strength: 21,
                 poppedNum: 4,
@@ -564,7 +570,7 @@ describe('Simulator', () => {
             chainNum: 10,
             poppedPuyoNum: 13,
             puyoTsukaiCount: 13,
-            damageTerms: {
+            attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 108.09999999999998,
                 poppedNum: 13,
@@ -575,7 +581,7 @@ describe('Simulator', () => {
         ]
       }
     ])(
-      'should calculate chainDamages',
+      'should calculate chains',
       ({
         maxTraceNum,
         poppingLeverage,
@@ -597,8 +603,8 @@ describe('Simulator', () => {
         sim.doChains()!;
 
         // Assert
-        const chainDamages = sim.getChainDamages();
-        expect(chainDamages).toEqual(expected);
+        const chains = sim.getChains();
+        expect(chains).toEqual(expected);
       }
     );
   });

@@ -1,55 +1,55 @@
 import type React from 'react';
-import type { ChainDamage } from '../logics/damage';
-import { PuyoAttribute, getPuyoAttributeName } from '../logics/puyo';
+import type { Chain } from '../logics/Chain';
+import { PuyoAttribute, getPuyoAttributeName } from '../logics/PuyoAttribute';
 import styles from './DamageDetail.module.css';
 
 interface IProps {
-  /** ダメージ表示するぷよの種類 */
+  /** ダメージ表示するぷよの属性 */
   attr: PuyoAttribute;
 
-  /** 連鎖ダメージリスト */
-  chainDamages: ChainDamage[];
+  /** 全連鎖情報 */
+  chains: Chain[];
 }
 
 /** あるぷよ色におけるダメージ詳細 */
 const DamageDetail: React.FC<IProps> = (props) => {
-  const { chainDamages, attr } = props;
+  const { chains, attr } = props;
   const attrName = getPuyoAttributeName(attr);
 
-  const chainDamagesByAttr = chainDamages
+  const chainsByAttr = chains
     .filter((chain) => {
-      const damageTerm = chain.damageTerms[attr];
-      return typeof damageTerm !== 'undefined';
+      const attributeChain = chain.attributes[attr];
+      return typeof attributeChain !== 'undefined';
     })
     .map((chain) => {
       return {
         chainNum: chain.chainNum,
         poppedPuyoNum: chain.poppedPuyoNum,
-        damageTerm: chain.damageTerms[attr]
+        attributeChain: chain.attributes[attr]
       };
     });
 
-  const totalDamageByPrism = chainDamages
+  const totalDamageByPrism = chains
     .map((chain) => {
-      return chain.damageTerms[PuyoAttribute.Prism];
+      return chain.attributes[PuyoAttribute.Prism];
     })
-    .reduce((m, damageTerm) => {
-      return m + (damageTerm?.strength ?? 0);
+    .reduce((m, attributeChain) => {
+      return m + (attributeChain?.strength ?? 0);
     }, 0);
 
   const totalAttrDamage = (
     totalDamageByPrism +
-    chainDamagesByAttr.reduce((m, chain) => m + chain.damageTerm.strength, 0)
+    chainsByAttr.reduce((m, chain) => m + chain.attributeChain.strength, 0)
   ).toFixed(2);
 
-  const totalAttrPoppedNum = chainDamagesByAttr.reduce(
-    (m, chain) => m + chain.damageTerm.poppedNum,
+  const totalAttrPoppedNum = chainsByAttr.reduce(
+    (m, chain) => m + chain.attributeChain.poppedNum,
     0
   );
 
   // (連鎖目-分離数-同時消し数) リスト
-  const cspList = chainDamagesByAttr.map((chain) => {
-    return `${chain.chainNum}-${chain.damageTerm.separatedBlocksNum}-${chain.poppedPuyoNum}`;
+  const cspList = chainsByAttr.map((chain) => {
+    return `${chain.chainNum}-${chain.attributeChain.separatedBlocksNum}-${chain.poppedPuyoNum}`;
   });
 
   return (

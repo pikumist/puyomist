@@ -1,5 +1,5 @@
+import { PuyoType } from '../../logics/PuyoType';
 import type { Simulator } from '../../logics/Simulator';
-import { PuyoType } from '../../logics/puyo';
 
 /**
  * ネクスト情報をフィールドに反映する。

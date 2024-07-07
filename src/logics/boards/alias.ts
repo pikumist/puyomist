@@ -1,4 +1,4 @@
-import { PuyoType } from '../puyo';
+import { PuyoType } from '../PuyoType';
 
 /** 赤ぷよ */
 export const R = PuyoType.Red;

@@ -7,7 +7,7 @@ import {
   getHowToEditBoardDescription,
   possibleHowToEditBoardList
 } from '../../logics/BoardEditMode';
-import { type PuyoType, puyoTypeMap } from '../../logics/puyo';
+import { type PuyoType, puyoTypeMap } from '../../logics/PuyoType';
 import {
   boardEditCustomTypeItemSelected,
   howToEditBoardItemSelected
