@@ -232,12 +232,12 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
     DrawBoostAreas();
 
     const nextPuyos = simulator.getNextPuyos();
-    for (const [x, puyoType] of nextPuyos.entries()) {
-      if (!puyoType) {
+    for (const [x, puyo] of nextPuyos.entries()) {
+      if (!puyo) {
         continue;
       }
 
-      ctx.fillStyle = getPuyoRgb(puyoType);
+      ctx.fillStyle = getPuyoRgb(puyo.type);
       ctx.fillRect(
         x * cellUnitPixels + 0.1 * cellUnitPixels,
         0,
@@ -245,8 +245,8 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
         (cellUnitPixels / 2) * 0.8
       );
 
-      if (isChancePuyo(puyoType)) {
-        const attr = getPuyoAttribute(puyoType);
+      if (isChancePuyo(puyo.type)) {
+        const attr = getPuyoAttribute(puyo.type);
         const strokeStyle =
           attr === PuyoAttribute.Yellow || attr === PuyoAttribute.Green
             ? '#000'
@@ -255,8 +255,8 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
         ctx.strokeText('ch', x * cellUnitPixels + 0.1 * cellUnitPixels, 10);
       }
 
-      if (isPlusPuyo(puyoType)) {
-        const attr = getPuyoAttribute(puyoType);
+      if (isPlusPuyo(puyo.type)) {
+        const attr = getPuyoAttribute(puyo.type);
         const fillStyle =
           attr === PuyoAttribute.Yellow || attr === PuyoAttribute.Green
             ? '#000'
@@ -281,14 +281,14 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
 
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const puyoType = field[y][x];
+        const puyo = field[y][x];
         const coord = PuyoCoord.xyToCoord(x, y)!;
 
-        if (!puyoType) {
+        if (!puyo) {
           continue;
         }
 
-        ctx.fillStyle = getPuyoRgb(puyoType);
+        ctx.fillStyle = getPuyoRgb(puyo.type);
         ctx.fillRect(
           x * cellUnitPixels + 0.1 * cellUnitPixels,
           y * cellUnitPixels + 0.6 * cellUnitPixels,
@@ -296,8 +296,8 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
           cellUnitPixels * 0.8
         );
 
-        if (isChancePuyo(puyoType)) {
-          const attr = getPuyoAttribute(puyoType);
+        if (isChancePuyo(puyo.type)) {
+          const attr = getPuyoAttribute(puyo.type);
           const strokeStyle =
             attr === PuyoAttribute.Yellow || attr === PuyoAttribute.Green
               ? '#000'
@@ -310,8 +310,8 @@ const Canvas: React.FC<PuyoCanvasProps> = (props) => {
           );
         }
 
-        if (isPlusPuyo(puyoType)) {
-          const attr = getPuyoAttribute(puyoType);
+        if (isPlusPuyo(puyo.type)) {
+          const attr = getPuyoAttribute(puyo.type);
           const fillStyle =
             attr === PuyoAttribute.Yellow || attr === PuyoAttribute.Green
               ? '#000'

@@ -4,7 +4,7 @@ import {
   isColoredPuyoAttribute
 } from './PuyoAttribute';
 
-/** ぷよの種類 */
+/** ぷよの型 */
 export enum PuyoType {
   /** 赤ぷよ */
   Red = 1,
@@ -95,7 +95,7 @@ export const getPuyoTypeName = (puyoType: PuyoType | undefined): string => {
 
 /**
  * 色ぷよかどうか (プリズムは含まない)
- * @param puyoType ぷよの種類
+ * @param puyoType ぷよの型
  * @returns
  */
 export const isColoredPuyoType = (
@@ -126,7 +126,7 @@ export const isColoredPuyoType = (
 
 /**
  * プラスぷよかどうか
- * @param puyoType ぷよの種類
+ * @param puyoType ぷよの型
  * @returns
  */
 export const isPlusPuyo = (
@@ -160,7 +160,7 @@ export const isPlusPuyo = (
 
 /**
  * チャンスぷよかどうか
- * @param puyoType ぷよの種類
+ * @param puyoType ぷよの型
  * @returns
  */
 export const isChancePuyo = (
@@ -324,7 +324,7 @@ export const toPlusColoredType = (puyoType: PuyoType) => {
 };
 
 /**
- * ぷよの種類を指定の属性に変換する。
+ * ぷよの型を指定の属性に変換する。
  * @param puyoType
  * @param toAttr
  * @returns
