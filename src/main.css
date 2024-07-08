@@ -30,6 +30,10 @@ body {
   padding: 2rem;
 }
 
+svg.board > * {
+  pointer-events: none;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     --primary-color: #213547;

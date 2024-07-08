@@ -6,7 +6,6 @@ import {
 import type React from 'react';
 import { useCallback } from 'react';
 import { screenshotBoardId } from '../logics/boards';
-import PuyoCanvas from './PuyoCanvas';
 import ScreenshotCanvas from './ScreenshotCanvas';
 import BoardSetting from './settings/BoardSetting';
 import BoostAreaSetting from './settings/BoostAreaSetting';
@@ -24,6 +23,7 @@ import {
   solveButtonClicked
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch, RootState } from '../reducers/store';
+import PuyoBoard from './PuyoBoard';
 import SolutionResultView from './SolutionResultView';
 import TracingResultView from './TracingResultView';
 import IconButton from './buttons/IconButton';
@@ -73,7 +73,7 @@ const PuyoApp: React.FC = () => {
             />
           </div>
 
-          <PuyoCanvas width={480} height={390} />
+          <PuyoBoard />
 
           <div className={`${layout.horizontal} ${layout.gap8}`}>
             <div className={layout.flex1}>
