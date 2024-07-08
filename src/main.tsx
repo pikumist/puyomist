@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import PuyoApp from './components/PuyoApp.tsx';
 import './main.css';
+import { StrictMode } from 'react';
 import { Provider } from 'react-redux';
 import { session } from './logics/session.ts';
 import { loadPuyoAppState } from './reducers/internal/loadPuyoAppState.ts';
@@ -25,7 +26,9 @@ store.subscribe(() => {
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <Provider store={store}>
-    <PuyoApp />
-  </Provider>
+  <StrictMode>
+    <Provider store={store}>
+      <PuyoApp />
+    </Provider>
+  </StrictMode>
 );
