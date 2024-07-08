@@ -64,7 +64,7 @@ const PuyoApp: React.FC = () => {
   return (
     <>
       <div className={`${layout.horizontal} ${layout.gap4}`}>
-        <div className={`${layout.vertical} ${layout.width480} ${layout.gap4}`}>
+        <div className={`${layout.vertical} ${layout.gap4}`}>
           <div className={`${layout.horizontal} ${layout.gap8}`}>
             <BoardSetting boardId={state.boardId} />
             <NextConfig
@@ -75,48 +75,16 @@ const PuyoApp: React.FC = () => {
 
           <PuyoBoard />
 
-          <div className={`${layout.horizontal} ${layout.gap8}`}>
-            <div className={layout.flex1}>
-              <IconButton
-                tooltipId="resetBtnTooltip"
-                icon={faRotateRight}
-                onClicked={onBoardRestButtonCliecked}
-              />
-              <TracingResultView
-                tracingCoords={state.simulator.getCurrentTracingCoords()}
-                chains={state.chains}
-              />
-            </div>
-            <div className={layout.flex1}>
-              <div>
-                <IconButton
-                  tooltipId="solveBtnTooltip"
-                  icon={faMagnifyingGlass}
-                  onClicked={onSolveButtonClicked}
-                />
-                <IconButton
-                  tooltipId="clearSolutionBtnTooltip"
-                  icon={faBroom}
-                  disabled={Boolean(!state.explorationResult)}
-                  onClicked={onSolutionResetButtonClicked}
-                />
-                <IconButton
-                  tooltipId="playSolutionBtnTooltip"
-                  text="▶"
-                  disabled={Boolean(!state.explorationResult)}
-                  onClicked={onPlaySolutionButtonClicked}
-                />
-                <IconButton
-                  tooltipId="resetBtnTooltip"
-                  icon={faRotateRight}
-                  onClicked={onBoardRestButtonCliecked}
-                />
-              </div>
-              <SolutionResultView
-                solving={state.solving}
-                result={state.explorationResult}
-              />
-            </div>
+          <div>
+            <IconButton
+              tooltipId="resetBtnTooltip"
+              icon={faRotateRight}
+              onClicked={onBoardRestButtonCliecked}
+            />
+            <TracingResultView
+              tracingCoords={state.simulator.getCurrentTracingCoords()}
+              chains={state.chains}
+            />
           </div>
         </div>
 
@@ -139,6 +107,34 @@ const PuyoApp: React.FC = () => {
           <SolutionMethodSetting method={state.solutionMethod} />
           <hr />
           <BoardEditSetting boardEditMode={state.boardEditMode!} />
+          <div>
+            <IconButton
+              tooltipId="solveBtnTooltip"
+              icon={faMagnifyingGlass}
+              onClicked={onSolveButtonClicked}
+            />
+            <IconButton
+              tooltipId="clearSolutionBtnTooltip"
+              icon={faBroom}
+              disabled={Boolean(!state.explorationResult)}
+              onClicked={onSolutionResetButtonClicked}
+            />
+            <IconButton
+              tooltipId="playSolutionBtnTooltip"
+              text="▶"
+              disabled={Boolean(!state.explorationResult)}
+              onClicked={onPlaySolutionButtonClicked}
+            />
+            <IconButton
+              tooltipId="resetBtnTooltip"
+              icon={faRotateRight}
+              onClicked={onBoardRestButtonCliecked}
+            />
+          </div>
+          <SolutionResultView
+            solving={state.solving}
+            result={state.explorationResult}
+          />
         </div>
 
         <ScreenshotCanvas
