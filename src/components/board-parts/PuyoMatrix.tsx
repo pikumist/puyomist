@@ -1,14 +1,23 @@
 import React from 'react';
 import type { Puyo } from '../../logics/Puyo';
-import FieldPuyo from './FieldPuyo';
-import NextPuyo from './NextPuyo';
+import HybridPuyo from './HybridPuyo';
 
 type PuyoMatrixProps = {
   nextPuyos: (Puyo | undefined)[];
   field: (Puyo | undefined)[][];
 };
 
-function* enumerateField(field: (Puyo | undefined)[][]) {
+function* enumerateField(
+  nextPuyos: (Puyo | undefined)[],
+  field: (Puyo | undefined)[][]
+) {
+  for (const [j, puyo] of nextPuyos.entries()) {
+    yield {
+      x: j,
+      y: -1,
+      puyo
+    };
+  }
   for (const [i, row] of field.entries()) {
     for (const [j, puyo] of row.entries()) {
       yield {
@@ -26,19 +35,14 @@ const PuyoMatrix: React.FC<PuyoMatrixProps> = React.memo((props) => {
 
   return (
     <g>
-      {nextPuyos.map((puyo, j) => (
-        <NextPuyo
-          key={puyo?.id ?? `empty-${String(j)}`}
-          puyoId={puyo?.id}
-          type={puyo?.type}
-          x={j}
-        />
-      ))}
-      {[...enumerateField(field)].map(({ x, y, puyo }) => {
+      {[...enumerateField(nextPuyos, field)].map(({ x, y, puyo }) => {
         return (
-          <FieldPuyo
-            key={puyo?.id ?? `empty-${String(x)}-${String(y)}`}
-            puyoId={puyo?.id}
+          <HybridPuyo
+            key={
+              Number.isInteger(puyo?.id)
+                ? puyo?.id
+                : `empty-${String(x)}-${String(y)}`
+            }
             type={puyo?.type}
             x={x}
             y={y}

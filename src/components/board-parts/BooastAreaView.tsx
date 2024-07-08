@@ -27,7 +27,7 @@ const BoostAreaView: React.FC<BoostAreaProps> = React.memo((props) => {
   );
 
   return (
-    <g>
+    <g key="boostArea">
       {[...coordSet.keys()].map(({ x, y }) => {
         return (
           <g key={`${x},${y}`} transform={calcTransform(x, y)}>
