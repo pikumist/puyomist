@@ -1,5 +1,6 @@
-import sprite from '../../../assets/puyo-sprite.svg';
 import { PuyoAttribute } from '../../../logics/PuyoAttribute';
+
+const sprite = '/puyomist/assets/puyo-sprite.svg';
 
 const symbolIdMap: ReadonlyMap<PuyoAttribute, string> = new Map([
   [PuyoAttribute.Red, 'red'],
