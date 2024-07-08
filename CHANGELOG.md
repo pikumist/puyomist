@@ -5,6 +5,7 @@
 ### Added
 
 - スクリーンショット画像の Drag & Drop 対応
+- SVGでボードの描画
 
 ### Changed
 
