@@ -7,14 +7,16 @@ import DamageDetail from './DamageDetail';
 
 type IProps = {
   tracingCoords: PuyoCoord[];
+  lastTraceCoords: PuyoCoord[] | undefined;
   chains: Chain[];
 };
 
 /** なぞり消し結果View */
 const TracingResultView: React.FC<IProps> = (props) => {
-  const { tracingCoords, chains } = props;
+  const { tracingCoords, lastTraceCoords, chains } = props;
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
+  const lastCoords = lastTraceCoords?.map((c) => c.toCellAddr()).join(',');
   const puyoTsukaiCount = chains
     ? Simulator.calcTotalPuyoTsukaiCount(chains)
     : '';
@@ -22,6 +24,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
   return (
     <>
       <div>現在なぞり: {coords}</div>
+      <div>最後のなぞり: {lastCoords}</div>
       <div>ぷよ使いカウント: {puyoTsukaiCount}</div>
       {[
         PuyoAttribute.Red,

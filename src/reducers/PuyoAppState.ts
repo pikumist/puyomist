@@ -3,6 +3,7 @@ import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
 import { OptimizationTarget } from '../logics/OptimizationTarget';
+import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
 import { screenshotBoardId } from '../logics/boards';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
@@ -35,6 +36,9 @@ export interface PuyoAppState {
   /** アニメーション中かどうか */
   animating: boolean;
 
+  /** 最後になぞり消しが発生した際のなぞり位置 */
+  lastTraceCoords: PuyoCoord[] | undefined;
+
   /** 全連鎖情報 */
   chains: Chain[];
 
@@ -61,6 +65,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardEditMode: undefined,
   simulator: new Simulator(),
   animating: false,
+  lastTraceCoords: undefined,
   chains: [],
   solving: false,
   explorationResult: undefined,

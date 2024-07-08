@@ -63,6 +63,7 @@ const puyoAppSlice = createSlice({
     /** アニメーションが開始したとき */
     animationStart: (state) => {
       state.animating = true;
+      state.lastTraceCoords = [...state.simulator.getCurrentTracingCoords()];
     },
 
     /** アニメーションステップ(連鎖の1コマ)が発生したとき */
