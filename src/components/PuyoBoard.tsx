@@ -1,4 +1,4 @@
-import type React from 'react';
+import React from 'react';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HowToEditBoard } from '../logics/BoardEditMode';
@@ -25,7 +25,7 @@ import {
 import { H, W, fw } from './board-parts/logics/measurements';
 
 /** ぷよの盤面を描画するSVG */
-const PuyoBoard: React.FC = () => {
+const PuyoBoard: React.FC = React.memo(() => {
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
@@ -162,6 +162,6 @@ const PuyoBoard: React.FC = () => {
       </g>
     </svg>
   );
-};
+});
 
 export default PuyoBoard;

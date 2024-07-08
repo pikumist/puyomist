@@ -1,3 +1,4 @@
+import React from 'react';
 import styles from '../PuyoBoard.module.css';
 import { ch, cw, gw, nch } from './logics/measurements';
 
@@ -7,7 +8,7 @@ interface TraceProps {
 }
 
 /** なぞり描画 */
-const Trace: React.FC<TraceProps> = (props) => {
+const Trace: React.FC<TraceProps> = React.memo((props) => {
   const { x, y } = props;
 
   const outerTransform = `translate(${x * (cw + gw)} ${
@@ -19,6 +20,6 @@ const Trace: React.FC<TraceProps> = (props) => {
       <rect className={styles.trace} x="4" y="4" width="40" height="40" />
     </g>
   );
-};
+});
 
 export default Trace;

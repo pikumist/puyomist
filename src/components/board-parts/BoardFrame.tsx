@@ -1,9 +1,9 @@
-import type React from 'react';
+import React from 'react';
 import styles from '../PuyoBoard.module.css';
 import { H, W, fw } from './logics/measurements';
 
 /** ボードの枠 */
-const BoardFrame: React.FC = () => {
+const BoardFrame: React.FC = React.memo(() => {
   const frameStyle = {
     strokeWidth: `${fw}px`
   };
@@ -16,6 +16,6 @@ const BoardFrame: React.FC = () => {
   const d = `${outer} ${inner}`;
 
   return <path className={styles.boardFrame} style={frameStyle} d={d} />;
-};
+});
 
 export default BoardFrame;
