@@ -1,0 +1,42 @@
+.svg {
+  margin: 0;
+  padding: 0;
+  border-radius: 2px;
+}
+
+.boardBackground {
+  stroke: none;
+  fill: #000;
+}
+
+.boardFrame {
+  stroke: none;
+  fill: #eee;
+}
+
+.gridLine {
+  stroke: #666;
+}
+
+.optimalTrace {
+  stroke-width: 2px;
+  stroke: #aaa;
+  fill: none;
+}
+
+.trace {
+  stroke: none;
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.crosshair {
+  cursor: crosshair;
+}
+
+.notAllowed {
+  cursor: not-allowed;
+}
