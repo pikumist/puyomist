@@ -23,7 +23,7 @@ import {
 } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import type { TraceMode } from '../logics/TraceMode';
-import { getSpecialBoard, screenshotBoardId } from '../logics/boards';
+import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
@@ -120,8 +120,23 @@ const puyoAppSlice = createSlice({
       state,
       action: PayloadAction<{ fieldCoord?: PuyoCoord; nextX?: number }>
     ) => {
-      if (!state.lastScreenshotBoard || !state.boardEditMode) {
+      if (!state.boardEditMode) {
         return;
+      }
+
+      if (state.boardId !== customBoardId) {
+        state.lastScreenshotBoard = getSpecialBoard(state.boardId);
+        if (!state.lastScreenshotBoard.nextPuyos) {
+          state.lastScreenshotBoard.nextPuyos =
+            state.simulationData.nextPuyos.map((puyo) => puyo?.type);
+        }
+      } else if (!state.lastScreenshotBoard) {
+        state.lastScreenshotBoard = {
+          field: [...new Array(PuyoCoord.YNum)].map(() => [
+            ...new Array(PuyoCoord.XNum)
+          ]),
+          nextPuyos: [...new Array(PuyoCoord.XNum)]
+        };
       }
 
       const { fieldCoord, nextX } = action.payload;
@@ -172,12 +187,12 @@ const puyoAppSlice = createSlice({
           break;
       }
 
-      state.boardId = screenshotBoardId;
+      state.boardId = customBoardId;
 
       const simulationData = state.simulationData;
 
       state.simulationData = createSimulationData(
-        state.lastScreenshotBoard,
+        state.lastScreenshotBoard!,
         {},
         simulationData as any
       );
@@ -187,7 +202,7 @@ const puyoAppSlice = createSlice({
     boardResetButtonClicked: (state) => {
       const simulationData = state.simulationData;
 
-      if (state.boardId !== screenshotBoardId) {
+      if (state.boardId !== customBoardId) {
         const board = getSpecialBoard(state.boardId);
         const nextPuyos = createNextPuyos(state.nextSelection);
         state.simulationData = createSimulationData(
@@ -217,7 +232,7 @@ const puyoAppSlice = createSlice({
       state.boardId = boardId;
       const simulationData = state.simulationData;
 
-      if (boardId !== screenshotBoardId) {
+      if (boardId !== customBoardId) {
         const board = getSpecialBoard(state.boardId);
         state.simulationData = createSimulationData(
           board,
@@ -394,7 +409,7 @@ const puyoAppSlice = createSlice({
 
       const bd = board ?? emptyBoard;
       state.lastScreenshotBoard = bd;
-      state.boardId = screenshotBoardId;
+      state.boardId = customBoardId;
       state.simulationData = createSimulationData(
         bd,
         {},

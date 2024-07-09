@@ -12,10 +12,6 @@
   cursor: crosshair;
 }
 
-.notAllowed {
-  cursor: not-allowed;
-}
-
 .boardBackground {
   stroke: none;
   fill: #000;

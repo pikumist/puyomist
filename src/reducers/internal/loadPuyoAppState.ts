@@ -1,7 +1,7 @@
 import { getBoostArea } from '../../logics/BoostArea';
 import type { PuyoCoord } from '../../logics/PuyoCoord';
 import type { SimulationData } from '../../logics/SimulationData';
-import { getSpecialBoard, screenshotBoardId } from '../../logics/boards';
+import { customBoardId, getSpecialBoard } from '../../logics/boards';
 import { unionSet } from '../../logics/generics/set';
 import { type Session, session as g_session } from '../../logics/session';
 import type { PuyoAppState } from '../PuyoAppState';
@@ -38,13 +38,17 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
 
   let simulationData: SimulationData | undefined;
 
-  if (boardId !== screenshotBoardId) {
-    const board = getSpecialBoard(boardId);
-    const nextPuyos = createNextPuyos(nextSelection);
-    simulationData = createSimulationData(board, {
-      ...options,
-      nextPuyos
-    });
+  if (boardId !== customBoardId) {
+    try {
+      const board = getSpecialBoard(boardId);
+      const nextPuyos = createNextPuyos(nextSelection);
+      simulationData = createSimulationData(board, {
+        ...options,
+        nextPuyos
+      });
+    } catch (ex) {
+      simulationData = createSimulationData({}, options);
+    }
   } else if (lastScreenshotBoard) {
     simulationData = createSimulationData(lastScreenshotBoard, options);
   } else {
