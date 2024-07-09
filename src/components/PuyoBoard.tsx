@@ -2,7 +2,6 @@ import React from 'react';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HowToEditBoard } from '../logics/BoardEditMode';
-import { screenshotBoardId } from '../logics/boards';
 import {
   puyoEdited,
   tracingCanceled,
@@ -32,15 +31,8 @@ const PuyoBoard: React.FC = React.memo(() => {
   const dispatch = useDispatch<AppDispatch>();
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  const {
-    boardId,
-    boardEditMode,
-    simulationData,
-    animating,
-    explorationResult
-  } = state;
+  const { boardEditMode, simulationData, animating, explorationResult } = state;
   const { nextPuyos, field, boostAreaCoordList, traceCoords } = simulationData;
-  const editable = boardId === screenshotBoardId;
   const editing = Boolean(
     boardEditMode && boardEditMode.howToEdit !== HowToEditBoard.None
   );
@@ -66,7 +58,8 @@ const PuyoBoard: React.FC = React.memo(() => {
       if (coord) {
         dispatch(tracingCoordAdded(coord));
       }
-    } else if (editable) {
+    }
+    {
       const svg = svgRef.current;
       const rect = svg!.getBoundingClientRect();
       const px = ~~(e.clientX - rect.left);
@@ -125,12 +118,7 @@ const PuyoBoard: React.FC = React.memo(() => {
     dispatch(tracingCanceled());
   };
 
-  const cursor =
-    editing && editable
-      ? styles.crosshair
-      : editing
-        ? styles.notAllowed
-        : styles.pointer;
+  const cursor = editing ? styles.crosshair : styles.pointer;
 
   const viewBox = `0 0 ${W} ${H}`;
 

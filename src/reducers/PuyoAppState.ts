@@ -7,7 +7,7 @@ import { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import { TraceMode } from '../logics/TraceMode';
-import { screenshotBoardId } from '../logics/boards';
+import { customBoardId } from '../logics/boards';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 
 export interface PuyoAppState {
@@ -44,7 +44,7 @@ export interface PuyoAppState {
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
-  boardId: screenshotBoardId,
+  boardId: customBoardId,
   nextSelection: 'random',
   optimizationTarget: OptimizationTarget.PuyoTsukaiCount,
   solutionMethod: SolutionMethod.solveAllInParallel,
