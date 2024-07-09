@@ -15,9 +15,9 @@ store.subscribe(() => {
   const { puyoApp } = store.getState();
   session.setBoardId(puyoApp.boardId);
   session.setNextSelection(puyoApp.nextSelection);
-  session.setMaxTraceNum(puyoApp.simulator.getMaxTraceNum());
-  session.setPoppingLeverage(puyoApp.simulator.getPoppingLeverage());
-  session.setAnimationDuration(puyoApp.simulator.getAnimationDuration());
+  session.setMaxTraceNum(puyoApp.simulationData.maxTraceNum);
+  session.setPoppingLeverage(puyoApp.simulationData.poppingLeverage);
+  session.setAnimationDuration(puyoApp.simulationData.animationDuration);
   session.setOptimizationTarget(puyoApp.optimizationTarget);
   session.setSolutionMethod(puyoApp.solutionMethod);
   session.setLastScreenshotBoard(puyoApp.lastScreenshotBoard);

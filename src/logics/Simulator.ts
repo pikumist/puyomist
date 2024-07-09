@@ -1,4 +1,3 @@
-import type { Board } from './Board';
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
 import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
@@ -10,30 +9,30 @@ import {
   isColoredPuyoType,
   isPlusPuyo
 } from './PuyoType';
+import type { SimulationData } from './SimulationData';
 import { TraceMode } from './TraceMode';
 import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
-import { choice, shuffle } from './generics/random';
 import { sleep } from './generics/sleep';
 
 /** 連鎖シミュレーター */
 export class Simulator {
-  public static readonly colorAttrs: ReadonlyArray<PuyoAttribute> = [
+  static readonly colorAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Red,
     PuyoAttribute.Blue,
     PuyoAttribute.Green,
     PuyoAttribute.Yellow,
     PuyoAttribute.Purple
   ];
-  public static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
+  static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Heart,
     PuyoAttribute.Prism,
     PuyoAttribute.Ojyama,
     PuyoAttribute.Kata
   ];
 
-  private static readonly defaultMinimumPuyoNumForPopping = 4;
-  private static readonly defaultMaxTraceNum = 5;
-  private static readonly defaultAnimationDuration = 200;
+  static readonly defaultMinimumPuyoNumForPopping = 4;
+  static readonly defaultMaxTraceNum = 5;
+  static readonly defaultAnimationDuration = 200;
 
   /** フィールドは 8x6 のぷよ行列 */
   private readonly field: (Puyo | undefined)[][];
@@ -41,7 +40,8 @@ export class Simulator {
   /** ネクストぷよは 8つのぷよからなる。(実際は無限に上に連なっているはずだが割愛) */
   private nextPuyos: (Puyo | undefined)[];
 
-  private boostAreaCoordSetList: ReadonlySet<PuyoCoord>[] = [];
+  private boostAreaCoordList: PuyoCoord[] = [];
+  private boostAreaCoordSet: ReadonlySet<PuyoCoord> = new Set([]);
   private isChanceMode = false;
   private traceCoords: PuyoCoord[] = [];
   private minimumPuyoNumForPopping = Simulator.defaultMinimumPuyoNumForPopping;
@@ -49,149 +49,66 @@ export class Simulator {
   private traceMode = TraceMode.Normal;
   private poppingLeverage = 1.0;
   private chainLeverage = 1.0;
-  private chainAnimating = false;
   private animationDuration = Simulator.defaultAnimationDuration;
   private currentChainNum = 0;
   private chains: Chain[] = [];
 
   /**
    * インスタンスの指定があればそれをコピーする。そうでなければ初期化する。
-   * @param simulator
+   * @param simulationData
    */
-  constructor(simulator?: Simulator) {
-    if (simulator) {
-      this.field = simulator.field.map((row) => [...row]);
-      this.nextPuyos = [...simulator.nextPuyos];
-      this.boostAreaCoordSetList = simulator.boostAreaCoordSetList;
-      this.isChanceMode = simulator.isChanceMode;
-      this.traceCoords = [...simulator.traceCoords];
-      this.minimumPuyoNumForPopping = simulator.minimumPuyoNumForPopping;
-      this.maxTraceNum = simulator.maxTraceNum;
-      this.traceMode = simulator.traceMode;
-      this.poppingLeverage = simulator.poppingLeverage;
-      this.chainLeverage = simulator.chainLeverage;
-      this.chainAnimating = simulator.chainAnimating;
-      this.animationDuration = simulator.animationDuration;
-      this.currentChainNum = simulator.currentChainNum;
-      this.chains = [...simulator.chains];
+  constructor(simulationData?: SimulationData) {
+    if (simulationData) {
+      this.field = simulationData.field.map((row) => [...row]);
+      this.nextPuyos = [...simulationData.nextPuyos];
+      this.boostAreaCoordList = simulationData.boostAreaCoordList;
+      this.boostAreaCoordSet = new Set(simulationData.boostAreaCoordList);
+      this.isChanceMode = simulationData.isChanceMode;
+      this.traceCoords = [...simulationData.traceCoords];
+      this.minimumPuyoNumForPopping = simulationData.minimumPuyoNumForPopping;
+      this.maxTraceNum = simulationData.maxTraceNum;
+      this.traceMode = simulationData.traceMode;
+      this.poppingLeverage = simulationData.poppingLeverage;
+      this.chainLeverage = simulationData.chainLeverage;
+      this.animationDuration = simulationData.animationDuration;
     } else {
-      this.field = [...new Array(PuyoCoord.YNum)].map(
-        () => new Array(PuyoCoord.XNum)
-      );
-      this.nextPuyos = new Array(PuyoCoord.XNum);
+      this.field = [...new Array(PuyoCoord.YNum)].map(() => [
+        ...new Array(PuyoCoord.XNum)
+      ]);
+      this.nextPuyos = [...new Array(PuyoCoord.XNum)];
       this.clear();
     }
   }
 
-  /** ぷよが消えるのに必要な個数をセットする。 */
-  public setMinimumPuyoNumForPopping(num: number): void {
-    this.minimumPuyoNumForPopping = num;
-  }
-
-  /** ぷよが消えるのに必要な個数を取得する。 */
-  public getMinimumPuyoNumForPopping(): number {
-    return this.minimumPuyoNumForPopping;
-  }
-
-  /** 最大なぞり消し数をセットする。 */
-  public setMaxTraceNum(traceNum: number): void {
-    this.maxTraceNum = traceNum;
-  }
-
-  /** 最大なぞり消し数を取得する。 */
-  public getMaxTraceNum(): number {
-    return this.maxTraceNum;
+  /** シミュレーションに必要なデータ(入力データ)を取得する */
+  getSimulationData(): SimulationData {
+    return {
+      nextPuyos: this.nextPuyos,
+      field: this.field,
+      boostAreaCoordList: this.boostAreaCoordList,
+      isChanceMode: this.isChanceMode,
+      traceCoords: this.traceCoords,
+      minimumPuyoNumForPopping: this.minimumPuyoNumForPopping,
+      maxTraceNum: this.maxTraceNum,
+      traceMode: this.traceMode,
+      poppingLeverage: this.poppingLeverage,
+      chainLeverage: this.chainLeverage,
+      animationDuration: this.animationDuration
+    };
   }
 
   /** 実質の最大なぞり消し数を取得する。チャンスモード中は5に制限される。 */
-  public getActualMaxTraceNum(): number {
+  getActualMaxTraceNum(): number {
     return this.isChanceMode ? 5 : this.maxTraceNum;
   }
 
-  /** なぞり消しモードをセットする。 */
-  public setTraceMode(traceMode: TraceMode): void {
-    this.traceMode = traceMode;
-  }
-
-  /** なぞり消しモードを取得する。 */
-  public getTraceMode(): TraceMode {
-    return this.traceMode;
-  }
-
-  /** なぞり消し倍率をセットする。 */
-  public setPoppingLeverage(leverage: number): void {
-    this.poppingLeverage = leverage;
-  }
-
-  /** なぞり消し倍率を取得する。 */
-  public getPoppingLeverage(): number {
-    return this.poppingLeverage;
-  }
-
-  /** 連鎖倍率をセットする。 */
-  public setChainLeverage(leverage: number): void {
-    this.chainLeverage = leverage;
-  }
-
-  /** 連鎖倍率を取得する。 */
-  public getChainLeverage(): number {
-    return this.chainLeverage;
-  }
-
-  /** アニメーション間隔 (ms) をセットする。 */
-  public setAnimationDuration(duration: number): void {
-    this.animationDuration = duration;
-  }
-
-  /** アニメーション間隔 (ms) を取得する。 */
-  public getAnimationDuration(): number {
-    return this.animationDuration;
-  }
-
-  /** フィールドの中にあるぷよ行列を取得する。 */
-  public getField(): (Puyo | undefined)[][] {
-    return this.field;
-  }
-
-  /** ネクストぷよ配列を取得する。 */
-  public getNextPuyos(): (Puyo | undefined)[] {
-    return this.nextPuyos;
-  }
-
-  /** ブーストエリアの座標セットリストを取得する。 */
-  public getBoostAreaCoordSetList(): ReadonlySet<PuyoCoord>[] {
-    return this.boostAreaCoordSetList;
-  }
-
-  /** ブーストエリアの座標セットリストをセットする。 */
-  public setBoostAreaCoordSetList(
-    boostAreaCoordSetList: ReadonlySet<PuyoCoord>[]
-  ): void {
-    this.boostAreaCoordSetList = boostAreaCoordSetList;
-  }
-
-  /** 連鎖アニメーション中かどうか。 */
-  public isChainAnimating(): boolean {
-    return this.chainAnimating;
-  }
-
-  /** 現在なぞり中の数を取得する。 */
-  public getCurrentTracingNum() {
-    return this.traceCoords.length;
-  }
-
-  /** 現在のなぞり座標リストを取得する。 */
-  public getCurrentTracingCoords() {
-    return this.traceCoords;
-  }
-
   /** 全連鎖情報を取得する。 */
-  public getChains() {
+  getChains() {
     return this.chains;
   }
 
   /** シミュレーターをクリアする。 */
-  public clear(): void {
+  clear(): void {
     for (let y = 0; y < PuyoCoord.YNum; y++) {
       for (let x = 0; x < PuyoCoord.XNum; x++) {
         this.field[y][x] = undefined;
@@ -203,176 +120,13 @@ export class Simulator {
 
     this.isChanceMode = false;
     this.maxTraceNum = Simulator.defaultMaxTraceNum;
-    this.chainAnimating = false;
     this.animationDuration = Simulator.defaultAnimationDuration;
     this.currentChainNum = 0;
   }
 
-  public clone(): Simulator {
-    return new Simulator(this);
-  }
-
-  /*
-   * ネクストぷよをランダムにリセットする。
-   */
-  public resetNextPuyosAsRandom(): void {
-    const possibleNextPuyoTypes = [
-      PuyoType.Red,
-      PuyoType.Blue,
-      PuyoType.Green,
-      PuyoType.Yellow,
-      PuyoType.Purple
-    ];
-
-    for (let x = 0; x < PuyoCoord.XNum; x++) {
-      this.nextPuyos[x] = {
-        id: generatePuyoId(),
-        type: choice(possibleNextPuyoTypes)
-      };
-    }
-  }
-
-  /**
-   * ネクストぷよを同種のぷよでリセットする。
-   * @param type ぷよの型
-   */
-  public resetNextPuyosAsSameType(type: PuyoType): void {
-    for (let x = 0; x < PuyoCoord.XNum; x++) {
-      this.nextPuyos[x] = {
-        id: generatePuyoId(),
-        type
-      };
-    }
-  }
-
-  /**
-   * 連鎖の種やとくべつルールなど固定のボードからシミュレーターをリセットする
-   * @param board 連鎖の種やとくべつルールなど固定のボード
-   */
-  public resetWithBoard(board: Board): void {
-    this.chainAnimating = false;
-    this.currentChainNum = 0;
-
-    this.isChanceMode = Boolean(board.isChanceMode);
-    if (board.traceMode !== undefined) {
-      this.traceMode = board.traceMode;
-    }
-    if (board.minimumPuyoNumForPopping !== undefined) {
-      this.minimumPuyoNumForPopping = board.minimumPuyoNumForPopping;
-    }
-    if (board.chainLeverage !== undefined) {
-      this.chainLeverage = board.chainLeverage;
-    }
-
-    if (board.nextPuyos) {
-      for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const type = board.nextPuyos[x];
-        this.nextPuyos[x] = type
-          ? {
-              id: generatePuyoId(),
-              type
-            }
-          : undefined;
-      }
-    }
-
-    const field = board.field;
-
-    for (let y = 0; y < PuyoCoord.YNum; y++) {
-      for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const type = field[y][x];
-        this.field[y][x] = type
-          ? {
-              id: generatePuyoId(),
-              type
-            }
-          : undefined;
-      }
-    }
-  }
-
-  /*
-   * ランダムにフィールドをリセットする。
-   */
-  public randomResetField(): void {
-    this.clear();
-
-    const possibleTypes = [
-      PuyoType.Red,
-      PuyoType.Blue,
-      PuyoType.Green,
-      PuyoType.Yellow,
-      PuyoType.Purple,
-      PuyoType.Heart,
-      PuyoType.Prism,
-      PuyoType.Ojyama,
-      PuyoType.Kata
-    ];
-
-    for (let y = 0; y < PuyoCoord.YNum; y++) {
-      for (let x = 0; x < PuyoCoord.XNum; x++) {
-        const candidateTypes = [...possibleTypes];
-        shuffle(candidateTypes);
-
-        let ok = false;
-        const id = generatePuyoId();
-
-        for (let i = 0; i < candidateTypes.length; i++) {
-          const type = candidateTypes[i];
-
-          this.field[y][x] = {
-            id,
-            type
-          };
-
-          if (this.detectPopBlocks().length === 0) {
-            ok = true;
-            break;
-          }
-
-          this.field[y][x] = undefined;
-        }
-
-        if (!ok) {
-          throw new Error('Failed to create random field.');
-        }
-      }
-    }
-  }
-
-  /**
-   * なぞり中のぷよを追加する。
-   * TODO: checkIfAddableCoord の様なロジックを加える。
-   */
-  public addTracingPuyo(puyoCoord: PuyoCoord | undefined) {
-    if (!puyoCoord) {
-      return;
-    }
-
-    if (this.getCurrentTracingNum() >= this.maxTraceNum) {
-      return;
-    }
-
-    const puyo = this.field[puyoCoord.y][puyoCoord.x];
-    if (!puyo) {
-      return;
-    }
-
-    if (
-      !this.traceCoords.some((c) => c.x === puyoCoord.x && c.y === puyoCoord.y)
-    ) {
-      this.traceCoords.push(puyoCoord);
-    }
-  }
-
-  /** なぞり中のぷよを一気にセットする。最適解探索時にのみ使う。 */
-  public setTraceCoords(puyoCoords: PuyoCoord[]) {
+  /** なぞり中のぷよを一気にセットする。最適解探索時やテストで使う。 */
+  setTraceCoords(puyoCoords: PuyoCoord[]) {
     this.traceCoords = puyoCoords;
-  }
-
-  /** なぞり中のぷよ座標リストをクリアする。 */
-  public clearTraceCoords() {
-    this.traceCoords = [];
   }
 
   /**
@@ -381,7 +135,7 @@ export class Simulator {
    * @param attr
    * @returns
    */
-  public static calcTotalPrismDamage(chains: Chain[]): number {
+  static calcTotalPrismDamage(chains: Chain[]): number {
     const prismDamage = chains.reduce((m, chain) => {
       return m + (chain.attributes[PuyoAttribute.Prism]?.strength || 0);
     }, 0);
@@ -395,7 +149,7 @@ export class Simulator {
    * @param targetAttr
    * @returns
    */
-  public static calcTotalDamageOfTargetAttr(
+  static calcTotalDamageOfTargetAttr(
     chains: Chain[],
     targetAttr: PuyoAttribute
   ): number {
@@ -410,23 +164,22 @@ export class Simulator {
    * @param chains
    * @returns
    */
-  public static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
+  static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
     return chains.reduce((m, chain) => {
       return m + chain.puyoTsukaiCount;
     }, 0);
   }
 
   /** なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける */
-  public async doChains(animate?: {
-    onAnimateStep: (simulator: Simulator, chains: Chain[]) => void;
-    onAnimateEnd: (simulator: Simulator, chains: Chain[]) => void;
+  async doChains(animate?: {
+    onAnimateStep: (simulationData: SimulationData, chains: Chain[]) => void;
+    onAnimateEnd: (simulationData: SimulationData, chains: Chain[]) => void;
   }) {
     const invokeOnAnimateField = async () => {
       await sleep(this.animationDuration);
-      animate?.onAnimateStep(this, this.chains);
+      animate?.onAnimateStep(this.getSimulationData(), this.chains);
     };
 
-    this.chainAnimating = true;
     this.currentChainNum = 0;
     this.chains = [];
 
@@ -473,9 +226,8 @@ export class Simulator {
 
     const chains = this.chains;
     this.currentChainNum = 0;
-    this.chainAnimating = false;
 
-    animate?.onAnimateEnd(this, chains);
+    animate?.onAnimateEnd(this.getSimulationData(), chains);
   }
 
   /**
@@ -742,12 +494,7 @@ export class Simulator {
   }
 
   private coordIsInBoostArea(coord: PuyoCoord): boolean {
-    for (const boostArea of this.boostAreaCoordSetList) {
-      if (boostArea.has(coord)) {
-        return true;
-      }
-    }
-    return false;
+    return this.boostAreaCoordSet.has(coord);
   }
 
   private calcPuyoTsukaiCount(

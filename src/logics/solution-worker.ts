@@ -1,38 +1,39 @@
 import { expose } from 'comlink';
 import type { OptimizationTarget } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
+import type { SimulationData } from './SimulationData';
 import { Simulator } from './Simulator';
 import {
   solveAllTraces as _solveAllTraces,
   solveIncludingTraceIndex as _solveIncludingTraceIndex
 } from './solution-explorer';
 
-const fixFieldBoostAreas = (simulator: Simulator): void => {
-  const boostAreaCoordSetList = (simulator as any).boostAreaCoordSetList.map(
-    (boostArea: ReadonlySet<PuyoCoord>) => {
-      return new Set(
-        [...boostArea].map((c: any) => PuyoCoord.xyToCoord(c._x, c._y)!)
-      );
-    }
+const fixFieldBoostAreas = (simulationData: SimulationData): void => {
+  const boostAreaCoordList = simulationData.boostAreaCoordList.map(
+    (c: any) => PuyoCoord.xyToCoord(c._x, c._y) as PuyoCoord
   );
-  (simulator as any).boostAreaCoordSetList = boostAreaCoordSetList;
+  simulationData.boostAreaCoordList = boostAreaCoordList;
 };
 
 export async function solveAllTraces(
-  simulator: Simulator,
+  simulationData: SimulationData,
   optimizationTarget: OptimizationTarget
 ) {
-  fixFieldBoostAreas(simulator);
-  return _solveAllTraces(new Simulator(simulator), optimizationTarget);
+  fixFieldBoostAreas(simulationData);
+  return _solveAllTraces(new Simulator(simulationData), optimizationTarget);
 }
 
 export async function solveIncludingTraceIndex(
-  simulator: Simulator,
+  simulationData: SimulationData,
   optimizationTarget: OptimizationTarget,
   index: number
 ) {
-  fixFieldBoostAreas(simulator);
-  return _solveIncludingTraceIndex(simulator, optimizationTarget, index);
+  fixFieldBoostAreas(simulationData);
+  return _solveIncludingTraceIndex(
+    new Simulator(simulationData),
+    optimizationTarget,
+    index
+  );
 }
 
 expose({

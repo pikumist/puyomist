@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
+import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Chain } from './Chain';
 import { OptimizationTarget } from './OptimizationTarget';
 import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
@@ -89,12 +91,14 @@ describe('solution-explorer', () => {
         expected
       }) => {
         // Arrange
-        const simulator = new Simulator();
         const board = getSpecialBoard(boardId);
-        simulator.resetWithBoard(board);
-        simulator.setMaxTraceNum(maxTraceNum);
-        simulator.setPoppingLeverage(poppingLeverage);
-        simulator.resetNextPuyosAsSameType(nextPuyoType);
+        const nextPuyos = createNextPuyosAsSameType(nextPuyoType);
+        const simulationData = createSimulationData(board, {
+          maxTraceNum,
+          poppingLeverage,
+          nextPuyos
+        });
+        const simulator = new Simulator(simulationData);
 
         // Act
         const actual = solveAllTraces(simulator, optimizationTarget)!;
@@ -168,12 +172,14 @@ describe('solution-explorer', () => {
         expected
       }) => {
         // Arrange
-        const simulator = new Simulator();
         const board = getSpecialBoard(boardId);
-        simulator.resetWithBoard(board);
-        simulator.setMaxTraceNum(maxTraceNum);
-        simulator.setPoppingLeverage(poppingLeverage);
-        simulator.resetNextPuyosAsSameType(nextPuyoType);
+        const nextPuyos = createNextPuyosAsSameType(nextPuyoType);
+        const simulationData = createSimulationData(board, {
+          maxTraceNum,
+          poppingLeverage,
+          nextPuyos
+        });
+        const simulator = new Simulator(simulationData);
 
         // Act
         const actual = solveIncludingTraceIndex(

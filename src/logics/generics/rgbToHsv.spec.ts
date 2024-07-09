@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { rgbToHsv } from './rgbToHsv';
 
-describe('wrapNum()', () => {
+describe('rgbToHsv()', () => {
   it.each([
     {
       rgb: [0, 0, 0],

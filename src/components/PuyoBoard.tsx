@@ -32,17 +32,19 @@ const PuyoBoard: React.FC = React.memo(() => {
   const dispatch = useDispatch<AppDispatch>();
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  const { boardId, boardEditMode, simulator, animating, explorationResult } =
-    state;
-  const nextPuyos = simulator.getNextPuyos();
-  const field = simulator.getField();
+  const {
+    boardId,
+    boardEditMode,
+    simulationData,
+    animating,
+    explorationResult
+  } = state;
+  const { nextPuyos, field, boostAreaCoordList, traceCoords } = simulationData;
   const editable = boardId === screenshotBoardId;
   const editing = Boolean(
     boardEditMode && boardEditMode.howToEdit !== HowToEditBoard.None
   );
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
-  const tracingCoords = simulator.getCurrentTracingCoords();
-  const boostAreaCoordSetList = simulator.getBoostAreaCoordSetList();
   const [touching, setTouching] = useState(false);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -148,14 +150,14 @@ const PuyoBoard: React.FC = React.memo(() => {
       <BoardBackground />
       <BoardFrame />
       <GridLines />
-      <BoostAreaView coordSetList={boostAreaCoordSetList} />
+      <BoostAreaView coordList={boostAreaCoordList} />
       <g key="innerFrame" transform={`translate(${fw} ${fw})`}>
         <PuyoMatrix nextPuyos={nextPuyos} field={field} />
         <g key="coords">
           {optimalTraceCoords?.map((coord, i) => (
             <OptimalTrace key={String(i)} x={coord.x} y={coord.y} />
           ))}
-          {tracingCoords.map((coord, i) => (
+          {traceCoords.map((coord, i) => (
             <Trace key={String(i)} x={coord.x} y={coord.y} />
           ))}
         </g>

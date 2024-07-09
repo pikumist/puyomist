@@ -74,7 +74,7 @@ export const solveIncludingTraceIndex = (
   };
 
   advanceTrace(
-    new Simulator(simulator),
+    new Simulator(simulator.getSimulationData()),
     optimizationTarget,
     new SolutionState(createfilledOneBitFieldBeforeIndex(index), new Map()),
     carry,
@@ -197,7 +197,7 @@ const calcSolutionResult = (
   simulator: Simulator,
   traceCoords: PuyoCoord[]
 ): SolutionResult => {
-  const sim = new Simulator(simulator);
+  const sim = new Simulator(simulator.getSimulationData());
   sim.setTraceCoords(traceCoords);
   sim.doChains();
 
