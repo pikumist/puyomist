@@ -42,7 +42,7 @@ const PuyoBoard: React.FC = React.memo(() => {
   );
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
   const tracingCoords = simulator.getCurrentTracingCoords();
-  const boostAreaCoordSetList = simulator.getBoostAreaCoordSetList();
+  const boostAreaCoordList = simulator.getBoostAreaCoordList();
   const [touching, setTouching] = useState(false);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -148,7 +148,7 @@ const PuyoBoard: React.FC = React.memo(() => {
       <BoardBackground />
       <BoardFrame />
       <GridLines />
-      <BoostAreaView coordSetList={boostAreaCoordSetList} />
+      <BoostAreaView coordList={boostAreaCoordList} />
       <g key="innerFrame" transform={`translate(${fw} ${fw})`}>
         <PuyoMatrix nextPuyos={nextPuyos} field={field} />
         <g key="coords">

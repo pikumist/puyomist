@@ -41,7 +41,8 @@ export class Simulator {
   /** ネクストぷよは 8つのぷよからなる。(実際は無限に上に連なっているはずだが割愛) */
   private nextPuyos: (Puyo | undefined)[];
 
-  private boostAreaCoordSetList: ReadonlySet<PuyoCoord>[] = [];
+  private boostAreaCoordList: ReadonlyArray<PuyoCoord> = [];
+  private boostAreaCoordSet: ReadonlySet<PuyoCoord> = new Set([]);
   private isChanceMode = false;
   private traceCoords: PuyoCoord[] = [];
   private minimumPuyoNumForPopping = Simulator.defaultMinimumPuyoNumForPopping;
@@ -62,7 +63,8 @@ export class Simulator {
     if (simulator) {
       this.field = simulator.field.map((row) => [...row]);
       this.nextPuyos = [...simulator.nextPuyos];
-      this.boostAreaCoordSetList = simulator.boostAreaCoordSetList;
+      this.boostAreaCoordList = simulator.boostAreaCoordList;
+      this.boostAreaCoordSet = new Set(simulator.boostAreaCoordList);
       this.isChanceMode = simulator.isChanceMode;
       this.traceCoords = [...simulator.traceCoords];
       this.minimumPuyoNumForPopping = simulator.minimumPuyoNumForPopping;
@@ -158,16 +160,17 @@ export class Simulator {
     return this.nextPuyos;
   }
 
-  /** ブーストエリアの座標セットリストを取得する。 */
-  public getBoostAreaCoordSetList(): ReadonlySet<PuyoCoord>[] {
-    return this.boostAreaCoordSetList;
+  /** ブーストエリアの座標リストを取得する。 */
+  public getBoostAreaCoordList(): ReadonlyArray<PuyoCoord> {
+    return this.boostAreaCoordList;
   }
 
-  /** ブーストエリアの座標セットリストをセットする。 */
-  public setBoostAreaCoordSetList(
-    boostAreaCoordSetList: ReadonlySet<PuyoCoord>[]
+  /** ブーストエリアの座標リストをセットする。 */
+  public setBoostAreaCoordList(
+    boostAreaCoordList: ReadonlyArray<PuyoCoord>
   ): void {
-    this.boostAreaCoordSetList = boostAreaCoordSetList;
+    this.boostAreaCoordList = boostAreaCoordList;
+    this.boostAreaCoordSet = new Set(boostAreaCoordList);
   }
 
   /** 連鎖アニメーション中かどうか。 */
@@ -742,12 +745,7 @@ export class Simulator {
   }
 
   private coordIsInBoostArea(coord: PuyoCoord): boolean {
-    for (const boostArea of this.boostAreaCoordSetList) {
-      if (boostArea.has(coord)) {
-        return true;
-      }
-    }
-    return false;
+    return this.boostAreaCoordSet.has(coord);
   }
 
   private calcPuyoTsukaiCount(

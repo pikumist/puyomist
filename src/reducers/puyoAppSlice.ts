@@ -19,6 +19,7 @@ import {
 import { Simulator } from '../logics/Simulator';
 import type { TraceMode } from '../logics/TraceMode';
 import { screenshotBoardId } from '../logics/boards';
+import { unionSet } from '../logics/generics/set';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
 import { reflectBoardInSimulator } from './internal/reflectBoardInSimulator';
@@ -261,11 +262,13 @@ const puyoAppSlice = createSlice({
         keyList.splice(i, 1);
       }
 
-      state.simulator.setBoostAreaCoordSetList(
-        keyList
+      state.simulator.setBoostAreaCoordList([
+        ...keyList
           .map((key) => getBoostArea(key)?.coordSet)
-          .filter(Boolean) as ReadonlySet<PuyoCoord>[]
-      );
+          .filter(Boolean)
+          .reduce((m, s) => unionSet(m!, s!), new Set<PuyoCoord>([]))!
+          .keys()
+      ]);
       state.simulator = state.simulator.clone();
       state.boostAreaKeyList = keyList;
     },

@@ -8,14 +8,11 @@ import {
 } from './solution-explorer';
 
 const fixFieldBoostAreas = (simulator: Simulator): void => {
-  const boostAreaCoordSetList = (simulator as any).boostAreaCoordSetList.map(
-    (boostArea: ReadonlySet<PuyoCoord>) => {
-      return new Set(
-        [...boostArea].map((c: any) => PuyoCoord.xyToCoord(c._x, c._y)!)
-      );
-    }
+  const boostAreaCoordList = (simulator as any).boostAreaCoordList.map(
+    (c: any) => PuyoCoord.xyToCoord(c._x, c._y)
   );
-  (simulator as any).boostAreaCoordSetList = boostAreaCoordSetList;
+  (simulator as any).boostAreaCoordList = boostAreaCoordList;
+  (simulator as any).boostAreaCoordSet = new Set(boostAreaCoordList);
 };
 
 export async function solveAllTraces(
