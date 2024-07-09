@@ -42,5 +42,8 @@
 }
 
 .puyo {
+  /* puyoのkey判定がうまくいっていないので一旦無効 */
+  /*
   transition: transform 200ms ease;
+  */
 }
