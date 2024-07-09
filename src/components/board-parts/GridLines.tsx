@@ -1,10 +1,10 @@
-import type React from 'react';
+import React from 'react';
 import { PuyoCoord } from '../../logics/PuyoCoord';
 import styles from '../PuyoBoard.module.css';
 import { H, W, ch, cw, fw, gw, nch } from './logics/measurements';
 
 /** グリッドライン */
-const GridLines: React.FC = () => {
+const GridLines: React.FC = React.memo(() => {
   const gridStyle = {
     strokeWidth: `${gw}px`
   };
@@ -43,6 +43,6 @@ const GridLines: React.FC = () => {
       {yLines}
     </g>
   );
-};
+});
 
 export default GridLines;

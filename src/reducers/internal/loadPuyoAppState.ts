@@ -48,6 +48,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     boardEditMode,
     simulator,
     animating: false,
+    lastTraceCoords: undefined,
     chains: [],
     solving: false,
     explorationResult: undefined,

@@ -1,3 +1,4 @@
+import React from 'react';
 import styles from '../PuyoBoard.module.css';
 import { ch, cw, gw, nch } from './logics/measurements';
 
@@ -7,7 +8,7 @@ interface OptimalTraceProps {
 }
 
 /** 最適なぞり描画 */
-const OptimalTrace: React.FC<OptimalTraceProps> = (props) => {
+const OptimalTrace: React.FC<OptimalTraceProps> = React.memo((props) => {
   const { x, y } = props;
 
   const outerTransform = `translate(${x * (cw + gw)} ${
@@ -25,6 +26,6 @@ const OptimalTrace: React.FC<OptimalTraceProps> = (props) => {
       />
     </g>
   );
-};
+});
 
 export default OptimalTrace;

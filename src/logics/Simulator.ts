@@ -62,7 +62,7 @@ export class Simulator {
     if (simulator) {
       this.field = simulator.field.map((row) => [...row]);
       this.nextPuyos = [...simulator.nextPuyos];
-      this.boostAreaCoordSetList = [...simulator.boostAreaCoordSetList];
+      this.boostAreaCoordSetList = simulator.boostAreaCoordSetList;
       this.isChanceMode = simulator.isChanceMode;
       this.traceCoords = [...simulator.traceCoords];
       this.minimumPuyoNumForPopping = simulator.minimumPuyoNumForPopping;

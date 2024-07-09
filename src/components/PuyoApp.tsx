@@ -83,6 +83,7 @@ const PuyoApp: React.FC = () => {
             />
             <TracingResultView
               tracingCoords={state.simulator.getCurrentTracingCoords()}
+              lastTraceCoords={state.lastTraceCoords}
               chains={state.chains}
             />
           </div>
