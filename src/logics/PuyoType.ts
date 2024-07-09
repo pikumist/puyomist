@@ -93,14 +93,8 @@ export const getPuyoTypeName = (puyoType: PuyoType | undefined): string => {
   return puyoTypeMap.get(puyoType!) || '';
 };
 
-/**
- * 色ぷよかどうか (プリズムは含まない)
- * @param puyoType ぷよの型
- * @returns
- */
-export const isColoredPuyoType = (
-  puyoType: PuyoType
-): puyoType is
+/** 色ぷよの型 (プリズムは含まない) */
+export type ColoredPuyoType =
   | PuyoType.Red
   | PuyoType.RedPlus
   | PuyoType.RedChance
@@ -120,7 +114,16 @@ export const isColoredPuyoType = (
   | PuyoType.Purple
   | PuyoType.PurplePlus
   | PuyoType.PurpleChance
-  | PuyoType.PurpleChancePlus => {
+  | PuyoType.PurpleChancePlus;
+
+/**
+ * 色ぷよかどうか (プリズムは含まない)
+ * @param puyoType ぷよの型
+ * @returns
+ */
+export const isColoredPuyoType = (
+  puyoType: PuyoType
+): puyoType is ColoredPuyoType => {
   return puyoType >= PuyoType.Red && puyoType <= PuyoType.PurpleChancePlus;
 };
 
@@ -190,6 +193,24 @@ export const isChancePuyo = (
       return true;
   }
   return false;
+};
+
+/** なぞり可能なぷよかどうか (星魔のような塗りは考慮していない) */
+export const isTraceablePuyo = (
+  puyoType: PuyoType | undefined
+): puyoType is ColoredPuyoType | PuyoType.Heart | PuyoType.Prism => {
+  if (!puyoType) {
+    return false;
+  }
+
+  switch (puyoType) {
+    case PuyoType.Ojyama:
+    case PuyoType.Kata:
+    case PuyoType.Padding:
+      return false;
+    default:
+      return true;
+  }
 };
 
 /** ぷよの属性 */

@@ -82,7 +82,7 @@ const PuyoApp: React.FC = () => {
               onClicked={onBoardRestButtonCliecked}
             />
             <TracingResultView
-              tracingCoords={state.simulator.getCurrentTracingCoords()}
+              tracingCoords={state.simulationData.traceCoords}
               lastTraceCoords={state.lastTraceCoords}
               chains={state.chains}
             />
@@ -90,19 +90,19 @@ const PuyoApp: React.FC = () => {
         </div>
 
         <div className={setting.settings}>
-          <TraceModeSetting traceMode={state.simulator.getTraceMode()} />
+          <TraceModeSetting traceMode={state.simulationData.traceMode} />
           <MinimumPuyoNumForPoppingSetting
-            num={state.simulator.getMinimumPuyoNumForPopping()}
+            num={state.simulationData.minimumPuyoNumForPopping}
           />
-          <MaxTraceNumSetting maxTraceNum={state.simulator.getMaxTraceNum()} />
+          <MaxTraceNumSetting maxTraceNum={state.simulationData.maxTraceNum} />
           <PoppingLeverageSetting
-            leverage={state.simulator.getPoppingLeverage()}
+            leverage={state.simulationData.poppingLeverage}
           />
-          <ChainLeverageSetting leverage={state.simulator.getChainLeverage()} />
+          <ChainLeverageSetting leverage={state.simulationData.chainLeverage} />
           <BoostAreaSetting boostAreaKeyList={state.boostAreaKeyList} />
           <hr />
           <AnimationDurationSetting
-            duration={state.simulator.getAnimationDuration()}
+            duration={state.simulationData.animationDuration}
           />
           <OptimizationTargetSetting target={state.optimizationTarget} />
           <SolutionMethodSetting method={state.solutionMethod} />

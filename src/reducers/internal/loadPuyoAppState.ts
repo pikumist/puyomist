@@ -1,12 +1,12 @@
 import { getBoostArea } from '../../logics/BoostArea';
 import type { PuyoCoord } from '../../logics/PuyoCoord';
-import { Simulator } from '../../logics/Simulator';
-import { screenshotBoardId } from '../../logics/boards';
+import type { SimulationData } from '../../logics/SimulationData';
+import { getSpecialBoard, screenshotBoardId } from '../../logics/boards';
 import { unionSet } from '../../logics/generics/set';
 import { type Session, session as g_session } from '../../logics/session';
 import type { PuyoAppState } from '../PuyoAppState';
-import { reflectBoardInSimulator } from './reflectBoardInSimulator';
-import { reflectNextInSimulator } from './reflectNextInSimulator';
+import { createNextPuyos } from './createNextPuyos';
+import { createSimulationData } from './createSimulationData';
 
 export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const s = session ?? g_session;
@@ -19,24 +19,36 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const boostAreaKeyList = s.getBoostAreaKeyList();
   const boardEditMode = s.getBoardEditMode();
 
-  const simulator = new Simulator();
-  simulator.setMaxTraceNum(s.getMaxTraceNum());
-  simulator.setPoppingLeverage(s.getPoppingLeverage());
-  simulator.setAnimationDuration(s.getAnimationDuration());
-  simulator.setBoostAreaCoordList([
+  const maxTraceNum = s.getMaxTraceNum();
+  const poppingLeverage = s.getPoppingLeverage();
+  const animationDuration = s.getAnimationDuration();
+  const boostAreaCoordList = [
     ...boostAreaKeyList
       .map((key) => getBoostArea(key)?.coordSet)
       .filter(Boolean)
       .reduce((m, s) => unionSet(m!, s!), new Set<PuyoCoord>([]))!
       .keys()
-  ]);
-  if (boardId === screenshotBoardId) {
-    if (lastScreenshotBoard) {
-      simulator.resetWithBoard(lastScreenshotBoard);
-    }
+  ];
+  const options: Partial<SimulationData> = {
+    maxTraceNum,
+    poppingLeverage,
+    animationDuration,
+    boostAreaCoordList
+  };
+
+  let simulationData: SimulationData | undefined;
+
+  if (boardId !== screenshotBoardId) {
+    const board = getSpecialBoard(boardId);
+    const nextPuyos = createNextPuyos(nextSelection);
+    simulationData = createSimulationData(board, {
+      ...options,
+      nextPuyos
+    });
+  } else if (lastScreenshotBoard) {
+    simulationData = createSimulationData(lastScreenshotBoard, options);
   } else {
-    reflectBoardInSimulator(simulator, boardId);
-    reflectNextInSimulator(simulator, nextSelection);
+    simulationData = createSimulationData({}, options);
   }
 
   return {
@@ -47,7 +59,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     lastScreenshotBoard,
     boostAreaKeyList,
     boardEditMode,
-    simulator,
+    simulationData,
     animating: false,
     lastTraceCoords: undefined,
     chains: [],

@@ -1,19 +1,19 @@
 import { releaseProxy } from 'comlink';
 import type { OptimizationTarget } from '../../logics/OptimizationTarget';
-import type { Simulator } from '../../logics/Simulator';
+import type { SimulationData } from '../../logics/SimulationData';
 import type { SolutionResult } from '../../logics/solution';
 import { betterSolution } from '../../logics/solution-explorer';
 import { createWorker } from '../../logics/solution-worker-shim';
 
 export const createSolveAllInSerial =
-  (simulator: Simulator, optimizationTarget: OptimizationTarget) =>
+  (simulationData: SimulationData, optimizationTarget: OptimizationTarget) =>
   async () => {
     const { workerProxy } = createWorker();
-    return await workerProxy.solveAllTraces(simulator, optimizationTarget);
+    return await workerProxy.solveAllTraces(simulationData, optimizationTarget);
   };
 
 export const createSolveAllInParallel =
-  (simulator: Simulator, optimizationTarget: OptimizationTarget) =>
+  (simulationData: SimulationData, optimizationTarget: OptimizationTarget) =>
   async () => {
     const startTime = Date.now();
 
@@ -21,7 +21,7 @@ export const createSolveAllInParallel =
       [...new Array(48)].map((_, i) => {
         const { workerInstance, workerProxy } = createWorker();
         return workerProxy
-          .solveIncludingTraceIndex(simulator, optimizationTarget, i)
+          .solveIncludingTraceIndex(simulationData, optimizationTarget, i)
           .then((result) => {
             console.log(i, result?.candidatesNum, `${result?.elapsedTime}ms`);
             workerProxy[releaseProxy]();

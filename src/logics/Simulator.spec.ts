@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
+import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Board } from './Board';
 import { __resetPuyoIdCount } from './Puyo';
 import { PuyoAttribute } from './PuyoAttribute';
@@ -255,11 +257,10 @@ describe('Simulator', () => {
       }
     ])('should detect blocks to be popped', ({ board, expected }) => {
       // Arrange
-      const sim = new Simulator();
-      sim.resetWithBoard(board);
+      const simulator = new Simulator(createSimulationData(board));
 
       // Act
-      const actual = (sim as any).detectPopBlocks();
+      const actual = (simulator as any).detectPopBlocks();
 
       // Assert
       expect(actual).toEqual(expected);
@@ -591,19 +592,21 @@ describe('Simulator', () => {
         expected
       }) => {
         // Arrange
-        const sim = new Simulator();
         const board = getSpecialBoard(boardId);
-        sim.resetWithBoard(board);
-        sim.setMaxTraceNum(maxTraceNum);
-        sim.setPoppingLeverage(poppingLeverage);
-        sim.resetNextPuyosAsSameType(nextPuyoType);
-        sim.setTraceCoords(traceCoords as PuyoCoord[]);
+        const nextPuyos = createNextPuyosAsSameType(nextPuyoType);
+        const simulationData = createSimulationData(board, {
+          nextPuyos,
+          maxTraceNum,
+          poppingLeverage
+        });
+        const simulator = new Simulator(simulationData);
+        simulator.setTraceCoords(traceCoords as PuyoCoord[]);
 
         // Act
-        sim.doChains()!;
+        simulator.doChains()!;
 
         // Assert
-        const chains = sim.getChains();
+        const chains = simulator.getChains();
         expect(chains).toEqual(expected);
       }
     );
