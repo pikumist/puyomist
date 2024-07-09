@@ -384,6 +384,12 @@ const puyoAppSlice = createSlice({
       state.explorationResult = undefined;
     },
 
+    /** 解でなぞりボタンが押されたときの準備アクション */
+    preparePlaySolutionButtonClicked: (state) => {
+      state.simulationData.traceCoords =
+        state.explorationResult?.optimalSolution?.traceCoords ?? [];
+    },
+
     ///
     /// スクリーンショット系
     ///
@@ -531,8 +537,7 @@ export const playSolutionButtonClicked =
       return;
     }
 
-    state.simulationData.traceCoords = optimalSolution.traceCoords;
-
+    dispatch(puyoAppSlice.actions.preparePlaySolutionButtonClicked());
     dispatch(tracingFinished());
   };
 
