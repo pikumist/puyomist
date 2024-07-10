@@ -15,7 +15,7 @@ export enum PuyoAttribute {
   /** プリズム */
   Prism = 7,
   /** おじゃま */
-  Ojyama = 8,
+  Ojama = 8,
   /** 固 */
   Kata = 9,
   /** パディング */
@@ -38,7 +38,7 @@ const puyoAttributeMap: ReadonlyMap<PuyoAttribute, string> = new Map([
   [PuyoAttribute.Purple, '紫'],
   [PuyoAttribute.Heart, 'ハート'],
   [PuyoAttribute.Prism, 'プリズム'],
-  [PuyoAttribute.Ojyama, 'おじゃま'],
+  [PuyoAttribute.Ojama, 'おじゃま'],
   [PuyoAttribute.Kata, '固']
 ]);
 
