@@ -125,7 +125,9 @@ const puyoAppSlice = createSlice({
       }
 
       if (state.boardId !== customBoardId) {
-        state.lastScreenshotBoard = getSpecialBoard(state.boardId);
+        state.lastScreenshotBoard = structuredClone(
+          getSpecialBoard(state.boardId)
+        );
         if (!state.lastScreenshotBoard.nextPuyos) {
           state.lastScreenshotBoard.nextPuyos =
             state.simulationData.nextPuyos.map((puyo) => puyo?.type);
