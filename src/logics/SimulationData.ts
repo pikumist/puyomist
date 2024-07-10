@@ -20,7 +20,7 @@ export interface SimulationData {
   maxTraceNum: number;
   /** なぞり消しモード。*/
   traceMode: TraceMode;
-  /** なぞり消し倍率 */
+  /** 同時消し倍率 */
   poppingLeverage: number;
   /** 連鎖倍率 */
   chainLeverage: number;

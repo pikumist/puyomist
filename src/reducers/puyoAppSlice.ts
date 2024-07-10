@@ -283,7 +283,7 @@ const puyoAppSlice = createSlice({
       state.simulationData.maxTraceNum = action.payload;
     },
 
-    /** なぞり消し倍率が変更されたとき */
+    /** 同時消し倍率が変更されたとき */
     poppingLeverageChanged: (state, action: PayloadAction<number>) => {
       state.simulationData.poppingLeverage = action.payload;
     },

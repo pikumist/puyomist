@@ -3,14 +3,14 @@ import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { poppingLeverageChanged } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
-import setting from '../styles/Setting.module.css';
+import styles from '../styles/Setting.module.css';
 
 interface IProps {
-  /** なぞり消し倍率 */
+  /** 同時消し倍率 */
   leverage: number;
 }
 
-/** なぞり消し倍率の設定 */
+/** 同時消し倍率の設定 */
 const PoppingLeverageSetting: React.FC<IProps> = (props) => {
   const { leverage } = props;
   const dispatch = useDispatch<AppDispatch>();
@@ -23,12 +23,12 @@ const PoppingLeverageSetting: React.FC<IProps> = (props) => {
   );
 
   return (
-    <div className={setting.setting}>
-      <label className={setting.label} htmlFor="poppingLeverage">
-        なぞり消し倍率:
+    <div className={styles.setting}>
+      <label className={styles.label} htmlFor="poppingLeverage">
+        同時消し倍率:
       </label>
       <input
-        className={setting.w3dot5}
+        className={styles.w3dot5}
         id="poppingLeverage"
         name="poppingLeverage"
         type="number"
