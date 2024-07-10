@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
 import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Chain } from './Chain';
-import { OptimizationTarget } from './OptimizationTarget';
+import { OptimizationCategory } from './OptimizationTarget';
 import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
@@ -47,7 +47,10 @@ describe('solution-explorer', () => {
     it.each([
       {
         attr: PuyoAttribute.Green,
-        optimizationTarget: OptimizationTarget.GreenDamage,
+        optimizationTarget: {
+          category: OptimizationCategory.Damage as const,
+          mainAttr: PuyoAttribute.Green as const
+        },
         maxTraceNum: 5,
         poppingLeverage: 1.0,
         boardId: 'specialRule1/1',
@@ -61,7 +64,10 @@ describe('solution-explorer', () => {
       },
       {
         attr: PuyoAttribute.Blue,
-        optimizationTarget: OptimizationTarget.BlueDamage,
+        optimizationTarget: {
+          category: OptimizationCategory.Damage as const,
+          mainAttr: PuyoAttribute.Blue as const
+        },
         maxTraceNum: 5,
         poppingLeverage: 1.0,
         boardId: 'specialRule2/1',
@@ -112,6 +118,9 @@ describe('solution-explorer', () => {
         expect(
           actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
         ).toBeCloseTo(expected.totalAttrDamage);
+        expect(actual.optimalSolution?.value).toBeCloseTo(
+          expected.totalAttrDamage
+        );
         const csp = calcCsp(
           findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
           attr
@@ -123,7 +132,10 @@ describe('solution-explorer', () => {
     it.each([
       {
         attr: PuyoAttribute.Green,
-        optimizationTarget: OptimizationTarget.GreenDamage,
+        optimizationTarget: {
+          category: OptimizationCategory.Damage as const,
+          mainAttr: PuyoAttribute.Green as const
+        },
         maxTraceNum: 5,
         poppingLeverage: 1.0,
         boardId: 'specialRule1/1',
@@ -180,6 +192,9 @@ describe('solution-explorer', () => {
         expect(
           actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
         ).toBeCloseTo(expected.totalAttrDamage);
+        expect(actual.optimalSolution?.value).toBeCloseTo(
+          expected.totalAttrDamage
+        );
         const csp = calcCsp(
           findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
           attr
@@ -194,7 +209,10 @@ describe('solution-explorer', () => {
       {
         traceIndex: 21,
         attr: PuyoAttribute.Green,
-        optimizationTarget: OptimizationTarget.GreenDamage,
+        optimizationTarget: {
+          category: OptimizationCategory.Damage as const,
+          mainAttr: PuyoAttribute.Green as const
+        },
         maxTraceNum: 5,
         poppingLeverage: 1.0,
         boardId: 'specialRule1/1',
@@ -209,7 +227,10 @@ describe('solution-explorer', () => {
       {
         traceIndex: 3,
         attr: PuyoAttribute.Blue,
-        optimizationTarget: OptimizationTarget.BlueDamage,
+        optimizationTarget: {
+          category: OptimizationCategory.Damage as const,
+          mainAttr: PuyoAttribute.Blue as const
+        },
         maxTraceNum: 5,
         poppingLeverage: 1.0,
         boardId: 'specialRule2/1',
@@ -265,6 +286,9 @@ describe('solution-explorer', () => {
         expect(
           actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
         ).toBeCloseTo(expected.totalAttrDamage);
+        expect(actual.optimalSolution?.value).toBeCloseTo(
+          expected.totalAttrDamage
+        );
         const csp = calcCsp(
           findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
           attr

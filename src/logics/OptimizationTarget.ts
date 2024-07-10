@@ -1,54 +1,121 @@
-/** 最適化対象 */
-export enum OptimizationTarget {
-  /** 総ダメージ(各属性ごとの攻撃力合計が同じと仮定) */
-  TotalDamage = 0,
+import type { ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 
-  /** 赤ダメージ */
-  RedDamage = 1,
-
-  /** 青ダメージ */
-  BlueDamage = 2,
-
-  /** 緑ダメージ */
-  GreenDamage = 3,
-
-  /** 黄ダメージ */
-  YellowDamage = 4,
-
-  /** 紫ダメージ */
-  PurpleDamage = 5,
-  /**
-   * ぷよ使いカウント。
-   * ```
-   * 色ぷよ、ハート、プリズム、おじゃまが対象。
-   * プラスぷよは2倍、ブーストエリア内は3倍で計算。
-   * プラスぷよがブーストエリア内で消えた場合は6倍。
-   * ```
-   */
-  PuyoTsukaiCount = 10
+/** 最適化のカテゴリー */
+export enum OptimizationCategory {
+  /** ダメージ */
+  Damage = 1,
+  /** ぷよのカウント  */
+  PuyoCount = 2,
+  /** ぷよ使いカウント */
+  PuyotsukaiCount = 3
 }
 
-const optimizationTargetMap: ReadonlyMap<OptimizationTarget, string> = new Map([
-  [OptimizationTarget.TotalDamage, '総ダメージ'],
-  [OptimizationTarget.RedDamage, '赤ダメージ'],
-  [OptimizationTarget.BlueDamage, '青ダメージ'],
-  [OptimizationTarget.GreenDamage, '緑ダメージ'],
-  [OptimizationTarget.YellowDamage, '黄ダメージ'],
-  [OptimizationTarget.PurpleDamage, '紫ダメージ'],
-  [OptimizationTarget.PuyoTsukaiCount, 'ぷよ使いカウント']
-]);
+/** 最適化対象がダメージの場合の詳細情報 */
+export interface OptimizationDamageTarget {
+  /** 最適化のカテゴリー */
+  category: OptimizationCategory.Damage;
+  /** 主属性 */
+  mainAttr: ColoredPuyoAttribute;
+  /** 副属性 */
+  subAttr?: ColoredPuyoAttribute | undefined;
+  /** 副属性 / 主属性 のダメージ率 (1/3か1)  */
+  mainSubRatio?: number;
+}
 
-/** 取りうる最適化対象のリスト */
-export const possibleOptimizationTargetList: ReadonlyArray<OptimizationTarget> =
-  [...optimizationTargetMap.keys()];
+/** カウントボーナスのタイプ */
+export enum CountingBonusType {
+  /** 2色加速 */
+  TwoWay = 1,
+  /** 階段加速 */
+  Step = 2
+}
+
+/** 2色加速ボーナス */
+export interface TwoWayCountingBonus {
+  /** カウントボーナスのタイプ */
+  type: CountingBonusType.TwoWay;
+  /** 対象属性 */
+  targetAttr: PuyoAttribute;
+}
+
+/** 階段状に発生するカウントボーナス */
+export interface StepCountingBonus {
+  /** カウントボーナスのタイプ */
+  type: CountingBonusType.Step;
+  /** ボーナスの発生する対象属性リスト。段はリスト内の属性ごとのカウント数トータルで登る。 */
+  targetAttrs: PuyoAttribute[];
+  /** 段の高さ */
+  stepHeight: number;
+  /** ボーナスカウント */
+  bonusCount: number;
+  /** 同一ターン内で、一度のみ (false) か、各ステップを超えると何度も繰り返し発生するか (true) */
+  repeat: boolean;
+}
+
+export type CountingBonus = TwoWayCountingBonus | StepCountingBonus;
+
+/** 最適化対象がぷよ数場合の詳細情報 */
+export interface OptimizationPuyoCountTarget {
+  /** 最適化のカテゴリー */
+  category: OptimizationCategory.PuyoCount;
+  /** 主属性 */
+  mainAttr: PuyoAttribute;
+  /** カウントボーナス */
+  countingBonus?: CountingBonus;
+}
+
+/** 最適化対象がぷよ使いカウントの場合の詳細情報 */
+export interface OptimizationPuyoTasukaiCountTarget {
+  /** 最適化のカテゴリー */
+  category: OptimizationCategory.PuyotsukaiCount;
+}
+
+/** 最適化対象 */
+export type OptimizationTarget =
+  | OptimizationDamageTarget
+  | OptimizationPuyoCountTarget
+  | OptimizationPuyoTasukaiCountTarget;
+
+const optimizationCategoryMap: ReadonlyMap<OptimizationCategory, string> =
+  new Map([
+    [OptimizationCategory.Damage, 'ダメージ量'],
+    [OptimizationCategory.PuyoCount, 'スキル溜め数'],
+    [OptimizationCategory.PuyotsukaiCount, 'ぷよ使いカウント']
+  ]);
+
+/** 取りうる最適化カテゴリーのリスト */
+export const possibleOptimizationCategoryList: ReadonlyArray<OptimizationCategory> =
+  [...optimizationCategoryMap.keys()];
 
 /**
- * 最適化対象の説明を取得する。
- * @param optimizationTarget
+ * 最適化カテゴリーの説明を取得する。
+ * @param category
  * @returns
  */
-export const getOptimizationTargetDescription = (
-  optimizationTarget: OptimizationTarget | undefined
+export const getOptimizationCategoryDescription = (
+  category: OptimizationCategory | undefined
 ): string | undefined => {
-  return optimizationTargetMap.get(optimizationTarget!);
+  return optimizationCategoryMap.get(category!);
+};
+
+const countingBonusTypeMap: ReadonlyMap<CountingBonusType, string> = new Map([
+  [CountingBonusType.TwoWay, '2色加速'],
+  [CountingBonusType.Step, '階段加速']
+]);
+
+/** 取りうる加速ボーナスタイプのリスト */
+export const possibleCountingBonusTypeList: ReadonlyArray<CountingBonusType> = [
+  CountingBonusType.TwoWay,
+  CountingBonusType.Step
+];
+
+/**
+ * 加速ボーナスタイプの説明を取得する。
+ * @param bonusType
+ * @returns
+ */
+export const getCountingBonusTypeDescription = (
+  bonusType: CountingBonusType | undefined
+): string | undefined => {
+  return countingBonusTypeMap.get(bonusType!);
 };

@@ -1,5 +1,8 @@
 import type React from 'react';
-import { getOptimizationTargetDescription } from '../logics/OptimizationTarget';
+import {
+  OptimizationCategory,
+  getOptimizationCategoryDescription
+} from '../logics/OptimizationTarget';
 import {
   type ColoredPuyoAttribute,
   getPuyoAttributeName
@@ -7,7 +10,7 @@ import {
 import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
 
-type IProps = {
+type SolutionResultViewProps = {
   /** 探索中かどうか */
   solving: boolean;
 
@@ -16,7 +19,7 @@ type IProps = {
 };
 
 /** 探索結果View */
-const SolutionResultView: React.FC<IProps> = (props) => {
+const SolutionResultView: React.FC<SolutionResultViewProps> = (props) => {
   const { solving, result } = props;
 
   return (
@@ -28,7 +31,9 @@ const SolutionResultView: React.FC<IProps> = (props) => {
           <div>探索法: {result?.solutionMethod}</div>
           <div>
             最適化対象:{' '}
-            {getOptimizationTargetDescription(result?.optimizationTarget)}
+            {getOptimizationCategoryDescription(
+              result?.optimizationTarget.category
+            )}
           </div>
           <div>探索時間: {result?.elapsedTime} ms</div>
           <div>候補数: {result?.candidatesNum}</div>
@@ -39,9 +44,7 @@ const SolutionResultView: React.FC<IProps> = (props) => {
               .join(',')}
           </div>
           <div>
-            <div>
-              ぷよ使いカウント: {result?.optimalSolution?.puyoTsukaiCount}
-            </div>
+            <OptimalValue result={result} />
             {Simulator.colorAttrs.map((attr) => {
               const description = getPuyoAttributeName(attr);
               return (
@@ -60,6 +63,25 @@ const SolutionResultView: React.FC<IProps> = (props) => {
       )}
     </>
   );
+};
+
+const OptimalValue: React.FC<{ result: ExplorationResult | undefined }> = (
+  props
+) => {
+  const { result } = props;
+
+  switch (result?.optimizationTarget.category) {
+    case OptimizationCategory.Damage:
+      return (
+        <div>対象のダメージ量: {result?.optimalSolution?.value.toFixed(2)}</div>
+      );
+    case OptimizationCategory.PuyoCount:
+      return <div>スキル溜めぷよ数: {result?.optimalSolution?.value}</div>;
+    case OptimizationCategory.PuyotsukaiCount:
+      return <div>ぷよ使いカウント: {result?.optimalSolution?.value}</div>;
+    default:
+      return <div>最適値: </div>;
+  }
 };
 
 export default SolutionResultView;

@@ -8,7 +8,16 @@ import { type Board, emptyBoard } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
-import type { OptimizationTarget } from '../logics/OptimizationTarget';
+import {
+  CountingBonusType,
+  OptimizationCategory,
+  type OptimizationDamageTarget,
+  type OptimizationPuyoCountTarget
+} from '../logics/OptimizationTarget';
+import {
+  type ColoredPuyoAttribute,
+  PuyoAttribute
+} from '../logics/PuyoAttribute';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
   PuyoType,
@@ -289,12 +298,158 @@ const puyoAppSlice = createSlice({
       state.simulationData.animationDuration = action.payload;
     },
 
-    /** 最適化対象の項目が選択されたとき */
-    optimizationTargetItemSelected: (
+    /** 最適化対象カテゴリーの項目が選択されたとき */
+    optCategorySelected: (
       state,
-      action: PayloadAction<OptimizationTarget>
+      action: PayloadAction<OptimizationCategory>
     ) => {
-      state.optimizationTarget = action.payload;
+      switch (action.payload) {
+        case OptimizationCategory.Damage:
+          state.optimizationTarget = {
+            category: OptimizationCategory.Damage,
+            mainAttr: PuyoAttribute.Red
+          };
+          break;
+        case OptimizationCategory.PuyoCount:
+          state.optimizationTarget = {
+            category: OptimizationCategory.PuyoCount,
+            mainAttr: PuyoAttribute.Red
+          };
+          break;
+        case OptimizationCategory.PuyotsukaiCount:
+          state.optimizationTarget = {
+            category: OptimizationCategory.PuyotsukaiCount
+          };
+      }
+    },
+
+    /** ダメージの主属性項目が選択されたとき */
+    optDamageMainAttrSelected: (
+      state,
+      action: PayloadAction<ColoredPuyoAttribute>
+    ) => {
+      const mainAttr = action.payload;
+      const target = state.optimizationTarget as OptimizationDamageTarget;
+
+      if (target.subAttr === mainAttr) {
+        target.subAttr = undefined;
+      }
+      target.mainAttr = mainAttr;
+    },
+
+    /** ダメージの副属性項目が選択されたとき */
+    optDamageSubAttrSelected: (
+      state,
+      action: PayloadAction<ColoredPuyoAttribute | undefined>
+    ) => {
+      const subAttr = action.payload;
+      const target = state.optimizationTarget as OptimizationDamageTarget;
+
+      target.subAttr = target.mainAttr === subAttr ? undefined : subAttr;
+    },
+
+    /** ダメージの副属性ダメージ率項目が選択されたとき */
+    optDamageMainSubRatioSelected: (state, action: PayloadAction<number>) => {
+      const target = state.optimizationTarget as OptimizationDamageTarget;
+      target.mainSubRatio = action.payload;
+    },
+
+    /** ぷよ数の主属性項目が選択されたとき */
+    optPuyoCountMainAttrSelected: (
+      state,
+      action: PayloadAction<ColoredPuyoAttribute>
+    ) => {
+      const mainAttr = action.payload;
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+
+      if (
+        target.countingBonus?.type === CountingBonusType.TwoWay &&
+        target.countingBonus.targetAttr === mainAttr
+      ) {
+        target.countingBonus = undefined;
+      }
+      target.mainAttr = mainAttr;
+    },
+
+    /** ぷよ数のボーナスタイプ項目が選択されたとき */
+    optCountingBonusTypeSelected: (
+      state,
+      action: PayloadAction<CountingBonusType | undefined>
+    ) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const bonusType = action.payload;
+
+      if (bonusType === CountingBonusType.TwoWay) {
+        target.countingBonus = {
+          type: bonusType,
+          targetAttr: (target.mainAttr % 5) + 1
+        };
+      } else if (bonusType === CountingBonusType.Step) {
+        target.countingBonus = {
+          type: bonusType,
+          targetAttrs: [(target.mainAttr % 5) + 1],
+          stepHeight: 4,
+          bonusCount: 4,
+          repeat: true
+        };
+      } else {
+        target.countingBonus = undefined;
+      }
+    },
+
+    optCountingBonusTwoWayTargetAttrSelected: (
+      state,
+      action: PayloadAction<ColoredPuyoAttribute>
+    ) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const attr = action.payload;
+
+      if (target.countingBonus?.type === CountingBonusType.TwoWay) {
+        target.countingBonus.targetAttr = attr;
+      }
+    },
+
+    optCountingBonusStepTargetAttrSelected: (
+      state,
+      action: PayloadAction<PuyoAttribute>
+    ) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const attr = action.payload;
+
+      if (target.countingBonus?.type === CountingBonusType.Step) {
+        // TODO: リストなので追加削除できるようにする
+        target.countingBonus.targetAttrs = [attr];
+      }
+    },
+
+    optCountingBonusStepHeightChanged: (
+      state,
+      action: PayloadAction<number>
+    ) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+
+      if (target.countingBonus?.type === CountingBonusType.Step) {
+        target.countingBonus.stepHeight = action.payload;
+      }
+    },
+
+    optCountingBonusCountChanged: (state, action: PayloadAction<number>) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+
+      if (target.countingBonus?.type === CountingBonusType.Step) {
+        target.countingBonus.bonusCount = action.payload;
+      }
+    },
+
+    optCountingBonusStepRepeatCheckChanged: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+
+      if (target.countingBonus?.type === CountingBonusType.Step) {
+        target.countingBonus.repeat = action.payload;
+      }
     },
 
     /** 探索法の項目が選択されたとき */
@@ -444,7 +599,17 @@ export const {
   poppingLeverageChanged,
   chainLeverageChanged,
   animationDurationChanged,
-  optimizationTargetItemSelected,
+  optCategorySelected,
+  optDamageMainAttrSelected,
+  optDamageSubAttrSelected,
+  optDamageMainSubRatioSelected,
+  optPuyoCountMainAttrSelected,
+  optCountingBonusTypeSelected,
+  optCountingBonusTwoWayTargetAttrSelected,
+  optCountingBonusStepTargetAttrSelected,
+  optCountingBonusStepHeightChanged,
+  optCountingBonusCountChanged,
+  optCountingBonusStepRepeatCheckChanged,
   solutionMethodItemSelected,
   boostAreaKeyCheckedChanged,
   howToEditBoardItemSelected,

@@ -43,7 +43,7 @@ export const createSolveAllInParallel =
         if (!s?.optimalSolution) {
           return m;
         }
-        return betterSolution(optimizationTarget, m, s.optimalSolution);
+        return betterSolution(m, s.optimalSolution);
       },
       undefined as SolutionResult | undefined
     );
