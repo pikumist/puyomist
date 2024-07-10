@@ -51,7 +51,7 @@ export enum PuyoType {
   /** プリズムぷよ */
   Prism = 22,
   /** おじゃまぷよ */
-  Ojyama = 23,
+  Ojama = 23,
   /** 固ぷよ */
   Kata = 24,
   /** パディングぷよ (連鎖をとめるための消せないぷよ) */
@@ -84,7 +84,7 @@ export const puyoTypeMap: ReadonlyMap<PuyoType, string> = new Map<
   [PuyoType.PurpleChancePlus, '紫ch+'],
   [PuyoType.Heart, 'ハート'],
   [PuyoType.Prism, 'プリズム'],
-  [PuyoType.Ojyama, 'おじゃま'],
+  [PuyoType.Ojama, 'おじゃま'],
   [PuyoType.Kata, '固'],
   [PuyoType.Padding, 'パティング']
 ]);
@@ -204,7 +204,7 @@ export const isTraceablePuyo = (
   }
 
   switch (puyoType) {
-    case PuyoType.Ojyama:
+    case PuyoType.Ojama:
     case PuyoType.Kata:
     case PuyoType.Padding:
       return false;
@@ -254,8 +254,8 @@ export const getPuyoAttribute = (
     case PuyoType.Prism:
       return PuyoAttribute.Prism;
 
-    case PuyoType.Ojyama:
-      return PuyoAttribute.Ojyama;
+    case PuyoType.Ojama:
+      return PuyoAttribute.Ojama;
 
     case PuyoType.Kata:
       return PuyoAttribute.Kata;
@@ -392,8 +392,8 @@ export const convertPuyoType = (
         return PuyoType.Heart;
       case PuyoAttribute.Prism:
         return PuyoType.Prism;
-      case PuyoAttribute.Ojyama:
-        return PuyoType.Ojyama;
+      case PuyoAttribute.Ojama:
+        return PuyoType.Ojama;
       case PuyoAttribute.Kata:
         return PuyoType.Kata;
     }
@@ -414,8 +414,8 @@ export const convertPuyoType = (
       return PuyoType.Heart;
     case PuyoAttribute.Prism:
       return PuyoType.Prism;
-    case PuyoAttribute.Ojyama:
-      return PuyoType.Ojyama;
+    case PuyoAttribute.Ojama:
+      return PuyoType.Ojama;
     case PuyoAttribute.Kata:
       return PuyoType.Kata;
     case PuyoAttribute.Padding:
@@ -442,7 +442,7 @@ export const getPuyoRgb = (type: PuyoType) => {
       return 'pink';
     case PuyoAttribute.Prism:
       return '#fff';
-    case PuyoAttribute.Ojyama:
+    case PuyoAttribute.Ojama:
       return '#666';
     case PuyoAttribute.Kata:
       return '#333';

@@ -26,7 +26,7 @@ export class Simulator {
   static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Heart,
     PuyoAttribute.Prism,
-    PuyoAttribute.Ojyama,
+    PuyoAttribute.Ojama,
     PuyoAttribute.Kata
   ];
 
@@ -105,6 +105,11 @@ export class Simulator {
   /** 全連鎖情報を取得する。 */
   getChains() {
     return this.chains;
+  }
+
+  /** フィールドを取得する。(解探索でのみ使う) */
+  getField() {
+    return this.field;
   }
 
   /** シミュレーターをクリアする。 */
@@ -453,7 +458,7 @@ export class Simulator {
         for (const [c] of block.coordIdMap) {
           this.field[c.y][c.x] = {
             id: this.field[c.y][c.x]!.id,
-            type: PuyoType.Ojyama
+            type: PuyoType.Ojama
           };
         }
       } else {

@@ -5,6 +5,7 @@
 import { OptimizationTarget } from './OptimizationTarget';
 import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
 import { createfilledOneBitFieldBeforeIndex } from './bit-field';
 import {
@@ -99,6 +100,9 @@ const advanceTrace = (
   carry: SolutionCarry,
   coord: PuyoCoord
 ): void => {
+  if (!isTraceablePuyo(simulator.getField()[coord.y][coord.x]?.type)) {
+    return;
+  }
   if (!state.checkIfAddableCoord(coord, simulator.getActualMaxTraceNum())) {
     return;
   }

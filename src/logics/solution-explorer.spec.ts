@@ -119,6 +119,74 @@ describe('solution-explorer', () => {
         expect(csp).toBe(expected.csp);
       }
     );
+
+    it.each([
+      {
+        attr: PuyoAttribute.Green,
+        optimizationTarget: OptimizationTarget.GreenDamage,
+        maxTraceNum: 5,
+        poppingLeverage: 1.0,
+        boardId: 'specialRule1/1',
+        nextPuyoType: PuyoType.Green,
+        customCoordMap: new Map<PuyoCoord, PuyoType>([
+          [PuyoCoord.xyToCoord(5, 2)!, PuyoType.Ojama],
+          [PuyoCoord.xyToCoord(6, 2)!, PuyoType.Kata]
+        ]),
+        expected: {
+          candidatesNum: 11256,
+          traceCoords: [
+            PuyoCoord.xyToCoord(5, 4),
+            PuyoCoord.xyToCoord(6, 4),
+            PuyoCoord.xyToCoord(4, 5)
+          ],
+          totalAttrDamage: 113.75,
+          csp: '9-3-12'
+        }
+      }
+    ])(
+      'should find an optimal solution avoiding untraceable puyo',
+      ({
+        attr,
+        optimizationTarget,
+        maxTraceNum,
+        poppingLeverage,
+        boardId,
+        nextPuyoType,
+        customCoordMap,
+        expected
+      }) => {
+        // Arrange
+        const board = structuredClone(getSpecialBoard(boardId));
+        for (const [coord, type] of customCoordMap) {
+          board.field[coord.y][coord.x] = type;
+        }
+        const nextPuyos = createNextPuyosAsSameType(nextPuyoType);
+        const simulationData = createSimulationData(board, {
+          maxTraceNum,
+          poppingLeverage,
+          nextPuyos
+        });
+        const simulator = new Simulator(simulationData);
+
+        // Act
+        const actual = solveAllTraces(simulator, optimizationTarget)!;
+
+        // Assert
+        expect(actual.optimizationTarget).toBe(optimizationTarget);
+        expect(actual.candidatesNum).toBe(expected.candidatesNum);
+        expect(actual.optimalSolution?.traceCoords).toEqual(
+          expected.traceCoords
+        );
+        expect(
+          actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
+        ).toBeCloseTo(expected.totalAttrDamage);
+        const csp = calcCsp(
+          findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
+          attr
+        );
+        expect(csp).toBe(expected.csp);
+      }
+    );
   });
 
   describe('solveIncludingTraceIndex()', () => {

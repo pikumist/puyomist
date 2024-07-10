@@ -10,7 +10,7 @@ const symbolIdMap: ReadonlyMap<PuyoAttribute, string> = new Map([
   [PuyoAttribute.Purple, 'purple'],
   [PuyoAttribute.Heart, 'heart'],
   [PuyoAttribute.Prism, 'prism'],
-  [PuyoAttribute.Ojyama, 'ojama'],
+  [PuyoAttribute.Ojama, 'ojama'],
   [PuyoAttribute.Kata, 'kata'],
   [PuyoAttribute.Padding, 'padding']
 ]);
