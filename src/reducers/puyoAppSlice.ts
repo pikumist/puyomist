@@ -362,12 +362,6 @@ const puyoAppSlice = createSlice({
       const mainAttr = action.payload;
       const target = state.optimizationTarget as OptimizationPuyoCountTarget;
 
-      if (
-        target.countingBonus?.type === CountingBonusType.TwoWay &&
-        target.countingBonus.targetAttr === mainAttr
-      ) {
-        target.countingBonus = undefined;
-      }
       target.mainAttr = mainAttr;
     },
 
@@ -379,33 +373,16 @@ const puyoAppSlice = createSlice({
       const target = state.optimizationTarget as OptimizationPuyoCountTarget;
       const bonusType = action.payload;
 
-      if (bonusType === CountingBonusType.TwoWay) {
+      if (bonusType === CountingBonusType.Step) {
         target.countingBonus = {
           type: bonusType,
-          targetAttr: (target.mainAttr % 5) + 1
-        };
-      } else if (bonusType === CountingBonusType.Step) {
-        target.countingBonus = {
-          type: bonusType,
-          targetAttrs: [(target.mainAttr % 5) + 1],
+          targetAttrs: [PuyoAttribute.Red],
           stepHeight: 4,
           bonusCount: 4,
           repeat: true
         };
       } else {
         target.countingBonus = undefined;
-      }
-    },
-
-    optCountingBonusTwoWayTargetAttrSelected: (
-      state,
-      action: PayloadAction<ColoredPuyoAttribute>
-    ) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
-      const attr = action.payload;
-
-      if (target.countingBonus?.type === CountingBonusType.TwoWay) {
-        target.countingBonus.targetAttr = attr;
       }
     },
 
@@ -605,7 +582,6 @@ export const {
   optDamageMainSubRatioSelected,
   optPuyoCountMainAttrSelected,
   optCountingBonusTypeSelected,
-  optCountingBonusTwoWayTargetAttrSelected,
   optCountingBonusStepTargetAttrSelected,
   optCountingBonusStepHeightChanged,
   optCountingBonusCountChanged,

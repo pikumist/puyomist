@@ -22,7 +22,6 @@ import {
   optCountingBonusStepHeightChanged,
   optCountingBonusStepRepeatCheckChanged,
   optCountingBonusStepTargetAttrSelected,
-  optCountingBonusTwoWayTargetAttrSelected,
   optCountingBonusTypeSelected,
   optDamageMainAttrSelected,
   optDamageMainSubRatioSelected,
@@ -151,14 +150,6 @@ const OptimizationTargetDetailSetting: React.FC<
           ? undefined
           : (Number.parseInt(e.target.value) as CountingBonusType);
       dispatch(optCountingBonusTypeSelected(value));
-    },
-    [dispatch]
-  );
-
-  const onCountTwoWayTargetAttrSelected = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const attr = Number.parseInt(e.target.value) as ColoredPuyoAttribute;
-      dispatch(optCountingBonusTwoWayTargetAttrSelected(attr));
     },
     [dispatch]
   );
@@ -310,34 +301,7 @@ const OptimizationTargetDetailSetting: React.FC<
             </select>
           </div>
 
-          {target.countingBonus?.type === CountingBonusType.TwoWay ? (
-            <div>
-              <label
-                className={styles.label}
-                htmlFor="optPuyoCountTwoWayTargetAttr"
-              >
-                副属性:
-              </label>
-              <select
-                id="optPuyoCountTwoWayTargetAttr"
-                name="optPuyoCountTwoWayTargetAttr"
-                value={target.countingBonus?.targetAttr}
-                onChange={onCountTwoWayTargetAttrSelected}
-              >
-                {possibleColoredPuyoAttributeList.map((attr) => {
-                  return (
-                    <option
-                      hidden={attr === target.mainAttr}
-                      value={attr}
-                      key={attr}
-                    >
-                      {getPuyoAttributeName(attr)}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          ) : target.countingBonus?.type === CountingBonusType.Step ? (
+          {target.countingBonus?.type === CountingBonusType.Step ? (
             <div>
               <label
                 className={styles.label}

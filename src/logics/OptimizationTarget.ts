@@ -24,18 +24,8 @@ export interface OptimizationDamageTarget {
 
 /** カウントボーナスのタイプ */
 export enum CountingBonusType {
-  /** 2色加速 */
-  TwoWay = 1,
   /** 階段加速 */
-  Step = 2
-}
-
-/** 2色加速ボーナス */
-export interface TwoWayCountingBonus {
-  /** カウントボーナスのタイプ */
-  type: CountingBonusType.TwoWay;
-  /** 対象属性 */
-  targetAttr: PuyoAttribute;
+  Step = 1
 }
 
 /** 階段状に発生するカウントボーナス */
@@ -52,7 +42,7 @@ export interface StepCountingBonus {
   repeat: boolean;
 }
 
-export type CountingBonus = TwoWayCountingBonus | StepCountingBonus;
+export type CountingBonus = StepCountingBonus;
 
 /** 最適化対象がぷよ数場合の詳細情報 */
 export interface OptimizationPuyoCountTarget {
@@ -99,13 +89,11 @@ export const getOptimizationCategoryDescription = (
 };
 
 const countingBonusTypeMap: ReadonlyMap<CountingBonusType, string> = new Map([
-  [CountingBonusType.TwoWay, '2色加速'],
   [CountingBonusType.Step, '階段加速']
 ]);
 
 /** 取りうる加速ボーナスタイプのリスト */
 export const possibleCountingBonusTypeList: ReadonlyArray<CountingBonusType> = [
-  CountingBonusType.TwoWay,
   CountingBonusType.Step
 ];
 

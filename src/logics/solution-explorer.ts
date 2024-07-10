@@ -204,13 +204,6 @@ const calcSolutionResult = (
       if (optimizationTarget.countingBonus) {
         const countingBonus = optimizationTarget.countingBonus;
         switch (countingBonus.type) {
-          case CountingBonusType.TwoWay: {
-            bonusValue = Simulator.calcTotalCountOfTargetAttr(
-              chains,
-              countingBonus.targetAttr
-            );
-            break;
-          }
           case CountingBonusType.Step: {
             const totalHeight = countingBonus.targetAttrs.reduce(
               (m, attr) =>
