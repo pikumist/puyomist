@@ -2,7 +2,10 @@ import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
-import { OptimizationTarget } from '../logics/OptimizationTarget';
+import {
+  OptimizationCategory,
+  type OptimizationTarget
+} from '../logics/OptimizationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
@@ -46,7 +49,9 @@ export interface PuyoAppState {
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: customBoardId,
   nextSelection: 'random',
-  optimizationTarget: OptimizationTarget.PuyoTsukaiCount,
+  optimizationTarget: {
+    category: OptimizationCategory.PuyotsukaiCount
+  },
   solutionMethod: SolutionMethod.solveAllInParallel,
   lastScreenshotBoard: undefined,
   boostAreaKeyList: [],

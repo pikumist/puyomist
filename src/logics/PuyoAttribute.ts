@@ -42,6 +42,15 @@ const puyoAttributeMap: ReadonlyMap<PuyoAttribute, string> = new Map([
   [PuyoAttribute.Kata, '固']
 ]);
 
+export const possibleColoredPuyoAttributeList: ReadonlyArray<ColoredPuyoAttribute> =
+  [
+    PuyoAttribute.Red,
+    PuyoAttribute.Blue,
+    PuyoAttribute.Green,
+    PuyoAttribute.Yellow,
+    PuyoAttribute.Purple
+  ];
+
 /**
  * ぷよの属性名を取得する
  * @param puyoAttribute

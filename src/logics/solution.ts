@@ -6,8 +6,6 @@ import { bitFieldAddIndex, bitFieldHasIndex } from './bit-field';
 
 /** 各属性における総ダメージ */
 export interface TotalDamages {
-  /** 全ての属性における総ダメージ */
-  total: number;
   /** 赤属性における総ダメージ */
   [PuyoAttribute.Red]: number;
   /** 青属性における総ダメージ */
@@ -24,8 +22,12 @@ export interface TotalDamages {
 export interface SolutionResult {
   /** なぞったぷよ */
   traceCoords: PuyoCoord[];
-  /** ぷよ使いカウント */
-  puyoTsukaiCount: number;
+  /**
+   * 最適化対象によって異なる値。
+   * ダメージの量であったり、スキル溜め数だったり、ぷよ使いカウントだったりする。
+   * 大きいほど良い値。
+   */
+  value: number;
   /** 各属性における総ダメージ */
   totalDamages: TotalDamages;
   /** 全連鎖情報 */

@@ -2,8 +2,11 @@
  * @module なぞりの最適解探索
  */
 
-import { OptimizationTarget } from './OptimizationTarget';
-import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
+import {
+  CountingBonusType,
+  OptimizationCategory,
+  type OptimizationTarget
+} from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -95,7 +98,7 @@ export const solveIncludingTraceIndex = (
 
 const advanceTrace = (
   simulator: Simulator,
-  optTarget: OptimizationTarget,
+  optimizationTarget: OptimizationTarget,
   state: SolutionState,
   carry: SolutionCarry,
   coord: PuyoCoord
@@ -112,18 +115,16 @@ const advanceTrace = (
 
   updateCarry(
     carry,
-    optTarget,
-    calcSolutionResult(simulator, s.getTraceCoords())
+    calcSolutionResult(simulator, optimizationTarget, s.getTraceCoords())
   );
 
   for (const nextCoord of s.enumerateCandidates()) {
-    advanceTrace(simulator, optTarget, s, carry, nextCoord)!;
+    advanceTrace(simulator, optimizationTarget, s, carry, nextCoord)!;
   }
 };
 
 const updateCarry = (
   carry: SolutionCarry,
-  optTarget: OptimizationTarget,
   solutionResult: SolutionResult
 ): void => {
   carry.solutionNums++;
@@ -133,11 +134,7 @@ const updateCarry = (
     return;
   }
 
-  carry.optimalSolution = betterSolution(
-    optTarget,
-    carry.optimalSolution,
-    solutionResult
-  );
+  carry.optimalSolution = betterSolution(carry.optimalSolution, solutionResult);
 };
 
 /**
@@ -147,82 +144,100 @@ const updateCarry = (
  * @returns
  */
 export const betterSolution = (
-  optTarget: OptimizationTarget,
   s1: SolutionResult,
   s2: SolutionResult
 ): SolutionResult => {
-  switch (optTarget) {
-    case OptimizationTarget.TotalDamage: {
-      if (
-        s2.totalDamages.total > s1.totalDamages.total ||
-        (s2.totalDamages.total === s1.totalDamages.total &&
-          s2.traceCoords.length < s1.traceCoords.length)
-      ) {
-        return s2;
-      }
-      return s1;
-    }
-    case OptimizationTarget.RedDamage:
-    case OptimizationTarget.BlueDamage:
-    case OptimizationTarget.GreenDamage:
-    case OptimizationTarget.YellowDamage:
-    case OptimizationTarget.PurpleDamage: {
-      const attr: ColoredPuyoAttribute =
-        optTarget - OptimizationTarget.RedDamage + PuyoAttribute.Red;
-      if (
-        s2.totalDamages[attr] > s1.totalDamages[attr] ||
-        (s2.totalDamages[attr] === s1.totalDamages[attr] &&
-          s2.traceCoords.length < s1.traceCoords.length)
-      ) {
-        return s2;
-      }
-      return s1;
-    }
-    case OptimizationTarget.PuyoTsukaiCount: {
-      if (
-        s2.puyoTsukaiCount > s1.puyoTsukaiCount ||
-        (s2.puyoTsukaiCount === s1.puyoTsukaiCount &&
-          s2.traceCoords.length < s1.traceCoords.length)
-      ) {
-        return s2;
-      }
-      return s1;
-    }
+  if (
+    s2.value > s1.value ||
+    (s2.value === s1.value && s2.traceCoords.length < s1.traceCoords.length)
+  ) {
+    return s2;
   }
+  return s1;
 };
 
 /**
  * シミュレーターに対してなぞり消しを行って結果を求める。
  * @param simulator シミュレーター
+ * @param optimizationTarget 最適化対象
  * @param traceCoords なぞり座標リスト
  * @returns
  */
 const calcSolutionResult = (
   simulator: Simulator,
+  optimizationTarget: OptimizationTarget,
   traceCoords: PuyoCoord[]
 ): SolutionResult => {
   const sim = new Simulator(simulator.getSimulationData());
   sim.setTraceCoords(traceCoords);
   sim.doChains();
 
-  const puyoTsukaiCount = Simulator.calcTotalPuyoTsukaiCount(sim.getChains());
+  const chains = sim.getChains();
 
-  const totalDamages: Partial<TotalDamages> = Object.fromEntries(
+  const totalDamages = Object.fromEntries(
     Simulator.colorAttrs.map((targetAttr) => {
       return [
         targetAttr,
-        Simulator.calcTotalDamageOfTargetAttr(sim.getChains(), targetAttr)
+        Simulator.calcTotalDamageOfTargetAttr(chains, targetAttr)
       ];
     })
-  );
-  totalDamages.total = Object.keys(totalDamages).reduce((m, attr) => {
-    return m + totalDamages[attr as '1']!;
-  }, 0);
+  ) as Partial<TotalDamages> as TotalDamages;
+
+  let value: number | undefined;
+
+  switch (optimizationTarget.category) {
+    case OptimizationCategory.Damage: {
+      const mainValue = totalDamages[optimizationTarget.mainAttr]!;
+      const subValue = optimizationTarget.subAttr
+        ? totalDamages[optimizationTarget.subAttr] *
+          (optimizationTarget.mainSubRatio ?? 0)
+        : 0;
+      value = mainValue + subValue;
+      break;
+    }
+    case OptimizationCategory.PuyoCount: {
+      const mainValue = Simulator.calcTotalCountOfTargetAttr(
+        chains,
+        optimizationTarget.mainAttr
+      );
+      let bonusValue = 0;
+      if (optimizationTarget.countingBonus) {
+        const countingBonus = optimizationTarget.countingBonus;
+        switch (countingBonus.type) {
+          case CountingBonusType.TwoWay: {
+            bonusValue = Simulator.calcTotalCountOfTargetAttr(
+              chains,
+              countingBonus.targetAttr
+            );
+            break;
+          }
+          case CountingBonusType.Step: {
+            const totalHeight = countingBonus.targetAttrs.reduce(
+              (m, attr) =>
+                m + Simulator.calcTotalCountOfTargetAttr(chains, attr),
+              0
+            );
+            let steps = Math.floor(totalHeight / countingBonus.stepHeight);
+            if (!countingBonus.repeat) {
+              steps = Math.min(1, steps);
+            }
+            bonusValue = countingBonus.bonusCount * steps;
+          }
+        }
+      }
+      value = mainValue + bonusValue;
+      break;
+    }
+    case OptimizationCategory.PuyotsukaiCount: {
+      value = Simulator.calcTotalPuyoTsukaiCount(chains);
+      break;
+    }
+  }
 
   return {
     traceCoords,
-    puyoTsukaiCount,
+    value: value!,
     totalDamages: totalDamages as TotalDamages,
-    chains: sim.getChains()
+    chains
   };
 };

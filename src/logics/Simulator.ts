@@ -165,6 +165,22 @@ export class Simulator {
   }
 
   /**
+   * 対象属性における総カウントを計算する。
+   * @param chains
+   * @param targetAttr
+   * @returns
+   */
+  static calcTotalCountOfTargetAttr(
+    chains: Chain[],
+    targetAttr: PuyoAttribute
+  ): number {
+    const totalCount = chains.reduce((m, chain) => {
+      return m + (chain.attributes[targetAttr]?.poppedNum ?? 0);
+    }, 0);
+    return totalCount;
+  }
+
+  /**
    * ぷよ使いカウントの総数を計算する。
    * @param chains
    * @returns
@@ -407,16 +423,22 @@ export class Simulator {
       PuyoAttribute.Green,
       PuyoAttribute.Yellow,
       PuyoAttribute.Purple,
-      PuyoAttribute.Prism
+      PuyoAttribute.Heart,
+      PuyoAttribute.Prism,
+      PuyoAttribute.Ojama
     ]) {
-      if (attr === PuyoAttribute.Prism) {
-        const prismBlock = blocks.find((block) => block.attr === attr);
-        if (!prismBlock) {
+      if (
+        attr === PuyoAttribute.Heart ||
+        attr === PuyoAttribute.Prism ||
+        attr === PuyoAttribute.Ojama
+      ) {
+        const block = blocks.find((block) => block.attr === attr);
+        if (!block) {
           continue;
         }
-        const poppedNum = prismBlock.coordIdMap.size;
+        const poppedNum = block.coordIdMap.size;
         result.attributes[attr] = {
-          strength: 3 * poppedNum,
+          strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
           poppedNum,
           separatedBlocksNum: 1
         };

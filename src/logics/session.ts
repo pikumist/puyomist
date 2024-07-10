@@ -1,6 +1,9 @@
 import type { Board } from './Board';
 import type { BoardEditMode } from './BoardEditMode';
-import { OptimizationTarget } from './OptimizationTarget';
+import {
+  OptimizationCategory,
+  type OptimizationTarget
+} from './OptimizationTarget';
 import { SolutionMethod } from './solution';
 
 export class Session {
@@ -67,14 +70,19 @@ export class Session {
   }
 
   getOptimizationTarget(): OptimizationTarget {
-    const optTarget =
-      this.storage.getItem(Session.optimizationTargetKey) ||
-      `${OptimizationTarget.TotalDamage}`;
-    return Number.parseInt(optTarget) as OptimizationTarget;
+    const targetStr = this.storage.getItem(Session.optimizationTargetKey);
+    try {
+      return JSON.parse(targetStr!);
+    } catch (_) {
+      return { category: OptimizationCategory.PuyotsukaiCount };
+    }
   }
 
-  setOptimizationTarget(optTarget: OptimizationTarget): void {
-    this.storage.setItem(Session.optimizationTargetKey, String(optTarget));
+  setOptimizationTarget(tareget: OptimizationTarget): void {
+    this.storage.setItem(
+      Session.optimizationTargetKey,
+      JSON.stringify(tareget)
+    );
   }
 
   getSolutionMethod(): SolutionMethod {

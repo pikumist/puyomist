@@ -8,6 +8,10 @@
   margin-bottom: 4px;
 }
 
+.subSetting {
+  margin-left: 4px;
+}
+
 .item {
   display: inline-flex;
   align-items: center;
