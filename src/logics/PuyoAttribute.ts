@@ -69,11 +69,6 @@ export const getPuyoAttributeName = (
  */
 export const isColoredPuyoAttribute = (
   puyoAttr: PuyoAttribute
-): puyoAttr is
-  | PuyoAttribute.Red
-  | PuyoAttribute.Blue
-  | PuyoAttribute.Green
-  | PuyoAttribute.Yellow
-  | PuyoAttribute.Purple => {
+): puyoAttr is ColoredPuyoAttribute => {
   return puyoAttr >= PuyoAttribute.Red && puyoAttr <= PuyoAttribute.Purple;
 };

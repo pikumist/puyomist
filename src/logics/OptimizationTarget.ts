@@ -23,7 +23,7 @@ export enum AllClearPreference {
 const allClearPreferenceMap: ReadonlyMap<AllClearPreference, string> = new Map([
   [AllClearPreference.NotCare, 'しない'],
   [AllClearPreference.PreferIfBestValue, '最善値のみ'],
-  [AllClearPreference.PreferIfExists, 'あれば選択']
+  [AllClearPreference.PreferIfExists, '常に']
 ]);
 
 export const possibleAllClearPreferenceList: ReadonlyArray<AllClearPreference> =
@@ -49,7 +49,7 @@ const chancePopPreferenceMap: ReadonlyMap<ChancePopPreference, string> =
   new Map([
     [ChancePopPreference.NotCare, 'しない'],
     [ChancePopPreference.PreferIfBestValue, '最善値のみ'],
-    [ChancePopPreference.PreferIfExists, 'あれば選択']
+    [ChancePopPreference.PreferIfExists, '常に']
   ]);
 
 export const possibleChancePopPreferenceList: ReadonlyArray<ChancePopPreference> =

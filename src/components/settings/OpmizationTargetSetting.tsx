@@ -50,6 +50,21 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
   props
 ) => {
   const { target } = props;
+
+  return (
+    <div className={styles.setting}>
+      <CategorySelector target={target} />
+      <OptimizationTargetDetailSetting target={target} />
+      <AllClearPreferenceSelector target={target} />
+      <ChancePopPreferenceSelector target={target} />
+    </div>
+  );
+};
+
+const CategorySelector: React.FC<{
+  target: OptimizationTarget;
+}> = (props) => {
+  const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
 
   const onCategoryItemSelected = useCallback(
@@ -63,6 +78,35 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
     [dispatch]
   );
 
+  return (
+    <div>
+      <label className={styles.label} htmlFor="optimizationCategory">
+        探索対象:
+      </label>
+      <select
+        id="optimizationCategory"
+        name="optimizationCategory"
+        value={target.category}
+        onChange={onCategoryItemSelected}
+      >
+        {possibleOptimizationCategoryList.map((category) => {
+          return (
+            <option value={category} key={category}>
+              {getOptimizationCategoryDescription(category)}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+  );
+};
+
+const AllClearPreferenceSelector: React.FC<{
+  target: OptimizationTarget;
+}> = (props) => {
+  const { target } = props;
+  const dispatch = useDispatch<AppDispatch>();
+
   const onAllClearPreferenceSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
@@ -73,6 +117,35 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
     },
     [dispatch]
   );
+
+  return (
+    <div>
+      <label className={styles.label} htmlFor="allClearPreference">
+        全消し優先:
+      </label>
+      <select
+        id="allClearPreference"
+        name="allClearPreference"
+        value={target.allClearPreference}
+        onChange={onAllClearPreferenceSelected}
+      >
+        {possibleAllClearPreferenceList.map((preference) => {
+          return (
+            <option value={preference} key={preference}>
+              {getAllClearPreferenceDescription(preference)}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+  );
+};
+
+const ChancePopPreferenceSelector: React.FC<{
+  target: OptimizationTarget;
+}> = (props) => {
+  const { target } = props;
+  const dispatch = useDispatch<AppDispatch>();
 
   const onChancePopPreferenceSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -86,76 +159,29 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
   );
 
   return (
-    <div className={styles.setting}>
-      <div>
-        <label className={styles.label} htmlFor="optimizationCategory">
-          探索対象:
-        </label>
-        <select
-          id="optimizationCategory"
-          name="optimizationCategory"
-          value={target.category}
-          onChange={onCategoryItemSelected}
-        >
-          {possibleOptimizationCategoryList.map((category) => {
-            return (
-              <option value={category} key={category}>
-                {getOptimizationCategoryDescription(category)}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      <div>
-        <label className={styles.label} htmlFor="allClearPreference">
-          全消し優先:
-        </label>
-        <select
-          id="allClearPreference"
-          name="allClearPreference"
-          value={target.allClearPreference}
-          onChange={onAllClearPreferenceSelected}
-        >
-          {possibleAllClearPreferenceList.map((preference) => {
-            return (
-              <option value={preference} key={preference}>
-                {getAllClearPreferenceDescription(preference)}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      <div>
-        <label className={styles.label} htmlFor="chancePopPreference">
-          チャンスぷよ消し優先:
-        </label>
-        <select
-          id="chancePopPreference"
-          name="chancePopPreference"
-          value={target.chancePopPreference}
-          onChange={onChancePopPreferenceSelected}
-        >
-          {possibleChancePopPreferenceList.map((preference) => {
-            return (
-              <option value={preference} key={preference}>
-                {getChancePopPreferenceDescription(preference)}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      <OptimizationTargetDetailSetting target={target} />
+    <div>
+      <label className={styles.label} htmlFor="chancePopPreference">
+        チャンスぷよ消し優先:
+      </label>
+      <select
+        id="chancePopPreference"
+        name="chancePopPreference"
+        value={target.chancePopPreference}
+        onChange={onChancePopPreferenceSelected}
+      >
+        {possibleChancePopPreferenceList.map((preference) => {
+          return (
+            <option value={preference} key={preference}>
+              {getChancePopPreferenceDescription(preference)}
+            </option>
+          );
+        })}
+      </select>
     </div>
   );
 };
 
-interface OptimizationTargetDetailSettingProps {
-  /** 最適化対象 */
-  target: OptimizationTarget;
-}
-
 const notAvailable = '--' as const;
-
 const possibleStepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
   PuyoAttribute.Red,
   PuyoAttribute.Blue,
@@ -167,9 +193,9 @@ const possibleStepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
   PuyoAttribute.Ojama
 ];
 
-const OptimizationTargetDetailSetting: React.FC<
-  OptimizationTargetDetailSettingProps
-> = (props) => {
+const OptimizationTargetDetailSetting: React.FC<{
+  target: OptimizationTarget;
+}> = (props) => {
   const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
 

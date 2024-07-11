@@ -9,8 +9,8 @@ import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
-  AllClearPreference,
-  ChancePopPreference,
+  type AllClearPreference,
+  type ChancePopPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationDamageTarget,
@@ -304,8 +304,8 @@ const puyoAppSlice = createSlice({
       action: PayloadAction<OptimizationCategory>
     ) => {
       const common = {
-        allClearPreference: AllClearPreference.PreferIfBestValue,
-        chancePopPreference: ChancePopPreference.PreferIfBestValue
+        allClearPreference: state.optimizationTarget.allClearPreference,
+        chancePopPreference: state.optimizationTarget.chancePopPreference
       };
       switch (action.payload) {
         case OptimizationCategory.Damage:
