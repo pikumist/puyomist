@@ -2,6 +2,7 @@ import type { Board } from './Board';
 import type { BoardEditMode } from './BoardEditMode';
 import {
   AllClearPreference,
+  ChancePopPreference,
   OptimizationCategory,
   type OptimizationTarget
 } from './OptimizationTarget';
@@ -77,6 +78,7 @@ export class Session {
     } catch (_) {
       return {
         allClearPreference: AllClearPreference.PreferIfBestValue,
+        chancePopPreference: ChancePopPreference.PreferIfBestValue,
         category: OptimizationCategory.PuyotsukaiCount
       };
     }

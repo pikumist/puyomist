@@ -4,6 +4,7 @@
 
 import {
   AllClearPreference,
+  ChancePopPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationTarget
@@ -144,6 +145,58 @@ const updateCarry = (
   );
 };
 
+const betterSolutionByValue = (
+  s1: SolutionResult,
+  s2: SolutionResult
+): SolutionResult | undefined => {
+  if (s2.value > s1.value) {
+    return s2;
+  }
+  if (s2.value < s1.value) {
+    return s1;
+  }
+  return undefined;
+};
+
+const betterSolutionByTraceCoords = (
+  s1: SolutionResult,
+  s2: SolutionResult
+): SolutionResult | undefined => {
+  if (s2.traceCoords.length < s1.traceCoords.length) {
+    return s2;
+  }
+  if (s2.traceCoords.length > s1.traceCoords.length) {
+    return s1;
+  }
+  return undefined;
+};
+
+const betterSolutionByChancePopped = (
+  s1: SolutionResult,
+  s2: SolutionResult
+): SolutionResult | undefined => {
+  if (s2.chancePopped && !s1.chancePopped) {
+    return s2;
+  }
+  if (!s2.chancePopped && s1.chancePopped) {
+    return s1;
+  }
+  return undefined;
+};
+
+const betterSolutionByAllCleared = (
+  s1: SolutionResult,
+  s2: SolutionResult
+): SolutionResult | undefined => {
+  if (s2.allCleared && !s1.allCleared) {
+    return s2;
+  }
+  if (!s2.allCleared && s1.allCleared) {
+    return s1;
+  }
+  return undefined;
+};
+
 /**
  * s1 と s2 とで良い解法の方を返す。優劣付けれらない場合は s1 を返す。
  * @param s1
@@ -156,51 +209,83 @@ export const betterSolution = (
   s2: SolutionResult
 ): SolutionResult => {
   switch (optimizationTarget.allClearPreference) {
+    // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
     case AllClearPreference.NotCare:
-      if (s2.value > s1.value) {
-        return s2;
+      switch (optimizationTarget.chancePopPreference) {
+        case ChancePopPreference.NotCare:
+          return (
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfBestValue:
+          return (
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfExists:
+          return (
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
       }
-      if (s2.value < s1.value) {
-        return s1;
-      }
-      if (s2.traceCoords.length < s1.traceCoords.length) {
-        return s2;
-      }
-      return s1;
+    // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
     case AllClearPreference.PreferIfBestValue:
-      if (s2.value > s1.value) {
-        return s2;
+      switch (optimizationTarget.chancePopPreference) {
+        case ChancePopPreference.NotCare:
+          return (
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfBestValue:
+          return (
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfExists:
+          return (
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
       }
-      if (s2.value < s1.value) {
-        return s1;
-      }
-      if (s2.allCleared && !s1.allCleared) {
-        return s2;
-      }
-      if (!s2.allCleared && s1.allCleared) {
-        return s1;
-      }
-      if (s2.traceCoords.length < s1.traceCoords.length) {
-        return s2;
-      }
-      return s1;
     case AllClearPreference.PreferIfExists:
-      if (s2.allCleared && !s1.allCleared) {
-        return s2;
+      switch (optimizationTarget.chancePopPreference) {
+        case ChancePopPreference.NotCare:
+          return (
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfBestValue:
+          return (
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
+        case ChancePopPreference.PreferIfExists:
+          return (
+            betterSolutionByChancePopped(s1, s2) ??
+            betterSolutionByAllCleared(s1, s2) ??
+            betterSolutionByValue(s1, s2) ??
+            betterSolutionByTraceCoords(s1, s2) ??
+            s1
+          );
       }
-      if (!s2.allCleared && s1.allCleared) {
-        return s1;
-      }
-      if (s2.value > s1.value) {
-        return s2;
-      }
-      if (s2.value < s1.value) {
-        return s1;
-      }
-      if (s2.traceCoords.length < s1.traceCoords.length) {
-        return s2;
-      }
-      return s1;
   }
 };
 
@@ -222,6 +307,7 @@ const calcSolutionResult = (
 
   const chains = sim.getChains();
   const allCleared = Simulator.isAllCleared(chains);
+  const chancePopped = Simulator.isChancePopped(chains);
 
   const totalDamages = Object.fromEntries(
     Simulator.colorAttrs.map((targetAttr) => {
@@ -281,6 +367,7 @@ const calcSolutionResult = (
     value: value!,
     totalDamages: totalDamages as TotalDamages,
     allCleared,
+    chancePopped,
     chains
   };
 };

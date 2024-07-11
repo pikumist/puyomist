@@ -6,6 +6,7 @@ import {
   PuyoType,
   convertPuyoType,
   getPuyoAttribute,
+  isChancePuyo,
   isColoredPuyoType,
   isPlusPuyo
 } from './PuyoType';
@@ -141,6 +142,15 @@ export class Simulator {
    */
   static isAllCleared(chains: Chain[]): boolean {
     return chains.some((chain) => chain.allCleared);
+  }
+
+  /**
+   * チャンスぷよが弾けたかどうか
+   * @param chains
+   * @returns
+   */
+  static isChancePopped(chains: Chain[]): boolean {
+    return chains.some((chain) => chain.chancePopped);
   }
 
   /**
@@ -491,6 +501,9 @@ export class Simulator {
         }
       } else {
         for (const [c] of block.coordIdMap) {
+          if (isChancePuyo(this.field[c.y][c.x]!.type)) {
+            result.chancePopped = true;
+          }
           this.field[c.y][c.x] = undefined;
         }
       }

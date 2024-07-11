@@ -22,4 +22,6 @@ export interface Chain {
   attributes: Record<PuyoAttribute, AttributeChain>;
   /** 全消しされたかどうか */
   allCleared?: boolean;
+  /** チャンスぷよが弾けたかどうか */
+  chancePopped?: boolean;
 }

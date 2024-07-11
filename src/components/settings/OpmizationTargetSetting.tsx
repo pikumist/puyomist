@@ -3,13 +3,16 @@ import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   type AllClearPreference,
+  type ChancePopPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationTarget,
   getAllClearPreferenceDescription,
+  getChancePopPreferenceDescription,
   getCountingBonusTypeDescription,
   getOptimizationCategoryDescription,
   possibleAllClearPreferenceList,
+  possibleChancePopPreferenceList,
   possibleCountingBonusTypeList,
   possibleOptimizationCategoryList
 } from '../../logics/OptimizationTarget';
@@ -22,6 +25,7 @@ import {
 import {
   optAllClearPreferenceSelected,
   optCategorySelected,
+  optChancePopPreferenceSelected,
   optCountingBonusCountChanged,
   optCountingBonusStepHeightChanged,
   optCountingBonusStepRepeatCheckChanged,
@@ -69,11 +73,22 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
     [dispatch]
   );
 
+  const onChancePopPreferenceSelected = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      dispatch(
+        optChancePopPreferenceSelected(
+          Number.parseInt(e.target.value) as ChancePopPreference
+        )
+      );
+    },
+    [dispatch]
+  );
+
   return (
     <div className={styles.setting}>
       <div>
         <label className={styles.label} htmlFor="allClearPreference">
-          全消し優先度:
+          全消し優先:
         </label>
         <select
           id="allClearPreference"
@@ -85,6 +100,25 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
             return (
               <option value={preference} key={preference}>
                 {getAllClearPreferenceDescription(preference)}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      <div>
+        <label className={styles.label} htmlFor="chancePopPreference">
+          チャンスぷよ消し優先:
+        </label>
+        <select
+          id="chancePopPreference"
+          name="chancePopPreference"
+          value={target.chancePopPreference}
+          onChange={onChancePopPreferenceSelected}
+        >
+          {possibleChancePopPreferenceList.map((preference) => {
+            return (
+              <option value={preference} key={preference}>
+                {getChancePopPreferenceDescription(preference)}
               </option>
             );
           })}

@@ -10,6 +10,7 @@ import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
   AllClearPreference,
+  ChancePopPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationDamageTarget,
@@ -304,24 +305,28 @@ const puyoAppSlice = createSlice({
       state,
       action: PayloadAction<OptimizationCategory>
     ) => {
+      const common = {
+        allClearPreference: AllClearPreference.PreferIfBestValue,
+        chancePopPreference: ChancePopPreference.PreferIfBestValue
+      };
       switch (action.payload) {
         case OptimizationCategory.Damage:
           state.optimizationTarget = {
-            allClearPreference: AllClearPreference.PreferIfBestValue,
+            ...common,
             category: OptimizationCategory.Damage,
             mainAttr: PuyoAttribute.Red
           };
           break;
         case OptimizationCategory.PuyoCount:
           state.optimizationTarget = {
-            allClearPreference: AllClearPreference.PreferIfBestValue,
+            ...common,
             category: OptimizationCategory.PuyoCount,
             mainAttr: PuyoAttribute.Red
           };
           break;
         case OptimizationCategory.PuyotsukaiCount:
           state.optimizationTarget = {
-            allClearPreference: AllClearPreference.PreferIfBestValue,
+            ...common,
             category: OptimizationCategory.PuyotsukaiCount
           };
       }
@@ -332,6 +337,13 @@ const puyoAppSlice = createSlice({
       action: PayloadAction<AllClearPreference>
     ) => {
       state.optimizationTarget.allClearPreference = action.payload;
+    },
+
+    optChancePopPreferenceSelected: (
+      state,
+      action: PayloadAction<ChancePopPreference>
+    ) => {
+      state.optimizationTarget.chancePopPreference = action.payload;
     },
 
     /** ダメージの主属性項目が選択されたとき */
@@ -589,6 +601,7 @@ export const {
   animationDurationChanged,
   optCategorySelected,
   optAllClearPreferenceSelected,
+  optChancePopPreferenceSelected,
   optDamageMainAttrSelected,
   optDamageSubAttrSelected,
   optDamageMainSubRatioSelected,

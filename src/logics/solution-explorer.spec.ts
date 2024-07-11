@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
 import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Chain } from './Chain';
-import { AllClearPreference, OptimizationCategory } from './OptimizationTarget';
+import {
+  AllClearPreference,
+  ChancePopPreference,
+  OptimizationCategory
+} from './OptimizationTarget';
 import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
@@ -49,6 +53,7 @@ describe('solution-explorer', () => {
         attr: PuyoAttribute.Green,
         optimizationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
+          chancePopPreference: ChancePopPreference.PreferIfBestValue,
           category: OptimizationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
@@ -67,6 +72,7 @@ describe('solution-explorer', () => {
         attr: PuyoAttribute.Blue,
         optimizationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
+          chancePopPreference: ChancePopPreference.PreferIfBestValue,
           category: OptimizationCategory.Damage as const,
           mainAttr: PuyoAttribute.Blue as const
         },
@@ -136,6 +142,7 @@ describe('solution-explorer', () => {
         attr: PuyoAttribute.Green,
         optimizationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
+          chancePopPreference: ChancePopPreference.PreferIfBestValue,
           category: OptimizationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
@@ -214,6 +221,7 @@ describe('solution-explorer', () => {
         attr: PuyoAttribute.Green,
         optimizationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
+          chancePopPreference: ChancePopPreference.PreferIfBestValue,
           category: OptimizationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
@@ -233,6 +241,7 @@ describe('solution-explorer', () => {
         attr: PuyoAttribute.Blue,
         optimizationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
+          chancePopPreference: ChancePopPreference.PreferIfBestValue,
           category: OptimizationCategory.Damage as const,
           mainAttr: PuyoAttribute.Blue as const
         },

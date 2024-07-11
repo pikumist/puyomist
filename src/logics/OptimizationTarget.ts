@@ -21,9 +21,9 @@ export enum AllClearPreference {
 }
 
 const allClearPreferenceMap: ReadonlyMap<AllClearPreference, string> = new Map([
-  [AllClearPreference.NotCare, '気にしない'],
-  [AllClearPreference.PreferIfBestValue, '最善値候補にあれば選択'],
-  [AllClearPreference.PreferIfExists, '全候補中にあれば選択']
+  [AllClearPreference.NotCare, 'しない'],
+  [AllClearPreference.PreferIfBestValue, '最善値のみ'],
+  [AllClearPreference.PreferIfExists, 'あれば選択']
 ]);
 
 export const possibleAllClearPreferenceList: ReadonlyArray<AllClearPreference> =
@@ -35,10 +35,38 @@ export const getAllClearPreferenceDescription = (
   return allClearPreferenceMap.get(preference!);
 };
 
+/** チャンスぷよ消し優先度 */
+export enum ChancePopPreference {
+  /** 気にしない */
+  NotCare = 0,
+  /** 最善同値候補中にあれば選択する */
+  PreferIfBestValue = 1,
+  /** 全候補中にあれば選択する */
+  PreferIfExists = 2
+}
+
+const chancePopPreferenceMap: ReadonlyMap<ChancePopPreference, string> =
+  new Map([
+    [ChancePopPreference.NotCare, 'しない'],
+    [ChancePopPreference.PreferIfBestValue, '最善値のみ'],
+    [ChancePopPreference.PreferIfExists, 'あれば選択']
+  ]);
+
+export const possibleChancePopPreferenceList: ReadonlyArray<ChancePopPreference> =
+  [...chancePopPreferenceMap.keys()];
+
+export const getChancePopPreferenceDescription = (
+  preference: ChancePopPreference | undefined
+) => {
+  return chancePopPreferenceMap.get(preference!);
+};
+
 /** 最適化共通設定 */
 export interface OptimizationCommon {
   /** 全消し優先度 */
   allClearPreference: AllClearPreference;
+  /** チャンプぷよ消し優先度 */
+  chancePopPreference: ChancePopPreference;
 }
 
 /** 最適化対象がダメージの場合の詳細情報 */

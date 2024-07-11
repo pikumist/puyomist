@@ -32,6 +32,8 @@ export interface SolutionResult {
   totalDamages: TotalDamages;
   /** 全消しされたかどうか */
   allCleared: boolean;
+  /** チャンスぷよが弾けたかどうか */
+  chancePopped: boolean;
   /** 全連鎖情報 */
   chains: Chain[];
 }

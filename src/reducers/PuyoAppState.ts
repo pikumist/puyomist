@@ -4,6 +4,7 @@ import type { BoardEditMode } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
 import {
   AllClearPreference,
+  ChancePopPreference,
   OptimizationCategory,
   type OptimizationTarget
 } from '../logics/OptimizationTarget';
@@ -52,6 +53,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   nextSelection: 'random',
   optimizationTarget: {
     allClearPreference: AllClearPreference.PreferIfBestValue,
+    chancePopPreference: ChancePopPreference.PreferIfBestValue,
     category: OptimizationCategory.PuyotsukaiCount
   },
   solutionMethod: SolutionMethod.solveAllInParallel,
