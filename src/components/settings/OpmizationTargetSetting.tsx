@@ -2,11 +2,14 @@ import type React from 'react';
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
+  type AllClearPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationTarget,
+  getAllClearPreferenceDescription,
   getCountingBonusTypeDescription,
   getOptimizationCategoryDescription,
+  possibleAllClearPreferenceList,
   possibleCountingBonusTypeList,
   possibleOptimizationCategoryList
 } from '../../logics/OptimizationTarget';
@@ -17,6 +20,7 @@ import {
   possibleColoredPuyoAttributeList
 } from '../../logics/PuyoAttribute';
 import {
+  optAllClearPreferenceSelected,
   optCategorySelected,
   optCountingBonusCountChanged,
   optCountingBonusStepHeightChanged,
@@ -54,25 +58,57 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
     [dispatch]
   );
 
+  const onAllClearPreferenceSelected = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      dispatch(
+        optAllClearPreferenceSelected(
+          Number.parseInt(e.target.value) as AllClearPreference
+        )
+      );
+    },
+    [dispatch]
+  );
+
   return (
     <div className={styles.setting}>
-      <label className={styles.label} htmlFor="optimizationCategory">
-        最適化対象の種別:
-      </label>
-      <select
-        id="optimizationCategory"
-        name="optimizationCategory"
-        value={target.category}
-        onChange={onCategoryItemSelected}
-      >
-        {possibleOptimizationCategoryList.map((category) => {
-          return (
-            <option value={category} key={category}>
-              {getOptimizationCategoryDescription(category)}
-            </option>
-          );
-        })}
-      </select>
+      <div>
+        <label className={styles.label} htmlFor="allClearPreference">
+          全消し優先度:
+        </label>
+        <select
+          id="allClearPreference"
+          name="allClearPreference"
+          value={target.allClearPreference}
+          onChange={onAllClearPreferenceSelected}
+        >
+          {possibleAllClearPreferenceList.map((preference) => {
+            return (
+              <option value={preference} key={preference}>
+                {getAllClearPreferenceDescription(preference)}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      <div>
+        <label className={styles.label} htmlFor="optimizationCategory">
+          探索対象:
+        </label>
+        <select
+          id="optimizationCategory"
+          name="optimizationCategory"
+          value={target.category}
+          onChange={onCategoryItemSelected}
+        >
+          {possibleOptimizationCategoryList.map((category) => {
+            return (
+              <option value={category} key={category}>
+                {getOptimizationCategoryDescription(category)}
+              </option>
+            );
+          })}
+        </select>
+      </div>
       <OptimizationTargetDetailSetting target={target} />
     </div>
   );
@@ -186,7 +222,7 @@ const OptimizationTargetDetailSetting: React.FC<
   switch (target.category) {
     case OptimizationCategory.Damage:
       return (
-        <div className={styles.subSetting}>
+        <div>
           <div>
             <label className={styles.label} htmlFor="optDamageMainAttr">
               主属性:
@@ -258,7 +294,7 @@ const OptimizationTargetDetailSetting: React.FC<
       );
     case OptimizationCategory.PuyoCount:
       return (
-        <div className={styles.subSetting}>
+        <div>
           <div>
             <label className={styles.label} htmlFor="optPuyoCountMainAttr">
               主属性:

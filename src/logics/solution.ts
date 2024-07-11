@@ -30,6 +30,8 @@ export interface SolutionResult {
   value: number;
   /** 各属性における総ダメージ */
   totalDamages: TotalDamages;
+  /** 全消しされたかどうか */
+  allCleared: boolean;
   /** 全連鎖情報 */
   chains: Chain[];
 }

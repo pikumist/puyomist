@@ -1,6 +1,7 @@
 import type { Board } from './Board';
 import type { BoardEditMode } from './BoardEditMode';
 import {
+  AllClearPreference,
   OptimizationCategory,
   type OptimizationTarget
 } from './OptimizationTarget';
@@ -74,7 +75,10 @@ export class Session {
     try {
       return JSON.parse(targetStr!);
     } catch (_) {
-      return { category: OptimizationCategory.PuyotsukaiCount };
+      return {
+        allClearPreference: AllClearPreference.PreferIfBestValue,
+        category: OptimizationCategory.PuyotsukaiCount
+      };
     }
   }
 

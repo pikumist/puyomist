@@ -135,9 +135,17 @@ export class Simulator {
   }
 
   /**
+   * 全消しされたかどうか
+   * @param chains
+   * @returns
+   */
+  static isAllCleared(chains: Chain[]): boolean {
+    return chains.some((chain) => chain.allCleared);
+  }
+
+  /**
    * 総プリズムダメージを計算する。
    * @param chains
-   * @param attr
    * @returns
    */
   static calcTotalPrismDamage(chains: Chain[]): number {
@@ -473,8 +481,6 @@ export class Simulator {
       }
     }
 
-    this.chains.push(result);
-
     for (const block of blocks) {
       if (block.attr === PuyoAttribute.Kata) {
         for (const [c] of block.coordIdMap) {
@@ -489,6 +495,13 @@ export class Simulator {
         }
       }
     }
+
+    const allCleared = this.field.every((row) => row.every((puyo) => !puyo));
+    if (allCleared) {
+      result.allCleared = allCleared;
+    }
+
+    this.chains.push(result);
 
     return result;
   }

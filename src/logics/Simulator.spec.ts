@@ -345,6 +345,11 @@ describe('Simulator', () => {
                 strength: 10.799999999999999,
                 poppedNum: 3,
                 separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Heart]: {
+                strength: 0,
+                poppedNum: 1,
+                separatedBlocksNum: 1
               }
             }
           },
@@ -369,6 +374,11 @@ describe('Simulator', () => {
                 strength: 13.6,
                 poppedNum: 3,
                 separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Heart]: {
+                strength: 0,
+                poppedNum: 1,
+                separatedBlocksNum: 1
               }
             }
           },
@@ -392,6 +402,11 @@ describe('Simulator', () => {
               [PuyoAttribute.Yellow]: {
                 strength: 16.400000000000002,
                 poppedNum: 3,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Heart]: {
+                strength: 0,
+                poppedNum: 1,
                 separatedBlocksNum: 1
               }
             }
@@ -467,6 +482,11 @@ describe('Simulator', () => {
               [PuyoAttribute.Blue]: {
                 strength: 1.3,
                 poppedNum: 6,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Heart]: {
+                strength: 0,
+                poppedNum: 1,
                 separatedBlocksNum: 1
               }
             }

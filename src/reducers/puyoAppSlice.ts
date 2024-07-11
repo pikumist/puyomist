@@ -9,6 +9,7 @@ import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
+  AllClearPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationDamageTarget,
@@ -306,21 +307,31 @@ const puyoAppSlice = createSlice({
       switch (action.payload) {
         case OptimizationCategory.Damage:
           state.optimizationTarget = {
+            allClearPreference: AllClearPreference.PreferIfBestValue,
             category: OptimizationCategory.Damage,
             mainAttr: PuyoAttribute.Red
           };
           break;
         case OptimizationCategory.PuyoCount:
           state.optimizationTarget = {
+            allClearPreference: AllClearPreference.PreferIfBestValue,
             category: OptimizationCategory.PuyoCount,
             mainAttr: PuyoAttribute.Red
           };
           break;
         case OptimizationCategory.PuyotsukaiCount:
           state.optimizationTarget = {
+            allClearPreference: AllClearPreference.PreferIfBestValue,
             category: OptimizationCategory.PuyotsukaiCount
           };
       }
+    },
+
+    optAllClearPreferenceSelected: (
+      state,
+      action: PayloadAction<AllClearPreference>
+    ) => {
+      state.optimizationTarget.allClearPreference = action.payload;
     },
 
     /** ダメージの主属性項目が選択されたとき */
@@ -577,6 +588,7 @@ export const {
   chainLeverageChanged,
   animationDurationChanged,
   optCategorySelected,
+  optAllClearPreferenceSelected,
   optDamageMainAttrSelected,
   optDamageSubAttrSelected,
   optDamageMainSubRatioSelected,

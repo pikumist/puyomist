@@ -20,4 +20,6 @@ export interface Chain {
   puyoTsukaiCount: number;
   /** ぷよ属性ごとの連鎖情報 */
   attributes: Record<PuyoAttribute, AttributeChain>;
+  /** 全消しされたかどうか */
+  allCleared?: boolean;
 }

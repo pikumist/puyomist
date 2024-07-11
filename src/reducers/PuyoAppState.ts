@@ -3,6 +3,7 @@ import type { Board } from '../logics/Board';
 import type { BoardEditMode } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
 import {
+  AllClearPreference,
   OptimizationCategory,
   type OptimizationTarget
 } from '../logics/OptimizationTarget';
@@ -50,6 +51,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: customBoardId,
   nextSelection: 'random',
   optimizationTarget: {
+    allClearPreference: AllClearPreference.PreferIfBestValue,
     category: OptimizationCategory.PuyotsukaiCount
   },
   solutionMethod: SolutionMethod.solveAllInParallel,

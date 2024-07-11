@@ -10,8 +10,39 @@ export enum OptimizationCategory {
   PuyotsukaiCount = 3
 }
 
+/** 全消し優先度 */
+export enum AllClearPreference {
+  /** 気にしない */
+  NotCare = 0,
+  /** 最善同値候補中にあれば選択する */
+  PreferIfBestValue = 1,
+  /** 全候補中にあれば選択する */
+  PreferIfExists = 2
+}
+
+const allClearPreferenceMap: ReadonlyMap<AllClearPreference, string> = new Map([
+  [AllClearPreference.NotCare, '気にしない'],
+  [AllClearPreference.PreferIfBestValue, '最善値候補にあれば選択'],
+  [AllClearPreference.PreferIfExists, '全候補中にあれば選択']
+]);
+
+export const possibleAllClearPreferenceList: ReadonlyArray<AllClearPreference> =
+  [...allClearPreferenceMap.keys()];
+
+export const getAllClearPreferenceDescription = (
+  preference: AllClearPreference | undefined
+) => {
+  return allClearPreferenceMap.get(preference!);
+};
+
+/** 最適化共通設定 */
+export interface OptimizationCommon {
+  /** 全消し優先度 */
+  allClearPreference: AllClearPreference;
+}
+
 /** 最適化対象がダメージの場合の詳細情報 */
-export interface OptimizationDamageTarget {
+export interface OptimizationDamageTarget extends OptimizationCommon {
   /** 最適化のカテゴリー */
   category: OptimizationCategory.Damage;
   /** 主属性 */
@@ -45,7 +76,7 @@ export interface StepCountingBonus {
 export type CountingBonus = StepCountingBonus;
 
 /** 最適化対象がぷよ数場合の詳細情報 */
-export interface OptimizationPuyoCountTarget {
+export interface OptimizationPuyoCountTarget extends OptimizationCommon {
   /** 最適化のカテゴリー */
   category: OptimizationCategory.PuyoCount;
   /** 主属性 */
@@ -55,7 +86,7 @@ export interface OptimizationPuyoCountTarget {
 }
 
 /** 最適化対象がぷよ使いカウントの場合の詳細情報 */
-export interface OptimizationPuyoTasukaiCountTarget {
+export interface OptimizationPuyoTasukaiCountTarget extends OptimizationCommon {
   /** 最適化のカテゴリー */
   category: OptimizationCategory.PuyotsukaiCount;
 }

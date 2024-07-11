@@ -3,6 +3,7 @@
  */
 
 import {
+  AllClearPreference,
   CountingBonusType,
   OptimizationCategory,
   type OptimizationTarget
@@ -115,6 +116,7 @@ const advanceTrace = (
 
   updateCarry(
     carry,
+    optimizationTarget,
     calcSolutionResult(simulator, optimizationTarget, s.getTraceCoords())
   );
 
@@ -125,6 +127,7 @@ const advanceTrace = (
 
 const updateCarry = (
   carry: SolutionCarry,
+  optimizationTarget: OptimizationTarget,
   solutionResult: SolutionResult
 ): void => {
   carry.solutionNums++;
@@ -134,7 +137,11 @@ const updateCarry = (
     return;
   }
 
-  carry.optimalSolution = betterSolution(carry.optimalSolution, solutionResult);
+  carry.optimalSolution = betterSolution(
+    optimizationTarget,
+    carry.optimalSolution,
+    solutionResult
+  );
 };
 
 /**
@@ -144,16 +151,57 @@ const updateCarry = (
  * @returns
  */
 export const betterSolution = (
+  optimizationTarget: OptimizationTarget,
   s1: SolutionResult,
   s2: SolutionResult
 ): SolutionResult => {
-  if (
-    s2.value > s1.value ||
-    (s2.value === s1.value && s2.traceCoords.length < s1.traceCoords.length)
-  ) {
-    return s2;
+  switch (optimizationTarget.allClearPreference) {
+    case AllClearPreference.NotCare:
+      if (s2.value > s1.value) {
+        return s2;
+      }
+      if (s2.value < s1.value) {
+        return s1;
+      }
+      if (s2.traceCoords.length < s1.traceCoords.length) {
+        return s2;
+      }
+      return s1;
+    case AllClearPreference.PreferIfBestValue:
+      if (s2.value > s1.value) {
+        return s2;
+      }
+      if (s2.value < s1.value) {
+        return s1;
+      }
+      if (s2.allCleared && !s1.allCleared) {
+        return s2;
+      }
+      if (!s2.allCleared && s1.allCleared) {
+        return s1;
+      }
+      if (s2.traceCoords.length < s1.traceCoords.length) {
+        return s2;
+      }
+      return s1;
+    case AllClearPreference.PreferIfExists:
+      if (s2.allCleared && !s1.allCleared) {
+        return s2;
+      }
+      if (!s2.allCleared && s1.allCleared) {
+        return s1;
+      }
+      if (s2.value > s1.value) {
+        return s2;
+      }
+      if (s2.value < s1.value) {
+        return s1;
+      }
+      if (s2.traceCoords.length < s1.traceCoords.length) {
+        return s2;
+      }
+      return s1;
   }
-  return s1;
 };
 
 /**
@@ -173,6 +221,7 @@ const calcSolutionResult = (
   sim.doChains();
 
   const chains = sim.getChains();
+  const allCleared = Simulator.isAllCleared(chains);
 
   const totalDamages = Object.fromEntries(
     Simulator.colorAttrs.map((targetAttr) => {
@@ -231,6 +280,7 @@ const calcSolutionResult = (
     traceCoords,
     value: value!,
     totalDamages: totalDamages as TotalDamages,
+    allCleared,
     chains
   };
 };
