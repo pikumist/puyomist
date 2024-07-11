@@ -10,6 +10,9 @@ export interface AttributeChain {
   separatedBlocksNum: number;
 }
 
+/** ワイルドによる連鎖情報 */
+export type WildChain = Omit<AttributeChain, 'poppedNum'>;
+
 /** N 連鎖目における情報 */
 export interface Chain {
   /** 何連鎖目か */
@@ -20,6 +23,8 @@ export interface Chain {
   puyoTsukaiCount: number;
   /** ぷよ属性ごとの連鎖情報 */
   attributes: Record<PuyoAttribute, AttributeChain>;
+  /** ワイルド状態の連鎖情報 */
+  wild: WildChain;
   /** 全消しされたかどうか */
   allCleared?: boolean;
   /** チャンスぷよが弾けたかどうか */

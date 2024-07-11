@@ -14,7 +14,8 @@ import {
   possibleAllClearPreferenceList,
   possibleChancePopPreferenceList,
   possibleCountingBonusTypeList,
-  possibleOptimizationCategoryList
+  possibleOptimizationCategoryList,
+  wildAttribute
 } from '../../logics/OptimizationTarget';
 import {
   type ColoredPuyoAttribute,
@@ -176,7 +177,9 @@ const OptimizationTargetDetailSetting: React.FC<
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
         optDamageMainAttrSelected(
-          Number.parseInt(e.target.value) as ColoredPuyoAttribute
+          Number.parseInt(e.target.value) as
+            | ColoredPuyoAttribute
+            | typeof wildAttribute
         )
       );
     },
@@ -267,13 +270,17 @@ const OptimizationTargetDetailSetting: React.FC<
               value={target.mainAttr}
               onChange={onDamageMainAttrSelected}
             >
-              {possibleColoredPuyoAttributeList.map((attr) => {
-                return (
-                  <option value={attr} key={attr}>
-                    {getPuyoAttributeName(attr)}
-                  </option>
-                );
-              })}
+              {[wildAttribute, ...possibleColoredPuyoAttributeList].map(
+                (attr) => {
+                  return (
+                    <option value={attr} key={attr}>
+                      {attr === wildAttribute
+                        ? 'ワイルド'
+                        : getPuyoAttributeName(attr)}
+                    </option>
+                  );
+                }
+              )}
             </select>
           </div>
           <div>
@@ -283,6 +290,7 @@ const OptimizationTargetDetailSetting: React.FC<
             <select
               id="optDamageSubAttr"
               name="optDamageSubAttr"
+              disabled={target.mainAttr === wildAttribute}
               value={target.subAttr ?? notAvailable}
               onChange={onDamageSubAttrSelected}
             >

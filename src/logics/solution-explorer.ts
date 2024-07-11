@@ -7,7 +7,8 @@ import {
   ChancePopPreference,
   CountingBonusType,
   OptimizationCategory,
-  type OptimizationTarget
+  type OptimizationTarget,
+  wildAttribute
 } from './OptimizationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
@@ -318,16 +319,22 @@ const calcSolutionResult = (
     })
   ) as Partial<TotalDamages> as TotalDamages;
 
+  const totalWildDamage = Simulator.calcTotalWildDamage(chains);
+
   let value: number | undefined;
 
   switch (optimizationTarget.category) {
     case OptimizationCategory.Damage: {
-      const mainValue = totalDamages[optimizationTarget.mainAttr]!;
-      const subValue = optimizationTarget.subAttr
-        ? totalDamages[optimizationTarget.subAttr] *
-          (optimizationTarget.mainSubRatio ?? 0)
-        : 0;
-      value = mainValue + subValue;
+      if (optimizationTarget.mainAttr === wildAttribute) {
+        value = totalWildDamage;
+      } else {
+        const mainValue = totalDamages[optimizationTarget.mainAttr]!;
+        const subValue = optimizationTarget.subAttr
+          ? totalDamages[optimizationTarget.subAttr] *
+            (optimizationTarget.mainSubRatio ?? 0)
+          : 0;
+        value = mainValue + subValue;
+      }
       break;
     }
     case OptimizationCategory.PuyoCount: {
@@ -366,6 +373,7 @@ const calcSolutionResult = (
     traceCoords,
     value: value!,
     totalDamages: totalDamages as TotalDamages,
+    totalWildDamage,
     allCleared,
     chancePopped,
     chains

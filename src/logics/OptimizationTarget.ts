@@ -69,12 +69,15 @@ export interface OptimizationCommon {
   chancePopPreference: ChancePopPreference;
 }
 
+/** ワイルド属性 */
+export const wildAttribute = 0 as const;
+
 /** 最適化対象がダメージの場合の詳細情報 */
 export interface OptimizationDamageTarget extends OptimizationCommon {
   /** 最適化のカテゴリー */
   category: OptimizationCategory.Damage;
   /** 主属性 */
-  mainAttr: ColoredPuyoAttribute;
+  mainAttr: ColoredPuyoAttribute | typeof wildAttribute;
   /** 副属性 */
   subAttr?: ColoredPuyoAttribute | undefined;
   /** 副属性 / 主属性 のダメージ率 (1/3か1)  */

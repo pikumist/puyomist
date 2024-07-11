@@ -1,15 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
 import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Board } from './Board';
 import { __resetPuyoIdCount } from './Puyo';
 import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
-import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
-import { getSpecialBoard } from './boards';
-import { B, G, H, P, R, W, Y } from './boards/alias';
+import { B, E, G, H, P, R, W, Y } from './boards/alias';
 
 describe('Simulator', () => {
   beforeEach(() => {
@@ -272,8 +269,21 @@ describe('Simulator', () => {
       {
         maxTraceNum: 5,
         poppingLeverage: 1.0,
-        boardId: 'specialRule1/1',
-        nextPuyoType: PuyoType.Green,
+        // specialRule1/1'
+        board: {
+          field: [
+            [R, P, H, P, Y, G, Y, Y],
+            [R, Y, P, H, Y, G, P, G],
+            [B, Y, G, B, H, Y, G, P],
+            [B, R, B, R, P, B, R, P],
+            [Y, G, P, P, R, B, G, G],
+            [B, G, B, R, B, Y, R, R]
+          ],
+          nextPuyos: [G, G, G, G, G, G, G, G],
+          traceMode: TraceMode.Normal,
+          minimumPuyoNumForPopping: 3,
+          chainLeverage: 7.0
+        } satisfies Board,
         traceCoords: [PuyoCoord.xyToCoord(5, 2), PuyoCoord.xyToCoord(6, 2)],
         expected: [
           {
@@ -286,6 +296,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 1,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -298,6 +312,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 3.8000000000000003,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -310,6 +328,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 5.8999999999999995,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -322,6 +344,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 8,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -334,6 +360,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 9.4,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -351,6 +381,10 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 10.799999999999999,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -363,6 +397,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 12.200000000000001,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -380,6 +418,10 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 13.6,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -392,6 +434,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 15,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -409,6 +455,10 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 16.400000000000002,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -421,6 +471,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 17.800000000000004,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -433,6 +487,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 19.2,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -445,6 +503,10 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 20.599999999999998,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -457,6 +519,10 @@ describe('Simulator', () => {
                 poppedNum: 10,
                 separatedBlocksNum: 2
               }
+            },
+            wild: {
+              strength: 90.19999999999999,
+              separatedBlocksNum: 2
             }
           }
         ]
@@ -464,8 +530,21 @@ describe('Simulator', () => {
       {
         maxTraceNum: 5,
         poppingLeverage: 1.0,
-        boardId: 'specialRule2/1',
-        nextPuyoType: PuyoType.Blue,
+        // specialRule2/1'
+        board: {
+          field: [
+            [Y, P, R, G, Y, G, B, G],
+            [P, G, P, H, W, Y, R, G],
+            [P, P, B, B, Y, B, G, R],
+            [Y, Y, Y, G, P, Y, G, R],
+            [G, G, P, R, G, P, B, R],
+            [P, G, P, R, R, P, P, B]
+          ],
+          nextPuyos: [B, B, B, B, B, B, B, B],
+          traceMode: TraceMode.ToBlue,
+          minimumPuyoNumForPopping: 4,
+          chainLeverage: 10.0
+        } satisfies Board,
         traceCoords: [
           PuyoCoord.xyToCoord(3, 0),
           PuyoCoord.xyToCoord(5, 0),
@@ -489,6 +568,10 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 1.3,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -501,6 +584,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 5,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -513,6 +600,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 8,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -525,6 +616,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 11,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -537,6 +632,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 13,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -549,6 +648,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 15,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -561,6 +664,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 17,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -573,6 +680,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 19,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -585,6 +696,10 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
+            },
+            wild: {
+              strength: 21,
+              separatedBlocksNum: 1
             }
           },
           {
@@ -597,25 +712,128 @@ describe('Simulator', () => {
                 poppedNum: 13,
                 separatedBlocksNum: 2
               }
+            },
+            wild: {
+              strength: 108.09999999999998,
+              separatedBlocksNum: 2
             }
+          }
+        ]
+      },
+      {
+        maxTraceNum: 5,
+        poppingLeverage: 1.0,
+        board: {
+          field: [
+            [P, B, E, G, G, G, E, E],
+            [P, G, P, P, R, R, R, Y],
+            [G, P, G, B, P, B, Y, B],
+            [B, G, B, P, B, R, B, R],
+            [Y, B, Y, B, R, P, R, R],
+            [Y, Y, G, R, B, B, Y, Y]
+          ],
+          isChanceMode: true
+        } satisfies Board,
+        traceCoords: [
+          PuyoCoord.xyToCoord(3, 2),
+          PuyoCoord.xyToCoord(4, 3),
+          PuyoCoord.xyToCoord(5, 4),
+          PuyoCoord.xyToCoord(3, 4),
+          PuyoCoord.xyToCoord(2, 5)
+        ],
+        expected: [
+          {
+            chainNum: 1,
+            poppedPuyoNum: 9,
+            puyoTsukaiCount: 9,
+            attributes: {
+              [PuyoAttribute.Red]: {
+                strength: 1.75,
+                poppedNum: 5,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Yellow]: {
+                strength: 1.75,
+                poppedNum: 4,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              strength: 3.5,
+              separatedBlocksNum: 2
+            }
+          },
+          {
+            chainNum: 2,
+            poppedPuyoNum: 12,
+            puyoTsukaiCount: 12,
+            attributes: {
+              [PuyoAttribute.Blue]: {
+                strength: 3.08,
+                poppedNum: 5,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Purple]: {
+                strength: 3.08,
+                poppedNum: 7,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              strength: 6.16,
+              separatedBlocksNum: 2
+            }
+          },
+          {
+            chainNum: 3,
+            poppedPuyoNum: 11,
+            puyoTsukaiCount: 11,
+            attributes: {
+              [PuyoAttribute.Green]: {
+                strength: 3.4849999999999994,
+                poppedNum: 7,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Yellow]: {
+                strength: 3.4849999999999994,
+                poppedNum: 4,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              strength: 6.969999999999999,
+              separatedBlocksNum: 2
+            }
+          },
+          {
+            chainNum: 4,
+            poppedPuyoNum: 8,
+            puyoTsukaiCount: 8,
+            attributes: {
+              [PuyoAttribute.Red]: {
+                strength: 3.2,
+                poppedNum: 4,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Blue]: {
+                strength: 3.2,
+                poppedNum: 4,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              strength: 6.4,
+              separatedBlocksNum: 2
+            },
+            allCleared: true
           }
         ]
       }
     ])(
       'should calculate chains',
-      ({
-        maxTraceNum,
-        poppingLeverage,
-        boardId,
-        nextPuyoType,
-        traceCoords,
-        expected
-      }) => {
+      ({ maxTraceNum, poppingLeverage, board, traceCoords, expected }) => {
         // Arrange
-        const board = getSpecialBoard(boardId);
-        const nextPuyos = createNextPuyosAsSameType(nextPuyoType);
         const simulationData = createSimulationData(board, {
-          nextPuyos,
           maxTraceNum,
           poppingLeverage
         });

@@ -28,8 +28,10 @@ export interface SolutionResult {
    * 大きいほど良い値。
    */
   value: number;
-  /** 各属性における総ダメージ */
+  /** 各属性(赤,青,緑,黄,紫)における総ダメージ */
   totalDamages: TotalDamages;
+  /** ワイルドにおける総ダメージ */
+  totalWildDamage: number;
   /** 全消しされたかどうか */
   allCleared: boolean;
   /** チャンスぷよが弾けたかどうか */

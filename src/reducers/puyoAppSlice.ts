@@ -14,7 +14,8 @@ import {
   CountingBonusType,
   OptimizationCategory,
   type OptimizationDamageTarget,
-  type OptimizationPuyoCountTarget
+  type OptimizationPuyoCountTarget,
+  wildAttribute
 } from '../logics/OptimizationTarget';
 import {
   type ColoredPuyoAttribute,
@@ -346,12 +347,12 @@ const puyoAppSlice = createSlice({
     /** ダメージの主属性項目が選択されたとき */
     optDamageMainAttrSelected: (
       state,
-      action: PayloadAction<ColoredPuyoAttribute>
+      action: PayloadAction<ColoredPuyoAttribute | typeof wildAttribute>
     ) => {
       const mainAttr = action.payload;
       const target = state.optimizationTarget as OptimizationDamageTarget;
 
-      if (target.subAttr === mainAttr) {
+      if (mainAttr === wildAttribute || target.subAttr === mainAttr) {
         target.subAttr = undefined;
       }
       target.mainAttr = mainAttr;

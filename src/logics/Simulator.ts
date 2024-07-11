@@ -1,6 +1,10 @@
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
-import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
+import {
+  PuyoAttribute,
+  isColoredPuyoAttribute,
+  possibleColoredPuyoAttributeList
+} from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import {
   PuyoType,
@@ -17,13 +21,8 @@ import { sleep } from './generics/sleep';
 
 /** 連鎖シミュレーター */
 export class Simulator {
-  static readonly colorAttrs: ReadonlyArray<PuyoAttribute> = [
-    PuyoAttribute.Red,
-    PuyoAttribute.Blue,
-    PuyoAttribute.Green,
-    PuyoAttribute.Yellow,
-    PuyoAttribute.Purple
-  ];
+  static readonly colorAttrs: ReadonlyArray<PuyoAttribute> =
+    possibleColoredPuyoAttributeList;
   static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Heart,
     PuyoAttribute.Prism,
@@ -167,7 +166,7 @@ export class Simulator {
   }
 
   /**
-   * 対象属性における総ダメージを計算する。
+   * 対象属性における総ダメージを計算する。(プリズムのダメージも含む)
    * @param chains
    * @param targetAttr
    * @returns
@@ -180,6 +179,19 @@ export class Simulator {
       return m + (chain.attributes[targetAttr]?.strength || 0);
     }, 0);
     return totalAttrDamage + Simulator.calcTotalPrismDamage(chains);
+  }
+
+  /**
+   * ワイルドにおける総ダメージを計算する。(プリズムのダメージも含む)
+   * @param chains
+   * @param targetAttr
+   * @returns
+   */
+  static calcTotalWildDamage(chains: Chain[]): number {
+    const totalWildDamage = chains.reduce((m, chain) => {
+      return m + chain.wild.strength;
+    }, 0);
+    return totalWildDamage + Simulator.calcTotalPrismDamage(chains);
   }
 
   /**
@@ -432,7 +444,11 @@ export class Simulator {
       chainNum,
       poppedPuyoNum,
       puyoTsukaiCount,
-      attributes: {} as Record<PuyoAttribute, AttributeChain>
+      attributes: {} as Record<PuyoAttribute, AttributeChain>,
+      wild: {
+        strength: 0,
+        separatedBlocksNum: 0
+      }
     };
 
     for (const attr of [
@@ -455,7 +471,7 @@ export class Simulator {
           continue;
         }
         const poppedNum = block.coordIdMap.size;
-        result.attributes[attr] = {
+        result.attributes![attr] = {
           strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
           poppedNum,
           separatedBlocksNum: 1
@@ -483,7 +499,7 @@ export class Simulator {
           calcChainFactor(chainNum, this.chainLeverage)
         );
 
-        result.attributes[attr] = {
+        result.attributes![attr] = {
           strength,
           poppedNum: sameColorPoppedNum,
           separatedBlocksNum
@@ -513,6 +529,19 @@ export class Simulator {
     if (allCleared) {
       result.allCleared = allCleared;
     }
+
+    result.wild.separatedBlocksNum = Simulator.colorAttrs.reduce(
+      (m, attr) => m + (result.attributes![attr]?.separatedBlocksNum ?? 0),
+      0
+    );
+    result.wild.strength = calcDamageTerm(
+      1,
+      calcPoppingFactor(poppedPuyoNum, result.wild.separatedBlocksNum, {
+        minimumPuyoNumForPopping: this.minimumPuyoNumForPopping,
+        poppingLeverage: this.poppingLeverage
+      }),
+      calcChainFactor(chainNum, this.chainLeverage)
+    );
 
     this.chains.push(result);
 

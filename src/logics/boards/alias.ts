@@ -20,3 +20,6 @@ export const H = PuyoType.Heart;
 
 /** プリズム */
 export const W = PuyoType.Prism;
+
+/** 空 */
+export const E = undefined;
