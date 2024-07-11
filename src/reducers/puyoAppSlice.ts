@@ -181,9 +181,6 @@ const puyoAppSlice = createSlice({
       if (howToEdit !== HowToEditBoard.ToCustomType && !prevType) {
         return;
       }
-      if (howToEdit === HowToEditBoard.ToCustomType && !customType) {
-        return;
-      }
 
       switch (howToEdit) {
         case HowToEditBoard.ToNormal:
@@ -501,7 +498,7 @@ const puyoAppSlice = createSlice({
     /** 盤面編集時の変換先のぷよタイプ項目が選択されたとき */
     boardEditCustomTypeItemSelected: (
       state,
-      action: PayloadAction<PuyoType>
+      action: PayloadAction<PuyoType | undefined>
     ) => {
       const customType = action.payload;
       const mode: BoardEditMode = {

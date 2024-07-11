@@ -20,6 +20,8 @@ interface IProps {
   boardEditMode: BoardEditMode;
 }
 
+const emptyKey = 'empty';
+
 /** 盤面編集設定 */
 const BoardEditSetting: React.FC<IProps> = (props) => {
   const { boardEditMode } = props;
@@ -35,7 +37,10 @@ const BoardEditSetting: React.FC<IProps> = (props) => {
 
   const onCustomTypeItemSelected = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const customType = Number.parseInt(e.target.value, 10) as PuyoType;
+      const customType =
+        e.target.value === emptyKey
+          ? undefined
+          : (Number.parseInt(e.target.value, 10) as PuyoType);
       dispatch(boardEditCustomTypeItemSelected(customType));
     },
     [dispatch]
@@ -64,7 +69,7 @@ const BoardEditSetting: React.FC<IProps> = (props) => {
         className={setting.grid}
         hidden={boardEditMode?.howToEdit !== HowToEditBoard.ToCustomType}
       >
-        {[...puyoTypeMap.entries()].map((entry) => {
+        {[...puyoTypeMap.entries(), [emptyKey, '空']].map((entry) => {
           const [type, description] = entry;
           return (
             <div key={type}>
@@ -73,7 +78,10 @@ const BoardEditSetting: React.FC<IProps> = (props) => {
                 name="customType"
                 id={`customtype_${type}`}
                 value={type}
-                checked={boardEditMode?.customType === type}
+                checked={
+                  boardEditMode?.customType === type ||
+                  (type === emptyKey && !boardEditMode?.customType)
+                }
                 onChange={onCustomTypeItemSelected}
               />
               <label htmlFor={`customtype_${type}`}>{description}</label>
