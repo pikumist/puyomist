@@ -87,6 +87,25 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
   return (
     <div className={styles.setting}>
       <div>
+        <label className={styles.label} htmlFor="optimizationCategory">
+          探索対象:
+        </label>
+        <select
+          id="optimizationCategory"
+          name="optimizationCategory"
+          value={target.category}
+          onChange={onCategoryItemSelected}
+        >
+          {possibleOptimizationCategoryList.map((category) => {
+            return (
+              <option value={category} key={category}>
+                {getOptimizationCategoryDescription(category)}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      <div>
         <label className={styles.label} htmlFor="allClearPreference">
           全消し優先:
         </label>
@@ -119,25 +138,6 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
             return (
               <option value={preference} key={preference}>
                 {getChancePopPreferenceDescription(preference)}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      <div>
-        <label className={styles.label} htmlFor="optimizationCategory">
-          探索対象:
-        </label>
-        <select
-          id="optimizationCategory"
-          name="optimizationCategory"
-          value={target.category}
-          onChange={onCategoryItemSelected}
-        >
-          {possibleOptimizationCategoryList.map((category) => {
-            return (
-              <option value={category} key={category}>
-                {getOptimizationCategoryDescription(category)}
               </option>
             );
           })}

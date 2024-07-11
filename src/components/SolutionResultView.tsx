@@ -30,7 +30,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = (props) => {
         <div>
           <div>探索法: {result?.solutionMethod}</div>
           <div>
-            最適化対象:{' '}
+            探索対象:{' '}
             {getOptimizationCategoryDescription(
               result?.optimizationTarget.category
             )}
