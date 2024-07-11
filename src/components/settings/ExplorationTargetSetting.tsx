@@ -5,18 +5,18 @@ import {
   type AllClearPreference,
   type ChancePopPreference,
   CountingBonusType,
-  OptimizationCategory,
-  type OptimizationTarget,
+  ExplorationCategory,
+  type ExplorationTarget,
   getAllClearPreferenceDescription,
   getChancePopPreferenceDescription,
   getCountingBonusTypeDescription,
-  getOptimizationCategoryDescription,
+  getExplorationCategoryDescription,
   possibleAllClearPreferenceList,
   possibleChancePopPreferenceList,
   possibleCountingBonusTypeList,
-  possibleOptimizationCategoryList,
+  possibleExplorationCategoryList,
   wildAttribute
-} from '../../logics/OptimizationTarget';
+} from '../../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttribute,
   PuyoAttribute,
@@ -24,29 +24,24 @@ import {
   possibleColoredPuyoAttributeList
 } from '../../logics/PuyoAttribute';
 import {
-  optAllClearPreferenceSelected,
-  optCategorySelected,
-  optChancePopPreferenceSelected,
-  optCountingBonusCountChanged,
-  optCountingBonusStepHeightChanged,
-  optCountingBonusStepRepeatCheckChanged,
-  optCountingBonusStepTargetAttrSelected,
-  optCountingBonusTypeSelected,
-  optDamageMainAttrSelected,
-  optDamageMainSubRatioSelected,
-  optDamageSubAttrSelected,
-  optPuyoCountMainAttrSelected
+  explorationAllClearPreferenceSelected,
+  explorationCategorySelected,
+  explorationChancePopPreferenceSelected,
+  explorationCountingBonusCountChanged,
+  explorationCountingBonusStepHeightChanged,
+  explorationCountingBonusStepRepeatCheckChanged,
+  explorationCountingBonusStepTargetAttrSelected,
+  explorationCountingBonusTypeSelected,
+  explorationDamageMainAttrSelected,
+  explorationDamageMainSubRatioSelected,
+  explorationDamageSubAttrSelected,
+  explorationPuyoCountMainAttrSelected
 } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
 import styles from '../styles/Setting.module.css';
 
-interface OptimizationTargetSettingProps {
-  /** 最適化対象 */
-  target: OptimizationTarget;
-}
-
-/** 最適化対象の設定 */
-const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
+/** 探索対象の設定 */
+const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
   props
 ) => {
   const { target } = props;
@@ -54,7 +49,7 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
   return (
     <div className={styles.setting}>
       <CategorySelector target={target} />
-      <OptimizationTargetDetailSetting target={target} />
+      <DetailSetting target={target} />
       <AllClearPreferenceSelector target={target} />
       <ChancePopPreferenceSelector target={target} />
     </div>
@@ -62,7 +57,7 @@ const OptimizationTargetSetting: React.FC<OptimizationTargetSettingProps> = (
 };
 
 const CategorySelector: React.FC<{
-  target: OptimizationTarget;
+  target: ExplorationTarget;
 }> = (props) => {
   const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
@@ -70,8 +65,8 @@ const CategorySelector: React.FC<{
   const onCategoryItemSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
-        optCategorySelected(
-          Number.parseInt(e.target.value) as OptimizationCategory
+        explorationCategorySelected(
+          Number.parseInt(e.target.value) as ExplorationCategory
         )
       );
     },
@@ -80,19 +75,19 @@ const CategorySelector: React.FC<{
 
   return (
     <div>
-      <label className={styles.label} htmlFor="optimizationCategory">
+      <label className={styles.label} htmlFor="explorationCategory">
         探索対象:
       </label>
       <select
-        id="optimizationCategory"
-        name="optimizationCategory"
+        id="explorationCategory"
+        name="explorationCategory"
         value={target.category}
         onChange={onCategoryItemSelected}
       >
-        {possibleOptimizationCategoryList.map((category) => {
+        {possibleExplorationCategoryList.map((category) => {
           return (
             <option value={category} key={category}>
-              {getOptimizationCategoryDescription(category)}
+              {getExplorationCategoryDescription(category)}
             </option>
           );
         })}
@@ -102,7 +97,7 @@ const CategorySelector: React.FC<{
 };
 
 const AllClearPreferenceSelector: React.FC<{
-  target: OptimizationTarget;
+  target: ExplorationTarget;
 }> = (props) => {
   const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
@@ -110,7 +105,7 @@ const AllClearPreferenceSelector: React.FC<{
   const onAllClearPreferenceSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
-        optAllClearPreferenceSelected(
+        explorationAllClearPreferenceSelected(
           Number.parseInt(e.target.value) as AllClearPreference
         )
       );
@@ -142,7 +137,7 @@ const AllClearPreferenceSelector: React.FC<{
 };
 
 const ChancePopPreferenceSelector: React.FC<{
-  target: OptimizationTarget;
+  target: ExplorationTarget;
 }> = (props) => {
   const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
@@ -150,7 +145,7 @@ const ChancePopPreferenceSelector: React.FC<{
   const onChancePopPreferenceSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
-        optChancePopPreferenceSelected(
+        explorationChancePopPreferenceSelected(
           Number.parseInt(e.target.value) as ChancePopPreference
         )
       );
@@ -193,8 +188,8 @@ const possibleStepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
   PuyoAttribute.Ojama
 ];
 
-const OptimizationTargetDetailSetting: React.FC<{
-  target: OptimizationTarget;
+const DetailSetting: React.FC<{
+  target: ExplorationTarget;
 }> = (props) => {
   const { target } = props;
   const dispatch = useDispatch<AppDispatch>();
@@ -202,7 +197,7 @@ const OptimizationTargetDetailSetting: React.FC<{
   const onDamageMainAttrSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
-        optDamageMainAttrSelected(
+        explorationDamageMainAttrSelected(
           Number.parseInt(e.target.value) as
             | ColoredPuyoAttribute
             | typeof wildAttribute
@@ -218,7 +213,7 @@ const OptimizationTargetDetailSetting: React.FC<{
         e.target.value === notAvailable
           ? undefined
           : (Number.parseInt(e.target.value) as ColoredPuyoAttribute);
-      dispatch(optDamageSubAttrSelected(value));
+      dispatch(explorationDamageSubAttrSelected(value));
     },
     [dispatch]
   );
@@ -226,7 +221,7 @@ const OptimizationTargetDetailSetting: React.FC<{
   const onDamageMainSubRatioSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value === '1' ? 1 : 1 / 3;
-      dispatch(optDamageMainSubRatioSelected(value));
+      dispatch(explorationDamageMainSubRatioSelected(value));
     },
     [dispatch]
   );
@@ -234,7 +229,7 @@ const OptimizationTargetDetailSetting: React.FC<{
   const onCountMainAttrSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       dispatch(
-        optPuyoCountMainAttrSelected(
+        explorationPuyoCountMainAttrSelected(
           Number.parseInt(e.target.value) as ColoredPuyoAttribute
         )
       );
@@ -248,7 +243,7 @@ const OptimizationTargetDetailSetting: React.FC<{
         e.target.value === notAvailable
           ? undefined
           : (Number.parseInt(e.target.value) as CountingBonusType);
-      dispatch(optCountingBonusTypeSelected(value));
+      dispatch(explorationCountingBonusTypeSelected(value));
     },
     [dispatch]
   );
@@ -256,34 +251,38 @@ const OptimizationTargetDetailSetting: React.FC<{
   const onCountStepTargetAttrSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const attr = Number.parseInt(e.target.value) as PuyoAttribute;
-      dispatch(optCountingBonusStepTargetAttrSelected(attr));
+      dispatch(explorationCountingBonusStepTargetAttrSelected(attr));
     },
     [dispatch]
   );
 
   const onStepHeightChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(optCountingBonusStepHeightChanged(e.target.valueAsNumber));
+      dispatch(
+        explorationCountingBonusStepHeightChanged(e.target.valueAsNumber)
+      );
     },
     [dispatch]
   );
 
   const onBonusCountChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(optCountingBonusCountChanged(e.target.valueAsNumber));
+      dispatch(explorationCountingBonusCountChanged(e.target.valueAsNumber));
     },
     [dispatch]
   );
 
   const onBonusStepRepeatCheckChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(optCountingBonusStepRepeatCheckChanged(e.target.checked));
+      dispatch(
+        explorationCountingBonusStepRepeatCheckChanged(e.target.checked)
+      );
     },
     [dispatch]
   );
 
   switch (target.category) {
-    case OptimizationCategory.Damage:
+    case ExplorationCategory.Damage:
       return (
         <div>
           <div>
@@ -360,7 +359,7 @@ const OptimizationTargetDetailSetting: React.FC<{
           ) : null}
         </div>
       );
-    case OptimizationCategory.PuyoCount:
+    case ExplorationCategory.SkillPuyoCount:
       return (
         <div>
           <div>
@@ -480,4 +479,4 @@ const OptimizationTargetDetailSetting: React.FC<{
   }
 };
 
-export default OptimizationTargetSetting;
+export default ExplorationTargetSetting;

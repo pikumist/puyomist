@@ -30,9 +30,9 @@ import IconButton from './buttons/IconButton';
 import AnimationDurationSetting from './settings/AnimationDurationSetting';
 import BoardEditSetting from './settings/BoardEditSetting';
 import ChainLeverageSetting from './settings/ChainLeverageSetting';
+import ExplorationTargetSetting from './settings/ExplorationTargetSetting';
 import MaxTraceNumSetting from './settings/MaxTraceNumSetting';
 import MinimumPuyoNumForPoppingSetting from './settings/MinimumPuyoNumForPoppingSetting';
-import OptimizationTargetSetting from './settings/OpmizationTargetSetting';
 import PoppingLeverageSetting from './settings/PoppingLeverageSetting';
 import SolutionMethodSetting from './settings/SolutionMethodSetting';
 import TraceModeSetting from './settings/TraceModeSetting';
@@ -104,7 +104,7 @@ const PuyoApp: React.FC = () => {
           <AnimationDurationSetting
             duration={state.simulationData.animationDuration}
           />
-          <OptimizationTargetSetting target={state.optimizationTarget} />
+          <ExplorationTargetSetting target={state.explorationTarget} />
           <SolutionMethodSetting method={state.solutionMethod} />
           <hr />
           <BoardEditSetting boardEditMode={state.boardEditMode!} />

@@ -1,5 +1,5 @@
 import { expose } from 'comlink';
-import type { OptimizationTarget } from './OptimizationTarget';
+import type { ExplorationTarget } from './ExplorationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import type { SimulationData } from './SimulationData';
 import { Simulator } from './Simulator';
@@ -17,21 +17,21 @@ const fixFieldBoostAreas = (simulationData: SimulationData): void => {
 
 export async function solveAllTraces(
   simulationData: SimulationData,
-  optimizationTarget: OptimizationTarget
+  explorationTarget: ExplorationTarget
 ) {
   fixFieldBoostAreas(simulationData);
-  return _solveAllTraces(new Simulator(simulationData), optimizationTarget);
+  return _solveAllTraces(new Simulator(simulationData), explorationTarget);
 }
 
 export async function solveIncludingTraceIndex(
   simulationData: SimulationData,
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   index: number
 ) {
   fixFieldBoostAreas(simulationData);
   return _solveIncludingTraceIndex(
     new Simulator(simulationData),
-    optimizationTarget,
+    explorationTarget,
     index
   );
 }

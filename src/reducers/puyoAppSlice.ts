@@ -12,11 +12,11 @@ import {
   type AllClearPreference,
   type ChancePopPreference,
   CountingBonusType,
-  OptimizationCategory,
-  type OptimizationDamageTarget,
-  type OptimizationPuyoCountTarget,
+  ExplorationCategory,
+  type ExplorationTargetDamage,
+  type ExplorationTargetSkillPuyoCount,
   wildAttribute
-} from '../logics/OptimizationTarget';
+} from '../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttribute,
   PuyoAttribute
@@ -299,58 +299,58 @@ const puyoAppSlice = createSlice({
     },
 
     /** 最適化対象カテゴリーの項目が選択されたとき */
-    optCategorySelected: (
+    explorationCategorySelected: (
       state,
-      action: PayloadAction<OptimizationCategory>
+      action: PayloadAction<ExplorationCategory>
     ) => {
       const common = {
-        allClearPreference: state.optimizationTarget.allClearPreference,
-        chancePopPreference: state.optimizationTarget.chancePopPreference
+        allClearPreference: state.explorationTarget.allClearPreference,
+        chancePopPreference: state.explorationTarget.chancePopPreference
       };
       switch (action.payload) {
-        case OptimizationCategory.Damage:
-          state.optimizationTarget = {
+        case ExplorationCategory.Damage:
+          state.explorationTarget = {
             ...common,
-            category: OptimizationCategory.Damage,
+            category: ExplorationCategory.Damage,
             mainAttr: PuyoAttribute.Red
           };
           break;
-        case OptimizationCategory.PuyoCount:
-          state.optimizationTarget = {
+        case ExplorationCategory.SkillPuyoCount:
+          state.explorationTarget = {
             ...common,
-            category: OptimizationCategory.PuyoCount,
+            category: ExplorationCategory.SkillPuyoCount,
             mainAttr: PuyoAttribute.Red
           };
           break;
-        case OptimizationCategory.PuyotsukaiCount:
-          state.optimizationTarget = {
+        case ExplorationCategory.PuyotsukaiCount:
+          state.explorationTarget = {
             ...common,
-            category: OptimizationCategory.PuyotsukaiCount
+            category: ExplorationCategory.PuyotsukaiCount
           };
       }
     },
 
-    optAllClearPreferenceSelected: (
+    explorationAllClearPreferenceSelected: (
       state,
       action: PayloadAction<AllClearPreference>
     ) => {
-      state.optimizationTarget.allClearPreference = action.payload;
+      state.explorationTarget.allClearPreference = action.payload;
     },
 
-    optChancePopPreferenceSelected: (
+    explorationChancePopPreferenceSelected: (
       state,
       action: PayloadAction<ChancePopPreference>
     ) => {
-      state.optimizationTarget.chancePopPreference = action.payload;
+      state.explorationTarget.chancePopPreference = action.payload;
     },
 
     /** ダメージの主属性項目が選択されたとき */
-    optDamageMainAttrSelected: (
+    explorationDamageMainAttrSelected: (
       state,
       action: PayloadAction<ColoredPuyoAttribute | typeof wildAttribute>
     ) => {
       const mainAttr = action.payload;
-      const target = state.optimizationTarget as OptimizationDamageTarget;
+      const target = state.explorationTarget as ExplorationTargetDamage;
 
       if (mainAttr === wildAttribute || target.subAttr === mainAttr) {
         target.subAttr = undefined;
@@ -359,39 +359,42 @@ const puyoAppSlice = createSlice({
     },
 
     /** ダメージの副属性項目が選択されたとき */
-    optDamageSubAttrSelected: (
+    explorationDamageSubAttrSelected: (
       state,
       action: PayloadAction<ColoredPuyoAttribute | undefined>
     ) => {
       const subAttr = action.payload;
-      const target = state.optimizationTarget as OptimizationDamageTarget;
+      const target = state.explorationTarget as ExplorationTargetDamage;
 
       target.subAttr = target.mainAttr === subAttr ? undefined : subAttr;
     },
 
     /** ダメージの副属性ダメージ率項目が選択されたとき */
-    optDamageMainSubRatioSelected: (state, action: PayloadAction<number>) => {
-      const target = state.optimizationTarget as OptimizationDamageTarget;
+    explorationDamageMainSubRatioSelected: (
+      state,
+      action: PayloadAction<number>
+    ) => {
+      const target = state.explorationTarget as ExplorationTargetDamage;
       target.mainSubRatio = action.payload;
     },
 
     /** ぷよ数の主属性項目が選択されたとき */
-    optPuyoCountMainAttrSelected: (
+    explorationPuyoCountMainAttrSelected: (
       state,
       action: PayloadAction<ColoredPuyoAttribute>
     ) => {
       const mainAttr = action.payload;
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
       target.mainAttr = mainAttr;
     },
 
     /** ぷよ数のボーナスタイプ項目が選択されたとき */
-    optCountingBonusTypeSelected: (
+    explorationCountingBonusTypeSelected: (
       state,
       action: PayloadAction<CountingBonusType | undefined>
     ) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
       const bonusType = action.payload;
 
       if (bonusType === CountingBonusType.Step) {
@@ -407,11 +410,11 @@ const puyoAppSlice = createSlice({
       }
     },
 
-    optCountingBonusStepTargetAttrSelected: (
+    explorationCountingBonusStepTargetAttrSelected: (
       state,
       action: PayloadAction<PuyoAttribute>
     ) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
       const attr = action.payload;
 
       if (target.countingBonus?.type === CountingBonusType.Step) {
@@ -420,30 +423,33 @@ const puyoAppSlice = createSlice({
       }
     },
 
-    optCountingBonusStepHeightChanged: (
+    explorationCountingBonusStepHeightChanged: (
       state,
       action: PayloadAction<number>
     ) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
       if (target.countingBonus?.type === CountingBonusType.Step) {
         target.countingBonus.stepHeight = action.payload;
       }
     },
 
-    optCountingBonusCountChanged: (state, action: PayloadAction<number>) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+    explorationCountingBonusCountChanged: (
+      state,
+      action: PayloadAction<number>
+    ) => {
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
       if (target.countingBonus?.type === CountingBonusType.Step) {
         target.countingBonus.bonusCount = action.payload;
       }
     },
 
-    optCountingBonusStepRepeatCheckChanged: (
+    explorationCountingBonusStepRepeatCheckChanged: (
       state,
       action: PayloadAction<boolean>
     ) => {
-      const target = state.optimizationTarget as OptimizationPuyoCountTarget;
+      const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
       if (target.countingBonus?.type === CountingBonusType.Step) {
         target.countingBonus.repeat = action.payload;
@@ -597,18 +603,18 @@ export const {
   poppingLeverageChanged,
   chainLeverageChanged,
   animationDurationChanged,
-  optCategorySelected,
-  optAllClearPreferenceSelected,
-  optChancePopPreferenceSelected,
-  optDamageMainAttrSelected,
-  optDamageSubAttrSelected,
-  optDamageMainSubRatioSelected,
-  optPuyoCountMainAttrSelected,
-  optCountingBonusTypeSelected,
-  optCountingBonusStepTargetAttrSelected,
-  optCountingBonusStepHeightChanged,
-  optCountingBonusCountChanged,
-  optCountingBonusStepRepeatCheckChanged,
+  explorationCategorySelected,
+  explorationAllClearPreferenceSelected,
+  explorationChancePopPreferenceSelected,
+  explorationDamageMainAttrSelected,
+  explorationDamageSubAttrSelected,
+  explorationDamageMainSubRatioSelected,
+  explorationPuyoCountMainAttrSelected,
+  explorationCountingBonusTypeSelected,
+  explorationCountingBonusStepTargetAttrSelected,
+  explorationCountingBonusStepHeightChanged,
+  explorationCountingBonusCountChanged,
+  explorationCountingBonusStepRepeatCheckChanged,
   solutionMethodItemSelected,
   boostAreaKeyCheckedChanged,
   howToEditBoardItemSelected,
@@ -677,13 +683,13 @@ export const solveButtonClicked =
       case SolutionMethod.solveAllInSerial:
         solve = createSolveAllInSerial(
           state.simulationData,
-          state.optimizationTarget
+          state.explorationTarget
         );
         break;
       case SolutionMethod.solveAllInParallel:
         solve = createSolveAllInParallel(
           state.simulationData,
-          state.optimizationTarget
+          state.explorationTarget
         );
         break;
     }

@@ -1,11 +1,11 @@
 import type { ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 
-/** 最適化のカテゴリー */
-export enum OptimizationCategory {
+/** 探索カテゴリー */
+export enum ExplorationCategory {
   /** ダメージ */
   Damage = 1,
-  /** ぷよのカウント  */
-  PuyoCount = 2,
+  /** スキル溜めのぷよ数  */
+  SkillPuyoCount = 2,
   /** ぷよ使いカウント */
   PuyotsukaiCount = 3
 }
@@ -61,8 +61,8 @@ export const getChancePopPreferenceDescription = (
   return chancePopPreferenceMap.get(preference!);
 };
 
-/** 最適化共通設定 */
-export interface OptimizationCommon {
+/** 探索共通設定 */
+export interface ExplorationTargetCommon {
   /** 全消し優先度 */
   allClearPreference: AllClearPreference;
   /** チャンプぷよ消し優先度 */
@@ -72,10 +72,10 @@ export interface OptimizationCommon {
 /** ワイルド属性 */
 export const wildAttribute = 0 as const;
 
-/** 最適化対象がダメージの場合の詳細情報 */
-export interface OptimizationDamageTarget extends OptimizationCommon {
-  /** 最適化のカテゴリー */
-  category: OptimizationCategory.Damage;
+/** 探索対象がダメージの場合の詳細情報 */
+export interface ExplorationTargetDamage extends ExplorationTargetCommon {
+  /** 探索カテゴリー */
+  category: ExplorationCategory.Damage;
   /** 主属性 */
   mainAttr: ColoredPuyoAttribute | typeof wildAttribute;
   /** 副属性 */
@@ -106,48 +106,50 @@ export interface StepCountingBonus {
 
 export type CountingBonus = StepCountingBonus;
 
-/** 最適化対象がぷよ数場合の詳細情報 */
-export interface OptimizationPuyoCountTarget extends OptimizationCommon {
-  /** 最適化のカテゴリー */
-  category: OptimizationCategory.PuyoCount;
+/** 探索対象がスキル溜めぷよ数の場合の詳細情報 */
+export interface ExplorationTargetSkillPuyoCount
+  extends ExplorationTargetCommon {
+  /** 探索カテゴリー */
+  category: ExplorationCategory.SkillPuyoCount;
   /** 主属性 */
   mainAttr: PuyoAttribute;
   /** カウントボーナス */
   countingBonus?: CountingBonus;
 }
 
-/** 最適化対象がぷよ使いカウントの場合の詳細情報 */
-export interface OptimizationPuyoTasukaiCountTarget extends OptimizationCommon {
-  /** 最適化のカテゴリー */
-  category: OptimizationCategory.PuyotsukaiCount;
+/** 探索対象がぷよ使いカウントの場合の詳細情報 */
+export interface ExplorationTargetPuyoTasukaiCount
+  extends ExplorationTargetCommon {
+  /** 探索カテゴリー */
+  category: ExplorationCategory.PuyotsukaiCount;
 }
 
-/** 最適化対象 */
-export type OptimizationTarget =
-  | OptimizationDamageTarget
-  | OptimizationPuyoCountTarget
-  | OptimizationPuyoTasukaiCountTarget;
+/** 探索対象 */
+export type ExplorationTarget =
+  | ExplorationTargetDamage
+  | ExplorationTargetSkillPuyoCount
+  | ExplorationTargetPuyoTasukaiCount;
 
-const optimizationCategoryMap: ReadonlyMap<OptimizationCategory, string> =
+const explorationCategoryMap: ReadonlyMap<ExplorationCategory, string> =
   new Map([
-    [OptimizationCategory.Damage, 'ダメージ量'],
-    [OptimizationCategory.PuyoCount, 'スキル溜め数'],
-    [OptimizationCategory.PuyotsukaiCount, 'ぷよ使いカウント']
+    [ExplorationCategory.Damage, 'ダメージ量'],
+    [ExplorationCategory.SkillPuyoCount, 'スキル溜め数'],
+    [ExplorationCategory.PuyotsukaiCount, 'ぷよ使いカウント']
   ]);
 
-/** 取りうる最適化カテゴリーのリスト */
-export const possibleOptimizationCategoryList: ReadonlyArray<OptimizationCategory> =
-  [...optimizationCategoryMap.keys()];
+/** 取りうる探索カテゴリーのリスト */
+export const possibleExplorationCategoryList: ReadonlyArray<ExplorationCategory> =
+  [...explorationCategoryMap.keys()];
 
 /**
- * 最適化カテゴリーの説明を取得する。
+ * 探索カテゴリーの説明を取得する。
  * @param category
  * @returns
  */
-export const getOptimizationCategoryDescription = (
-  category: OptimizationCategory | undefined
+export const getExplorationCategoryDescription = (
+  category: ExplorationCategory | undefined
 ): string | undefined => {
-  return optimizationCategoryMap.get(category!);
+  return explorationCategoryMap.get(category!);
 };
 
 const countingBonusTypeMap: ReadonlyMap<CountingBonusType, string> = new Map([

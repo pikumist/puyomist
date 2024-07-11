@@ -1,19 +1,19 @@
 import { releaseProxy } from 'comlink';
-import type { OptimizationTarget } from '../../logics/OptimizationTarget';
+import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import type { SimulationData } from '../../logics/SimulationData';
-import type { SolutionResult } from '../../logics/solution';
+import type { ExplorationResult, SolutionResult } from '../../logics/solution';
 import { betterSolution } from '../../logics/solution-explorer';
 import { createWorker } from '../../logics/solution-worker-shim';
 
 export const createSolveAllInSerial =
-  (simulationData: SimulationData, optimizationTarget: OptimizationTarget) =>
+  (simulationData: SimulationData, explorationTarget: ExplorationTarget) =>
   async () => {
     const { workerProxy } = createWorker();
-    return await workerProxy.solveAllTraces(simulationData, optimizationTarget);
+    return await workerProxy.solveAllTraces(simulationData, explorationTarget);
   };
 
 export const createSolveAllInParallel =
-  (simulationData: SimulationData, optimizationTarget: OptimizationTarget) =>
+  (simulationData: SimulationData, explorationTarget: ExplorationTarget) =>
   async () => {
     const startTime = Date.now();
 
@@ -21,7 +21,7 @@ export const createSolveAllInParallel =
       [...new Array(48)].map((_, i) => {
         const { workerInstance, workerProxy } = createWorker();
         return workerProxy
-          .solveIncludingTraceIndex(simulationData, optimizationTarget, i)
+          .solveIncludingTraceIndex(simulationData, explorationTarget, i)
           .then((result) => {
             console.log(i, result?.candidatesNum, `${result?.elapsedTime}ms`);
             workerProxy[releaseProxy]();
@@ -43,7 +43,7 @@ export const createSolveAllInParallel =
         if (!s?.optimalSolution) {
           return m;
         }
-        return betterSolution(optimizationTarget, m, s.optimalSolution);
+        return betterSolution(explorationTarget, m, s.optimalSolution);
       },
       undefined as SolutionResult | undefined
     );
@@ -52,9 +52,9 @@ export const createSolveAllInParallel =
     const elapsedTime = endTime - startTime;
 
     return {
-      optimizationTarget,
+      explorationTarget,
       elapsedTime,
       candidatesNum,
       optimalSolution
-    };
+    } satisfies ExplorationResult;
   };

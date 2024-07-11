@@ -1,5 +1,5 @@
 import type { Chain } from './Chain';
-import type { OptimizationTarget } from './OptimizationTarget';
+import type { ExplorationTarget } from './ExplorationTarget';
 import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { bitFieldAddIndex, bitFieldHasIndex } from './bit-field';
@@ -44,8 +44,8 @@ export interface SolutionResult {
 export interface ExplorationResult {
   /** 探索法 */
   solutionMethod?: SolutionMethod;
-  /** 最適化対象 */
-  optimizationTarget: OptimizationTarget;
+  /** 探索対象 */
+  explorationTarget: ExplorationTarget;
   /** 経過時間 */
   elapsedTime: number;
   /** 候補数 */

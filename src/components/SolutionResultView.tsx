@@ -1,8 +1,8 @@
 import type React from 'react';
 import {
-  OptimizationCategory,
-  getOptimizationCategoryDescription
-} from '../logics/OptimizationTarget';
+  ExplorationCategory,
+  getExplorationCategoryDescription
+} from '../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttribute,
   getPuyoAttributeName
@@ -31,8 +31,8 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = (props) => {
           <div>探索法: {result?.solutionMethod}</div>
           <div>
             探索対象:{' '}
-            {getOptimizationCategoryDescription(
-              result?.optimizationTarget.category
+            {getExplorationCategoryDescription(
+              result?.explorationTarget.category
             )}
           </div>
           <div>探索時間: {result?.elapsedTime} ms</div>
@@ -70,14 +70,14 @@ const OptimalValue: React.FC<{ result: ExplorationResult | undefined }> = (
 ) => {
   const { result } = props;
 
-  switch (result?.optimizationTarget.category) {
-    case OptimizationCategory.Damage:
+  switch (result?.explorationTarget.category) {
+    case ExplorationCategory.Damage:
       return (
         <div>対象のダメージ量: {result?.optimalSolution?.value.toFixed(2)}</div>
       );
-    case OptimizationCategory.PuyoCount:
+    case ExplorationCategory.SkillPuyoCount:
       return <div>スキル溜めぷよ数: {result?.optimalSolution?.value}</div>;
-    case OptimizationCategory.PuyotsukaiCount:
+    case ExplorationCategory.PuyotsukaiCount:
       return <div>ぷよ使いカウント: {result?.optimalSolution?.value}</div>;
     default:
       return <div>最適値: </div>;

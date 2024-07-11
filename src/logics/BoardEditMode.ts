@@ -45,7 +45,6 @@ export const possibleHowToEditBoardList: ReadonlyArray<HowToEditBoard> = [
 
 /**
  * ボード編集の仕方の説明を取得する。
- * @param optimizationTarget
  * @returns
  */
 export const getHowToEditBoardDescription = (

@@ -13,7 +13,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
 
   const boardId = s.getBoardId();
   const nextSelection = s.getNextSelection();
-  const optimizationTarget = s.getOptimizationTarget();
+  const explorationTarget = s.getExplorationTarget();
   const solutionMethod = s.getSolutionMethod();
   const lastScreenshotBoard = s.getLastScreenshotBoard();
   const boostAreaKeyList = s.getBoostAreaKeyList();
@@ -58,7 +58,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   return {
     boardId,
     nextSelection,
-    optimizationTarget,
+    explorationTarget,
     solutionMethod,
     lastScreenshotBoard,
     boostAreaKeyList,

@@ -5,9 +5,9 @@ import type { Chain } from '../logics/Chain';
 import {
   AllClearPreference,
   ChancePopPreference,
-  OptimizationCategory,
-  type OptimizationTarget
-} from '../logics/OptimizationTarget';
+  ExplorationCategory,
+  type ExplorationTarget
+} from '../logics/ExplorationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
@@ -20,8 +20,8 @@ export interface PuyoAppState {
   boardId: string;
   /** ネクスト選択プリセット名 */
   nextSelection: string;
-  /** 最適化対象 */
-  optimizationTarget: OptimizationTarget;
+  /** 探索対象 */
+  explorationTarget: ExplorationTarget;
   /** 探索法 */
   solutionMethod: SolutionMethod;
   /** 最新スクリーンショットによる盤面 */
@@ -51,10 +51,10 @@ export interface PuyoAppState {
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: customBoardId,
   nextSelection: 'random',
-  optimizationTarget: {
+  explorationTarget: {
     allClearPreference: AllClearPreference.PreferIfBestValue,
     chancePopPreference: ChancePopPreference.PreferIfBestValue,
-    category: OptimizationCategory.PuyotsukaiCount
+    category: ExplorationCategory.PuyotsukaiCount
   },
   solutionMethod: SolutionMethod.solveAllInParallel,
   lastScreenshotBoard: undefined,

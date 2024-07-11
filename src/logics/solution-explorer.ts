@@ -6,10 +6,10 @@ import {
   AllClearPreference,
   ChancePopPreference,
   CountingBonusType,
-  OptimizationCategory,
-  type OptimizationTarget,
+  ExplorationCategory,
+  type ExplorationTarget,
   wildAttribute
-} from './OptimizationTarget';
+} from './ExplorationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -25,12 +25,12 @@ import {
 /**
  * シミュレーターの最大なぞり消し数を超えない範囲で全てのなぞりを試して最適解を求める。
  * @param simulator シミュレーター
- * @param optimizationTarget 最適化対象
+ * @param explorationTarget 探索対象
  * @returns
  */
 export const solveAllTraces = (
   simulator: Simulator,
-  optimizationTarget: OptimizationTarget
+  explorationTarget: ExplorationTarget
 ): ExplorationResult | undefined => {
   const startTime = Date.now();
 
@@ -46,7 +46,7 @@ export const solveAllTraces = (
         createfilledOneBitFieldBeforeIndex(coord.index),
         new Map()
       );
-      advanceTrace(simulator, optimizationTarget, state, carry, coord);
+      advanceTrace(simulator, explorationTarget, state, carry, coord);
     }
   }
 
@@ -54,7 +54,7 @@ export const solveAllTraces = (
   const elapsedTime = endTime - startTime;
 
   return {
-    optimizationTarget,
+    explorationTarget: explorationTarget,
     elapsedTime,
     candidatesNum: carry.solutionNums,
     optimalSolution: carry.optimalSolution
@@ -64,13 +64,13 @@ export const solveAllTraces = (
 /**
  * なぞり開始位置を固定して最適解を求める。
  * @param simulator シミュレーター
- * @param optimizationTarget 最適化の対象
+ * @param explorationTarget 探索対象
  * @param index なぞり開始位置のインデックス (0-47)。これより若いインデックスを含むなぞりは探索されない。
  * @returns
  */
 export const solveIncludingTraceIndex = (
   simulator: Simulator,
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   index: number
 ): ExplorationResult | undefined => {
   const startTime = Date.now();
@@ -82,7 +82,7 @@ export const solveIncludingTraceIndex = (
 
   advanceTrace(
     new Simulator(simulator.getSimulationData()),
-    optimizationTarget,
+    explorationTarget,
     new SolutionState(createfilledOneBitFieldBeforeIndex(index), new Map()),
     carry,
     PuyoCoord.indexToCoord(index)!
@@ -92,7 +92,7 @@ export const solveIncludingTraceIndex = (
   const elapsedTime = endTime - startTime;
 
   return {
-    optimizationTarget,
+    explorationTarget: explorationTarget,
     elapsedTime,
     candidatesNum: carry.solutionNums,
     optimalSolution: carry.optimalSolution
@@ -101,7 +101,7 @@ export const solveIncludingTraceIndex = (
 
 const advanceTrace = (
   simulator: Simulator,
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   state: SolutionState,
   carry: SolutionCarry,
   coord: PuyoCoord
@@ -118,18 +118,18 @@ const advanceTrace = (
 
   updateCarry(
     carry,
-    optimizationTarget,
-    calcSolutionResult(simulator, optimizationTarget, s.getTraceCoords())
+    explorationTarget,
+    calcSolutionResult(simulator, explorationTarget, s.getTraceCoords())
   );
 
   for (const nextCoord of s.enumerateCandidates()) {
-    advanceTrace(simulator, optimizationTarget, s, carry, nextCoord)!;
+    advanceTrace(simulator, explorationTarget, s, carry, nextCoord)!;
   }
 };
 
 const updateCarry = (
   carry: SolutionCarry,
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   solutionResult: SolutionResult
 ): void => {
   carry.solutionNums++;
@@ -140,7 +140,7 @@ const updateCarry = (
   }
 
   carry.optimalSolution = betterSolution(
-    optimizationTarget,
+    explorationTarget,
     carry.optimalSolution,
     solutionResult
   );
@@ -205,14 +205,16 @@ const betterSolutionByAllCleared = (
  * @returns
  */
 export const betterSolution = (
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   s1: SolutionResult,
   s2: SolutionResult
 ): SolutionResult => {
-  switch (optimizationTarget.allClearPreference) {
+  const { allClearPreference, chancePopPreference } = explorationTarget;
+
+  switch (allClearPreference) {
     // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
     case AllClearPreference.NotCare:
-      switch (optimizationTarget.chancePopPreference) {
+      switch (chancePopPreference) {
         case ChancePopPreference.NotCare:
           return (
             betterSolutionByValue(s1, s2) ??
@@ -236,7 +238,7 @@ export const betterSolution = (
       }
     // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
     case AllClearPreference.PreferIfBestValue:
-      switch (optimizationTarget.chancePopPreference) {
+      switch (chancePopPreference) {
         case ChancePopPreference.NotCare:
           return (
             betterSolutionByValue(s1, s2) ??
@@ -262,7 +264,7 @@ export const betterSolution = (
           );
       }
     case AllClearPreference.PreferIfExists:
-      switch (optimizationTarget.chancePopPreference) {
+      switch (chancePopPreference) {
         case ChancePopPreference.NotCare:
           return (
             betterSolutionByAllCleared(s1, s2) ??
@@ -293,13 +295,13 @@ export const betterSolution = (
 /**
  * シミュレーターに対してなぞり消しを行って結果を求める。
  * @param simulator シミュレーター
- * @param optimizationTarget 最適化対象
+ * @param explorationTarget 探索対象
  * @param traceCoords なぞり座標リスト
  * @returns
  */
 const calcSolutionResult = (
   simulator: Simulator,
-  optimizationTarget: OptimizationTarget,
+  explorationTarget: ExplorationTarget,
   traceCoords: PuyoCoord[]
 ): SolutionResult => {
   const sim = new Simulator(simulator.getSimulationData());
@@ -323,28 +325,28 @@ const calcSolutionResult = (
 
   let value: number | undefined;
 
-  switch (optimizationTarget.category) {
-    case OptimizationCategory.Damage: {
-      if (optimizationTarget.mainAttr === wildAttribute) {
+  switch (explorationTarget.category) {
+    case ExplorationCategory.Damage: {
+      if (explorationTarget.mainAttr === wildAttribute) {
         value = totalWildDamage;
       } else {
-        const mainValue = totalDamages[optimizationTarget.mainAttr]!;
-        const subValue = optimizationTarget.subAttr
-          ? totalDamages[optimizationTarget.subAttr] *
-            (optimizationTarget.mainSubRatio ?? 0)
+        const mainValue = totalDamages[explorationTarget.mainAttr]!;
+        const subValue = explorationTarget.subAttr
+          ? totalDamages[explorationTarget.subAttr] *
+            (explorationTarget.mainSubRatio ?? 0)
           : 0;
         value = mainValue + subValue;
       }
       break;
     }
-    case OptimizationCategory.PuyoCount: {
+    case ExplorationCategory.SkillPuyoCount: {
       const mainValue = Simulator.calcTotalCountOfTargetAttr(
         chains,
-        optimizationTarget.mainAttr
+        explorationTarget.mainAttr
       );
       let bonusValue = 0;
-      if (optimizationTarget.countingBonus) {
-        const countingBonus = optimizationTarget.countingBonus;
+      if (explorationTarget.countingBonus) {
+        const countingBonus = explorationTarget.countingBonus;
         switch (countingBonus.type) {
           case CountingBonusType.Step: {
             const totalHeight = countingBonus.targetAttrs.reduce(
@@ -363,7 +365,7 @@ const calcSolutionResult = (
       value = mainValue + bonusValue;
       break;
     }
-    case OptimizationCategory.PuyotsukaiCount: {
+    case ExplorationCategory.PuyotsukaiCount: {
       value = Simulator.calcTotalPuyoTsukaiCount(chains);
       break;
     }

@@ -3,9 +3,9 @@ import type { BoardEditMode } from './BoardEditMode';
 import {
   AllClearPreference,
   ChancePopPreference,
-  OptimizationCategory,
-  type OptimizationTarget
-} from './OptimizationTarget';
+  ExplorationCategory,
+  type ExplorationTarget
+} from './ExplorationTarget';
 import { SolutionMethod } from './solution';
 
 export class Session {
@@ -14,11 +14,17 @@ export class Session {
   private static readonly maxTraceNumKey = 'maxTraceNum';
   private static readonly poppingLeverageKey = 'poppingLeverage';
   private static readonly animationDurationKey = 'animationDuration';
-  private static readonly optimizationTargetKey = 'optimizationTarget';
+  private static readonly explorationTargetKey = 'explorationTarget';
   private static readonly solutionMethodKey = 'solutionMethod';
   private static readonly lastScreenshotBoardKey = 'lastScreenshotBoard';
   private static readonly boostAreaKeyListKey = 'boostAreaKeys';
   private static readonly boardEditModeKey = 'boardEidtMode';
+
+  private static readonly defaultExplorationTarget: ExplorationTarget = {
+    allClearPreference: AllClearPreference.PreferIfBestValue,
+    chancePopPreference: ChancePopPreference.PreferIfBestValue,
+    category: ExplorationCategory.PuyotsukaiCount
+  };
 
   storage: Storage;
 
@@ -71,24 +77,17 @@ export class Session {
     this.storage.setItem(Session.animationDurationKey, String(duration));
   }
 
-  getOptimizationTarget(): OptimizationTarget {
-    const targetStr = this.storage.getItem(Session.optimizationTargetKey);
+  getExplorationTarget(): ExplorationTarget {
+    const targetStr = this.storage.getItem(Session.explorationTargetKey);
     try {
-      return JSON.parse(targetStr!);
+      return JSON.parse(targetStr!) ?? Session.defaultExplorationTarget;
     } catch (_) {
-      return {
-        allClearPreference: AllClearPreference.PreferIfBestValue,
-        chancePopPreference: ChancePopPreference.PreferIfBestValue,
-        category: OptimizationCategory.PuyotsukaiCount
-      };
+      return Session.defaultExplorationTarget;
     }
   }
 
-  setOptimizationTarget(tareget: OptimizationTarget): void {
-    this.storage.setItem(
-      Session.optimizationTargetKey,
-      JSON.stringify(tareget)
-    );
+  setExplorationTarget(tareget: ExplorationTarget): void {
+    this.storage.setItem(Session.explorationTargetKey, JSON.stringify(tareget));
   }
 
   getSolutionMethod(): SolutionMethod {

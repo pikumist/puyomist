@@ -5,8 +5,8 @@ import type { Chain } from './Chain';
 import {
   AllClearPreference,
   ChancePopPreference,
-  OptimizationCategory
-} from './OptimizationTarget';
+  ExplorationCategory
+} from './ExplorationTarget';
 import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
@@ -51,10 +51,10 @@ describe('solution-explorer', () => {
     it.each([
       {
         attr: PuyoAttribute.Green,
-        optimizationTarget: {
+        explorationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
           chancePopPreference: ChancePopPreference.PreferIfBestValue,
-          category: OptimizationCategory.Damage as const,
+          category: ExplorationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
         maxTraceNum: 5,
@@ -70,10 +70,10 @@ describe('solution-explorer', () => {
       },
       {
         attr: PuyoAttribute.Blue,
-        optimizationTarget: {
+        explorationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
           chancePopPreference: ChancePopPreference.PreferIfBestValue,
-          category: OptimizationCategory.Damage as const,
+          category: ExplorationCategory.Damage as const,
           mainAttr: PuyoAttribute.Blue as const
         },
         maxTraceNum: 5,
@@ -97,7 +97,7 @@ describe('solution-explorer', () => {
       'should find an optimal solution for the optimization target',
       ({
         attr,
-        optimizationTarget,
+        explorationTarget,
         maxTraceNum,
         poppingLeverage,
         boardId,
@@ -115,10 +115,10 @@ describe('solution-explorer', () => {
         const simulator = new Simulator(simulationData);
 
         // Act
-        const actual = solveAllTraces(simulator, optimizationTarget)!;
+        const actual = solveAllTraces(simulator, explorationTarget)!;
 
         // Assert
-        expect(actual.optimizationTarget).toBe(optimizationTarget);
+        expect(actual.explorationTarget).toBe(explorationTarget);
         expect(actual.candidatesNum).toBe(expected.candidatesNum);
         expect(actual.optimalSolution?.traceCoords).toEqual(
           expected.traceCoords
@@ -140,10 +140,10 @@ describe('solution-explorer', () => {
     it.each([
       {
         attr: PuyoAttribute.Green,
-        optimizationTarget: {
+        explorationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
           chancePopPreference: ChancePopPreference.PreferIfBestValue,
-          category: OptimizationCategory.Damage as const,
+          category: ExplorationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
         maxTraceNum: 5,
@@ -169,7 +169,7 @@ describe('solution-explorer', () => {
       'should find an optimal solution avoiding untraceable puyo',
       ({
         attr,
-        optimizationTarget,
+        explorationTarget,
         maxTraceNum,
         poppingLeverage,
         boardId,
@@ -191,10 +191,10 @@ describe('solution-explorer', () => {
         const simulator = new Simulator(simulationData);
 
         // Act
-        const actual = solveAllTraces(simulator, optimizationTarget)!;
+        const actual = solveAllTraces(simulator, explorationTarget)!;
 
         // Assert
-        expect(actual.optimizationTarget).toBe(optimizationTarget);
+        expect(actual.explorationTarget).toBe(explorationTarget);
         expect(actual.candidatesNum).toBe(expected.candidatesNum);
         expect(actual.optimalSolution?.traceCoords).toEqual(
           expected.traceCoords
@@ -219,10 +219,10 @@ describe('solution-explorer', () => {
       {
         traceIndex: 21,
         attr: PuyoAttribute.Green,
-        optimizationTarget: {
+        explorationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
           chancePopPreference: ChancePopPreference.PreferIfBestValue,
-          category: OptimizationCategory.Damage as const,
+          category: ExplorationCategory.Damage as const,
           mainAttr: PuyoAttribute.Green as const
         },
         maxTraceNum: 5,
@@ -239,10 +239,10 @@ describe('solution-explorer', () => {
       {
         traceIndex: 3,
         attr: PuyoAttribute.Blue,
-        optimizationTarget: {
+        explorationTarget: {
           allClearPreference: AllClearPreference.PreferIfBestValue,
           chancePopPreference: ChancePopPreference.PreferIfBestValue,
-          category: OptimizationCategory.Damage as const,
+          category: ExplorationCategory.Damage as const,
           mainAttr: PuyoAttribute.Blue as const
         },
         maxTraceNum: 5,
@@ -267,7 +267,7 @@ describe('solution-explorer', () => {
       ({
         traceIndex,
         attr,
-        optimizationTarget,
+        explorationTarget,
         maxTraceNum,
         poppingLeverage,
         boardId,
@@ -287,12 +287,12 @@ describe('solution-explorer', () => {
         // Act
         const actual = solveIncludingTraceIndex(
           simulator,
-          optimizationTarget,
+          explorationTarget,
           traceIndex
         )!;
 
         // Assert
-        expect(actual.optimizationTarget).toBe(optimizationTarget);
+        expect(actual.explorationTarget).toBe(explorationTarget);
         expect(actual.candidatesNum).toBe(expected.candidatesNum);
         expect(actual.optimalSolution?.traceCoords).toEqual(
           expected.traceCoords
