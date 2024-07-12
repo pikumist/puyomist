@@ -34,7 +34,7 @@ import {
   cloneSimulationData
 } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
-import type { TraceMode } from '../logics/TraceMode';
+import { TraceMode } from '../logics/TraceMode';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
@@ -269,14 +269,21 @@ const puyoAppSlice = createSlice({
       state.simulationData.nextPuyos = nextPuyos;
     },
 
-    /** なぞり消しモードの項目が選択されたとき */
-    traceModeItemSelected: (state, action: PayloadAction<TraceMode>) => {
-      state.simulationData.traceMode = action.payload;
+    /** なぞり消しモードが変更されたとき */
+    traceModeChanged: (state, action: PayloadAction<TraceMode>) => {
+      const traceMode = action.payload;
+      state.simulationData.traceMode = traceMode;
+      if (traceMode !== TraceMode.Normal) {
+        state.simulationData.minimumPuyoNumForPopping = 4;
+      }
     },
 
     /** ぷよが消えるのに必要な個数が変更されたとき */
     minimumPuyoNumForPoppingChanged: (state, action: PayloadAction<number>) => {
-      state.simulationData.minimumPuyoNumForPopping = action.payload;
+      const traceMode = state.simulationData.traceMode;
+      if (traceMode === TraceMode.Normal) {
+        state.simulationData.minimumPuyoNumForPopping = action.payload;
+      }
     },
 
     /** 最大なぞり数が変更されたとき */
@@ -465,21 +472,9 @@ const puyoAppSlice = createSlice({
       state.solutionMethod = action.payload;
     },
 
-    /** ブーストエリアのチェックが変更されたとき */
-    boostAreaKeyCheckedChanged: (
-      state,
-      action: PayloadAction<{ key: string; checked: boolean }>
-    ) => {
-      const { key, checked } = action.payload;
-      const keyList = [...state.boostAreaKeyList];
-
-      if (checked && !keyList.includes(key)) {
-        keyList.push(key);
-      } else if (!checked && keyList.includes(key)) {
-        const i = keyList.indexOf(key);
-        keyList.splice(i, 1);
-      }
-
+    /** ブーストエリアのキーリストが変更されたとき */
+    boostAreaKeyListChanged: (state, action: PayloadAction<string[]>) => {
+      const keyList = action.payload;
       state.boostAreaKeyList = keyList;
       state.simulationData.boostAreaCoordList = [
         ...keyList
@@ -598,7 +593,7 @@ export const {
   /// 設定系
   boardIdChanged,
   nextItemSelected,
-  traceModeItemSelected,
+  traceModeChanged,
   minimumPuyoNumForPoppingChanged,
   maxTraceNumChanged,
   poppingLeverageChanged,
@@ -617,7 +612,7 @@ export const {
   explorationCountingBonusCountChanged,
   explorationCountingBonusStepRepeatCheckChanged,
   solutionMethodItemSelected,
-  boostAreaKeyCheckedChanged,
+  boostAreaKeyListChanged,
   howToEditBoardItemSelected,
   boardEditCustomTypeItemSelected,
   /// 最適解探索系

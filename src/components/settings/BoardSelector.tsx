@@ -1,40 +1,42 @@
+import { HStack, Select, Text } from '@chakra-ui/react';
 import type React from 'react';
-import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { boardIdToNameMap } from '../../logics/boards';
 import { boardIdChanged } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
-import setting from '../styles/Setting.module.css';
 
 interface IProps {
   /** 盤面ID */
   boardId: string;
 }
 
-/** 盤面設定 */
-const BoardSetting: React.FC<IProps> = (props) => {
+/** 盤面選択 */
+const BoardSelector: React.FC<IProps> = (props) => {
   const { boardId } = props;
   const dispatch = useDispatch<AppDispatch>();
 
-  const onChanged = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      return dispatch(boardIdChanged(e.target.value));
-    },
-    [dispatch]
-  );
+  const onChanged = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    dispatch(boardIdChanged(e.target.value));
 
   return (
-    <div className={setting.item}>
-      <label htmlFor="board">盤面: </label>
-      <select name="board" value={boardId} onChange={onChanged}>
+    <HStack>
+      <Text w="3em" fontSize="sm">
+        盤面:
+      </Text>
+      <Select
+        aria-label="盤面の選択"
+        size="sm"
+        value={boardId}
+        onChange={onChanged}
+      >
         {[...boardIdToNameMap.entries()].map((entry) => (
           <option value={entry[0]} key={entry[0]}>
             {entry[1]}
           </option>
         ))}
-      </select>
-    </div>
+      </Select>
+    </HStack>
   );
 };
 
-export default BoardSetting;
+export default BoardSelector;

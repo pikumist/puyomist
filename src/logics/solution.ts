@@ -216,8 +216,8 @@ export enum SolutionMethod {
 }
 
 const solutionMethodMap = new Map<SolutionMethod, string>([
-  [SolutionMethod.solveAllInSerial, '全探索(シングルスレッド)'],
-  [SolutionMethod.solveAllInParallel, '全探索(マルチスレッド)']
+  [SolutionMethod.solveAllInSerial, '全探索シングルスレッド'],
+  [SolutionMethod.solveAllInParallel, '全探索マルチスレッド']
 ]);
 
 /** 取りうる探索法リスト */

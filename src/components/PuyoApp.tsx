@@ -1,21 +1,25 @@
+import { DeleteIcon, HamburgerIcon, SearchIcon } from '@chakra-ui/icons';
 import {
-  faBroom,
-  faMagnifyingGlass,
-  faRotateRight
-} from '@fortawesome/free-solid-svg-icons';
-import type React from 'react';
+  Box,
+  type BoxProps,
+  CloseButton,
+  Drawer,
+  DrawerContent,
+  Flex,
+  type FlexProps,
+  HStack,
+  Icon,
+  IconButton,
+  Stack,
+  Text,
+  Tooltip,
+  useColorModeValue,
+  useDisclosure
+} from '@chakra-ui/react';
 import { useCallback } from 'react';
-import { customBoardId } from '../logics/boards';
-import ScreenshotCanvas from './ScreenshotCanvas';
-import BoardSetting from './settings/BoardSetting';
-import BoostAreaSetting from './settings/BoostAreaSetting';
-import NextConfig from './settings/NextSetting';
-import layout from './styles/Layout.module.css';
-import setting from './styles/Setting.module.css';
-import 'react-tooltip/dist/react-tooltip.css';
+import { FaPlay, FaRotateRight } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
-import { Tooltip } from 'react-tooltip';
-import { dispatchWhenScreenshotReceivedViaWebSocket } from '../hooks/dispatchWhenScreenshotReceivedViaWebSocket';
+import { customBoardId } from '../logics/boards';
 import {
   boardResetButtonClicked,
   playSolutionButtonClicked,
@@ -24,30 +28,33 @@ import {
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch, RootState } from '../reducers/store';
 import PuyoBoard from './PuyoBoard';
+import ScreenshotCanvas from './ScreenshotCanvas';
 import SolutionResultView from './SolutionResultView';
 import TracingResultView from './TracingResultView';
-import IconButton from './buttons/IconButton';
-import AnimationDurationSetting from './settings/AnimationDurationSetting';
+import AnimationDurationInput from './settings/AnimationDurationInput';
 import BoardEditSetting from './settings/BoardEditSetting';
-import ChainLeverageSetting from './settings/ChainLeverageSetting';
+import BoardSelector from './settings/BoardSelector';
+import BoostAreaSetting from './settings/BoostAreaSetting';
+import ChainLeverageInput from './settings/ChainLeverageInput';
 import ExplorationTargetSetting from './settings/ExplorationTargetSetting';
-import MaxTraceNumSetting from './settings/MaxTraceNumSetting';
-import MinimumPuyoNumForPoppingSetting from './settings/MinimumPuyoNumForPoppingSetting';
-import PoppingLeverageSetting from './settings/PoppingLeverageSetting';
-import SolutionMethodSetting from './settings/SolutionMethodSetting';
-import TraceModeSetting from './settings/TraceModeSetting';
+import MaxTraceNumInput from './settings/MaxTraceNumInput';
+import MinimumPuyoNumInput from './settings/MinimumPuyoNumInput';
+import NextSelector from './settings/NextSelector';
+import PoppingLeverageInput from './settings/PoppingLeverageInput';
+import SolutionMethodSelector from './settings/SolutionMethodSelector';
+import TraceModeSelector from './settings/TraceModeSelector';
 
-/** ぷよクエの最適解計算アプリ */
+/** ぷよクエの最適解探索アプリ */
 const PuyoApp: React.FC = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
   const dispatch = useDispatch<AppDispatch>();
-  dispatchWhenScreenshotReceivedViaWebSocket(dispatch);
 
-  const onBoardRestButtonCliecked = useCallback(() => {
+  const onBoardRestButtonCliecked = () => {
     dispatch(boardResetButtonClicked());
-  }, [dispatch]);
+  };
 
   const onSolutionResetButtonClicked = useCallback(() => {
     dispatch(solutionResetButtonClicked());
@@ -62,93 +69,192 @@ const PuyoApp: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <>
-      <div className={`${layout.horizontal} ${layout.gap4}`}>
-        <div className={`${layout.vertical} ${layout.gap4}`}>
-          <div className={`${layout.horizontal} ${layout.gap8}`}>
-            <BoardSetting boardId={state.boardId} />
-            <NextConfig
+    <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
+      <SidebarContent
+        onClose={onClose}
+        display={{ base: 'none', md: 'block' }}
+      />
+
+      <Drawer
+        isOpen={isOpen}
+        placement="left"
+        onClose={onClose}
+        returnFocusOnClose={false}
+        onOverlayClick={onClose}
+        size="full"
+      >
+        <DrawerContent>
+          <SidebarContent onClose={onClose} />
+        </DrawerContent>
+      </Drawer>
+
+      {/* For mobile */}
+      <MobileNav display={{ base: 'flex', md: 'none' }} onOpen={onOpen} />
+
+      <Box ml={{ base: 0, md: 80 }} p="4">
+        {/* Content */}
+        <Stack>
+          <HStack>
+            <BoardSelector boardId={state.boardId} />
+            <NextSelector
               disabled={state.boardId === customBoardId}
               nextSelection={state.nextSelection}
             />
-          </div>
-
+          </HStack>
           <PuyoBoard />
-
-          <div>
-            <IconButton
-              tooltipId="resetBtnTooltip"
-              icon={faRotateRight}
-              onClicked={onBoardRestButtonCliecked}
-            />
+          <HStack align="top" spacing="4">
+            <Box>
+              <HStack spacing="1">
+                <Tooltip label="最適解を探索">
+                  <IconButton
+                    variant="outline"
+                    aria-label="最適解を探索"
+                    icon={<SearchIcon />}
+                    onClick={onSolveButtonClicked}
+                  />
+                </Tooltip>
+                <Tooltip label="探索結果クリア">
+                  <IconButton
+                    variant="outline"
+                    aria-label="探索結果クリア"
+                    icon={<DeleteIcon />}
+                    isDisabled={Boolean(!state.explorationResult)}
+                    onClick={onSolutionResetButtonClicked}
+                  />
+                </Tooltip>
+                <Tooltip label="解でなぞり">
+                  <IconButton
+                    variant="outline"
+                    aria-label="解でなぞり"
+                    icon={<Icon as={FaPlay} />}
+                    isDisabled={Boolean(!state.explorationResult)}
+                    onClick={onPlaySolutionButtonClicked}
+                  />
+                </Tooltip>
+                <Tooltip label="盤面リセット">
+                  <IconButton
+                    variant="outline"
+                    aria-label="盤面リセット"
+                    icon={<Icon as={FaRotateRight} />}
+                    onClick={onBoardRestButtonCliecked}
+                  />
+                </Tooltip>
+              </HStack>
+              <SolutionResultView
+                solving={state.solving}
+                result={state.explorationResult}
+              />
+            </Box>
             <TracingResultView
               tracingCoords={state.simulationData.traceCoords}
               lastTraceCoords={state.lastTraceCoords}
               chains={state.chains}
             />
-          </div>
-        </div>
-
-        <div className={setting.settings}>
-          <TraceModeSetting traceMode={state.simulationData.traceMode} />
-          <MinimumPuyoNumForPoppingSetting
-            num={state.simulationData.minimumPuyoNumForPopping}
-          />
-          <MaxTraceNumSetting maxTraceNum={state.simulationData.maxTraceNum} />
-          <PoppingLeverageSetting
-            leverage={state.simulationData.poppingLeverage}
-          />
-          <ChainLeverageSetting leverage={state.simulationData.chainLeverage} />
-          <BoostAreaSetting boostAreaKeyList={state.boostAreaKeyList} />
-          <hr />
-          <AnimationDurationSetting
-            duration={state.simulationData.animationDuration}
-          />
-          <ExplorationTargetSetting target={state.explorationTarget} />
-          <SolutionMethodSetting method={state.solutionMethod} />
-          <hr />
-          <BoardEditSetting boardEditMode={state.boardEditMode!} />
-          <div>
-            <IconButton
-              tooltipId="solveBtnTooltip"
-              icon={faMagnifyingGlass}
-              onClicked={onSolveButtonClicked}
-            />
-            <IconButton
-              tooltipId="clearSolutionBtnTooltip"
-              icon={faBroom}
-              disabled={Boolean(!state.explorationResult)}
-              onClicked={onSolutionResetButtonClicked}
-            />
-            <IconButton
-              tooltipId="playSolutionBtnTooltip"
-              text="▶"
-              disabled={Boolean(!state.explorationResult)}
-              onClicked={onPlaySolutionButtonClicked}
-            />
-            <IconButton
-              tooltipId="resetBtnTooltip"
-              icon={faRotateRight}
-              onClicked={onBoardRestButtonCliecked}
-            />
-          </div>
-          <SolutionResultView
-            solving={state.solving}
-            result={state.explorationResult}
-          />
-        </div>
-
-        <ScreenshotCanvas
-          screenshotInfo={state.screenshotInfo}
-          errorMessage={state.screenshotErrorMessage}
-        />
-      </div>
-      <Tooltip id="resetBtnTooltip">盤面リセット</Tooltip>
-      <Tooltip id="solveBtnTooltip">探索</Tooltip>
-      <Tooltip id="clearSolutionBtnTooltip">探索結果クリア</Tooltip>
-      <Tooltip id="playSolutionBtnTooltip">解でなぞり</Tooltip>
-    </>
+          </HStack>
+        </Stack>
+      </Box>
+    </Box>
   );
 };
 
 export default PuyoApp;
+
+interface SidebarProps extends BoxProps {
+  onClose: () => void;
+}
+
+const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+  const state = useSelector<RootState, RootState['puyoApp']>(
+    (state) => state.puyoApp
+  );
+  const {
+    boostAreaKeyList,
+    simulationData,
+    explorationTarget,
+    solutionMethod,
+    boardEditMode,
+    screenshotInfo,
+    screenshotErrorMessage
+  } = state;
+  const {
+    traceMode,
+    minimumPuyoNumForPopping,
+    maxTraceNum,
+    poppingLeverage,
+    chainLeverage,
+    animationDuration
+  } = simulationData;
+
+  return (
+    <Box
+      bg={useColorModeValue('white', 'gray.900')}
+      borderRight="1px"
+      borderRightColor={useColorModeValue('gray.200', 'gray.700')}
+      w={{ base: 'full', md: 80 }}
+      pos="fixed"
+      overflowY="auto"
+      h="full"
+      {...rest}
+    >
+      <Flex h="14" alignItems="center" mx="8" justifyContent="space-between">
+        <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
+          Puyomist
+        </Text>
+        <CloseButton display={{ base: 'flex', md: 'none' }} onClick={onClose} />
+      </Flex>
+      <Box mx={4}>
+        <TraceModeSelector traceMode={traceMode} />
+        <MinimumPuyoNumInput
+          traceMode={traceMode}
+          num={minimumPuyoNumForPopping}
+        />
+        <MaxTraceNumInput maxTraceNum={maxTraceNum} />
+        <PoppingLeverageInput leverage={poppingLeverage} />
+        <ChainLeverageInput leverage={chainLeverage} />
+        <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
+        <hr />
+        <AnimationDurationInput duration={animationDuration} />
+        <ExplorationTargetSetting target={explorationTarget} />
+        <SolutionMethodSelector method={solutionMethod} />
+        <hr />
+        <BoardEditSetting boardEditMode={boardEditMode!} />
+        <ScreenshotCanvas
+          maxWidth={100}
+          screenshotInfo={screenshotInfo}
+          errorMessage={screenshotErrorMessage}
+        />
+      </Box>
+    </Box>
+  );
+};
+
+interface MobileProps extends FlexProps {
+  onOpen: () => void;
+}
+
+const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
+  return (
+    <Flex
+      ml={{ base: 0, md: 80 }}
+      px={{ base: 4, md: 24 }}
+      height="14"
+      alignItems="center"
+      bg={useColorModeValue('white', 'gray.900')}
+      borderBottomWidth="1px"
+      borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
+      justifyContent="flex-start"
+      {...rest}
+    >
+      <IconButton
+        variant="outline"
+        onClick={onOpen}
+        aria-label="open menu"
+        icon={<HamburgerIcon />}
+      />
+
+      <Text fontSize="2xl" ml="8" fontFamily="monospace" fontWeight="bold">
+        Puyomist
+      </Text>
+    </Flex>
+  );
+};

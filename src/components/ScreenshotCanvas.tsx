@@ -11,6 +11,9 @@ import type { AppDispatch } from '../reducers/store';
 import styles from './ScreenshotCanvas.module.css';
 
 interface ScreenshotCanvasProps {
+  /** 表示上の最大幅 */
+  maxWidth: number;
+
   /** スクリーンショット画像の情報 */
   screenshotInfo: ScreenshotInfo | undefined;
 
@@ -23,7 +26,7 @@ const white1x1Png =
 
 /** スクリーンショット画像を描画するキャンバス */
 const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
-  const { screenshotInfo, errorMessage } = props;
+  const { screenshotInfo, errorMessage, maxWidth } = props;
   const dispatch = useDispatch<AppDispatch>();
 
   const [naturalWidth, setNaturalWidth] = useState(0);
@@ -112,8 +115,11 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
 
         canvas!.width = sw;
         canvas!.height = sh;
-        canvas!.style.width = `${Math.round(sw / 4)}px`;
-        canvas!.style.height = `${Math.round(sh / 4)}px`;
+
+        const ratio = maxWidth / sw;
+
+        canvas!.style.width = `${Math.floor(sw * ratio)}px`;
+        canvas!.style.height = `${Math.floor(sh * ratio)}px`;
 
         const ctx = canvas!.getContext('2d') as CanvasRenderingContext2D;
         const width = sw;
@@ -132,7 +138,7 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
     }
 
     img.src = blobURl;
-  }, [screenshotInfo, dispatch]);
+  }, [maxWidth, screenshotInfo, dispatch]);
 
   return (
     <div>

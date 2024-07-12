@@ -1,10 +1,9 @@
+import { Box, Checkbox, CheckboxGroup, Stack, Text } from '@chakra-ui/react';
 import type React from 'react';
-import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { getBoostArea, possibleBoostAreaKeyList } from '../../logics/BoostArea';
-import { boostAreaKeyCheckedChanged } from '../../reducers/puyoAppSlice';
+import { boostAreaKeyListChanged } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
-import setting from '../styles/Setting.module.css';
 
 interface IProps {
   /** ブーストエリアキーリスト */
@@ -16,36 +15,28 @@ const BoostAreaSetting: React.FC<IProps> = (props) => {
   const { boostAreaKeyList } = props;
   const dispatch = useDispatch<AppDispatch>();
 
-  const onChanged = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const key = e.target.dataset.key!;
-      const checked = e.target.checked;
-
-      dispatch(boostAreaKeyCheckedChanged({ key, checked }));
-    },
-    [dispatch]
-  );
+  const onKeyListChanged = (keyList: string[]) =>
+    dispatch(boostAreaKeyListChanged(keyList));
 
   return (
-    <div className={setting.setting}>
-      <div>ブーストエリア:</div>
-      {possibleBoostAreaKeyList.map((key) => {
-        const boostAreaId = `boostarea-${key}`;
-        return (
-          <div key={key}>
-            <input
-              type="checkbox"
-              id={boostAreaId}
-              name={boostAreaId}
-              data-key={key}
-              checked={boostAreaKeyList.includes(key)}
-              onChange={onChanged}
-            />
-            <label htmlFor={boostAreaId}>{getBoostArea(key)!.name}</label>
-          </div>
-        );
-      })}
-    </div>
+    <Stack spacing={0}>
+      <Box>
+        <Text fontSize="sm">ブーストエリア:</Text>
+      </Box>
+      <CheckboxGroup
+        size="sm"
+        value={boostAreaKeyList}
+        onChange={onKeyListChanged}
+      >
+        <Stack spacing={[1, 5]} direction={['column', 'row']}>
+          {possibleBoostAreaKeyList.map((key) => (
+            <Checkbox key={key} value={key}>
+              {getBoostArea(key)!.name}
+            </Checkbox>
+          ))}
+        </Stack>
+      </CheckboxGroup>
+    </Stack>
   );
 };
 
