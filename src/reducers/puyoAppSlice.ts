@@ -245,9 +245,10 @@ const puyoAppSlice = createSlice({
 
       if (boardId !== customBoardId) {
         const board = getSpecialBoard(state.boardId);
+        const nextPuyos = createNextPuyos(state.nextSelection);
         state.simulationData = createSimulationData(
           board,
-          {},
+          { nextPuyos },
           simulationData as any
         );
       } else {
