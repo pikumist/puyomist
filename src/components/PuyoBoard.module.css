@@ -4,14 +4,6 @@
   border-radius: 2px;
 }
 
-.pointer {
-  cursor: pointer;
-}
-
-.crosshair {
-  cursor: crosshair;
-}
-
 .boardBackground {
   stroke: none;
   fill: #000;
@@ -42,4 +34,120 @@
   /*
   transition: transform 200ms ease;
   */
+}
+
+.cursorPointer {
+  cursor: pointer;
+}
+
+.cursorCrosshair {
+  cursor: crosshair;
+}
+
+.cursorPlus {
+  cursor: url($cursors/plus.svg) 18 18, auto;
+}
+
+.cursorChance {
+  cursor: url($cursors/chance.svg) 18 18, auto;
+}
+
+.cursorRed {
+  cursor: url($cursors/red.svg) 18 18, auto;
+}
+
+.cursorRedPlus {
+  cursor: url($cursors/redPlus.svg) 18 18, auto;
+}
+
+.cursorRedChance {
+  cursor: url($cursors/redChance.svg) 18 18, auto;
+}
+
+.cursorRedChancePlus {
+  cursor: url($cursors/redChancePlus.svg) 18 18, auto;
+}
+
+.cursorBlue {
+  cursor: url($cursors/blue.svg) 18 18, auto;
+}
+
+.cursorBluePlus {
+  cursor: url($cursors/bluePlus.svg) 18 18, auto;
+}
+
+.cursorBlueChance {
+  cursor: url($cursors/blueChance.svg) 18 18, auto;
+}
+
+.cursorBlueChancePlus {
+  cursor: url($cursors/blueChancePlus.svg) 18 18, auto;
+}
+
+.cursorGreen {
+  cursor: url($cursors/green.svg) 18 18, auto;
+}
+
+.cursorGreenPlus {
+  cursor: url($cursors/greenPlus.svg) 18 18, auto;
+}
+
+.cursorGreenChance {
+  cursor: url($cursors/greenChance.svg) 18 18, auto;
+}
+
+.cursorGreenChancePlus {
+  cursor: url($cursors/greenChancePlus.svg) 18 18, auto;
+}
+
+.cursorYellow {
+  cursor: url($cursors/yellow.svg) 18 18, auto;
+}
+
+.cursorYellowPlus {
+  cursor: url($cursors/yellowPlus.svg) 18 18, auto;
+}
+
+.cursorYellowChance {
+  cursor: url($cursors/yellowChance.svg) 18 18, auto;
+}
+
+.cursorYellowChancePlus {
+  cursor: url($cursors/yellowChancePlus.svg) 18 18, auto;
+}
+
+.cursorPurple {
+  cursor: url($cursors/purple.svg) 18 18, auto;
+}
+
+.cursorPurplePlus {
+  cursor: url($cursors/purplePlus.svg) 18 18, auto;
+}
+
+.cursorPurpleChance {
+  cursor: url($cursors/purpleChance.svg) 18 18, auto;
+}
+
+.cursorPurpleChancePlus {
+  cursor: url($cursors/purpleChancePlus.svg) 18 18, auto;
+}
+
+.cursorHeart {
+  cursor: url($cursors/heart.svg) 18 18, auto;
+}
+
+.cursorPrism {
+  cursor: url($cursors/prism.svg) 18 18, auto;
+}
+
+.cursorOjama {
+  cursor: url($cursors/ojama.svg) 18 18, auto;
+}
+
+.cursorKata {
+  cursor: url($cursors/kata.svg) 18 18, auto;
+}
+
+.cursorPadding {
+  cursor: url($cursors/padding.svg) 18 18, auto;
 }

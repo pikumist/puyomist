@@ -5,7 +5,7 @@ import {
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { type Board, emptyBoard } from '../logics/Board';
-import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
+import { HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
@@ -23,7 +23,7 @@ import {
 } from '../logics/PuyoAttribute';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
-  PuyoType,
+  type PuyoType,
   isTraceablePuyo,
   toChanceColoredType,
   toNormalColoredType,
@@ -34,7 +34,7 @@ import {
   cloneSimulationData
 } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
-import type { TraceMode } from '../logics/TraceMode';
+import { TraceMode } from '../logics/TraceMode';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
@@ -132,10 +132,6 @@ const puyoAppSlice = createSlice({
       state,
       action: PayloadAction<{ fieldCoord?: PuyoCoord; nextX?: number }>
     ) => {
-      if (!state.boardEditMode) {
-        return;
-      }
-
       if (state.boardId !== customBoardId) {
         state.lastScreenshotBoard = structuredClone(
           getSpecialBoard(state.boardId)
@@ -167,7 +163,7 @@ const puyoAppSlice = createSlice({
         return state.lastScreenshotBoard!.nextPuyos![nextX!];
       };
 
-      const setTargetPuyoType = (puyoType: PuyoType) => {
+      const setTargetPuyoType = (puyoType: PuyoType | undefined) => {
         if (fieldCoord) {
           const coord = fieldCoord;
           state.lastScreenshotBoard!.field[coord.y][coord.x] = puyoType;
@@ -176,25 +172,25 @@ const puyoAppSlice = createSlice({
         }
       };
 
-      const { howToEdit, customType } = state.boardEditMode!;
+      const { howToEdit, customType } = state.boardEditMode;
       const prevType = getTargetPuyoType();
 
-      if (howToEdit !== HowToEditBoard.ToCustomType && !prevType) {
+      if (!prevType && howToEdit !== HowToEditBoard.ToCustomType) {
         return;
       }
 
       switch (howToEdit) {
-        case HowToEditBoard.ToNormal:
+        case HowToEditBoard.ClearEnhance:
           setTargetPuyoType(toNormalColoredType(prevType!));
           break;
-        case HowToEditBoard.ToChance:
+        case HowToEditBoard.AddChance:
           setTargetPuyoType(toChanceColoredType(prevType!));
           break;
-        case HowToEditBoard.ToPlus:
+        case HowToEditBoard.AddPlus:
           setTargetPuyoType(toPlusColoredType(prevType!));
           break;
         case HowToEditBoard.ToCustomType:
-          setTargetPuyoType(customType!);
+          setTargetPuyoType(customType);
           break;
       }
 
@@ -245,9 +241,10 @@ const puyoAppSlice = createSlice({
 
       if (boardId !== customBoardId) {
         const board = getSpecialBoard(state.boardId);
+        const nextPuyos = createNextPuyos(state.nextSelection);
         state.simulationData = createSimulationData(
           board,
-          {},
+          { nextPuyos },
           simulationData as any
         );
       } else {
@@ -268,14 +265,21 @@ const puyoAppSlice = createSlice({
       state.simulationData.nextPuyos = nextPuyos;
     },
 
-    /** なぞり消しモードの項目が選択されたとき */
-    traceModeItemSelected: (state, action: PayloadAction<TraceMode>) => {
-      state.simulationData.traceMode = action.payload;
+    /** なぞり消しモードが変更されたとき */
+    traceModeChanged: (state, action: PayloadAction<TraceMode>) => {
+      const traceMode = action.payload;
+      state.simulationData.traceMode = traceMode;
+      if (traceMode !== TraceMode.Normal) {
+        state.simulationData.minimumPuyoNumForPopping = 4;
+      }
     },
 
     /** ぷよが消えるのに必要な個数が変更されたとき */
     minimumPuyoNumForPoppingChanged: (state, action: PayloadAction<number>) => {
-      state.simulationData.minimumPuyoNumForPopping = action.payload;
+      const traceMode = state.simulationData.traceMode;
+      if (traceMode === TraceMode.Normal) {
+        state.simulationData.minimumPuyoNumForPopping = action.payload;
+      }
     },
 
     /** 最大なぞり数が変更されたとき */
@@ -464,21 +468,9 @@ const puyoAppSlice = createSlice({
       state.solutionMethod = action.payload;
     },
 
-    /** ブーストエリアのチェックが変更されたとき */
-    boostAreaKeyCheckedChanged: (
-      state,
-      action: PayloadAction<{ key: string; checked: boolean }>
-    ) => {
-      const { key, checked } = action.payload;
-      const keyList = [...state.boostAreaKeyList];
-
-      if (checked && !keyList.includes(key)) {
-        keyList.push(key);
-      } else if (!checked && keyList.includes(key)) {
-        const i = keyList.indexOf(key);
-        keyList.splice(i, 1);
-      }
-
+    /** ブーストエリアのキーリストが変更されたとき */
+    boostAreaKeyListChanged: (state, action: PayloadAction<string[]>) => {
+      const keyList = action.payload;
       state.boostAreaKeyList = keyList;
       state.simulationData.boostAreaCoordList = [
         ...keyList
@@ -489,30 +481,28 @@ const puyoAppSlice = createSlice({
       ];
     },
 
-    /** 盤面編集の仕方の項目が変更されたとき */
-    howToEditBoardItemSelected: (
-      state,
-      action: PayloadAction<HowToEditBoard>
-    ) => {
-      const howToEdit = action.payload;
-      const mode: BoardEditMode = {
-        howToEdit,
-        customType: state.boardEditMode?.customType ?? PuyoType.Red
-      };
-      state.boardEditMode = mode;
+    /** 盤面編集が開始されたとき */
+    boardEditingStarted: (state) => {
+      state.isBoardEditing = true;
     },
 
-    /** 盤面編集時の変換先のぷよタイプ項目が選択されたとき */
-    boardEditCustomTypeItemSelected: (
+    /** 盤面編集が終了されたとき */
+    boardEditingEnded: (state) => {
+      state.isBoardEditing = false;
+    },
+
+    /** 盤面編集の仕方が変更されたとき */
+    howToEditBoardChanged: (state, action: PayloadAction<HowToEditBoard>) => {
+      state.boardEditMode.howToEdit = action.payload;
+    },
+
+    /** 盤面編集時の変換先のぷよタイプが変更されたとき */
+    boardEditCustomTypeChanged: (
       state,
       action: PayloadAction<PuyoType | undefined>
     ) => {
-      const customType = action.payload;
-      const mode: BoardEditMode = {
-        howToEdit: HowToEditBoard.ToCustomType,
-        customType
-      };
-      state.boardEditMode = mode;
+      state.boardEditMode.howToEdit = HowToEditBoard.ToCustomType;
+      state.boardEditMode.customType = action.payload;
     },
 
     ///
@@ -597,7 +587,7 @@ export const {
   /// 設定系
   boardIdChanged,
   nextItemSelected,
-  traceModeItemSelected,
+  traceModeChanged,
   minimumPuyoNumForPoppingChanged,
   maxTraceNumChanged,
   poppingLeverageChanged,
@@ -616,9 +606,11 @@ export const {
   explorationCountingBonusCountChanged,
   explorationCountingBonusStepRepeatCheckChanged,
   solutionMethodItemSelected,
-  boostAreaKeyCheckedChanged,
-  howToEditBoardItemSelected,
-  boardEditCustomTypeItemSelected,
+  boostAreaKeyListChanged,
+  boardEditingStarted,
+  boardEditingEnded,
+  howToEditBoardChanged,
+  boardEditCustomTypeChanged,
   /// 最適解探索系
   solvingStarted,
   solved,

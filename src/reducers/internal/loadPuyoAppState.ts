@@ -63,6 +63,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     lastScreenshotBoard,
     boostAreaKeyList,
     boardEditMode,
+    isBoardEditing: false,
     simulationData,
     animating: false,
     lastTraceCoords: undefined,

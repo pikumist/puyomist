@@ -1,6 +1,6 @@
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import type { Board } from '../logics/Board';
-import type { BoardEditMode } from '../logics/BoardEditMode';
+import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
 import {
   AllClearPreference,
@@ -29,7 +29,9 @@ export interface PuyoAppState {
   /** ブーストエリアキーリスト */
   boostAreaKeyList: string[];
   /** 盤面編集モード */
-  boardEditMode: BoardEditMode | undefined;
+  boardEditMode: BoardEditMode;
+  /** 盤面編集中かどうか */
+  isBoardEditing: boolean;
   /** シミュレーションに用いるデータ */
   simulationData: SimulationData;
   /** アニメーション中かどうか */
@@ -59,7 +61,10 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   solutionMethod: SolutionMethod.solveAllInParallel,
   lastScreenshotBoard: undefined,
   boostAreaKeyList: [],
-  boardEditMode: undefined,
+  boardEditMode: {
+    howToEdit: HowToEditBoard.ClearEnhance
+  },
+  isBoardEditing: false,
   simulationData: {
     nextPuyos: [...new Array(PuyoCoord.XNum)],
     field: [...new Array(PuyoCoord.YNum)].map(() => [

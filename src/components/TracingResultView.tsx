@@ -22,7 +22,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
     : '';
 
   return (
-    <>
+    <div>
       <div>現在なぞり: {coords}</div>
       <div>最後のなぞり: {lastCoords}</div>
       <div>ぷよ使いカウント: {puyoTsukaiCount}</div>
@@ -35,7 +35,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
       ].map((attr) => (
         <DamageDetail key={attr} attr={attr} chains={chains} />
       ))}
-    </>
+    </div>
   );
 };
 

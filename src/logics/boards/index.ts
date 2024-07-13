@@ -43,7 +43,7 @@ export const getSpecialBoard = (boardId: string): Board => {
 export const boardKeyNameMap = new Map<string, string>([
   ['chainSeed1', '連鎖のタネ1'],
   ['chainSeed2', '連鎖のタネ2'],
-  ['specialRule1', 'あんりんorスペエコ'],
+  ['specialRule1', 'あんりんスペエコ'],
   ['specialRule2', 'しろマール'],
   ['specialRule3', 'あたプー'],
   ['specialRule4', 'なつアマ'],
