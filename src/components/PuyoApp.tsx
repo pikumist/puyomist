@@ -32,7 +32,7 @@ import ScreenshotCanvas from './ScreenshotCanvas';
 import SolutionResultView from './SolutionResultView';
 import TracingResultView from './TracingResultView';
 import AnimationDurationInput from './settings/AnimationDurationInput';
-import BoardEditSetting from './settings/BoardEditSetting';
+import BoardEditPopover from './settings/BoardEditPopover';
 import BoardSelector from './settings/BoardSelector';
 import BoostAreaSetting from './settings/BoostAreaSetting';
 import ChainLeverageInput from './settings/ChainLeverageInput';
@@ -94,11 +94,16 @@ const PuyoApp: React.FC = () => {
       <Box ml={{ base: 0, md: 80 }} p="4">
         {/* Content */}
         <Stack>
-          <HStack>
+          <HStack maxW="395">
             <BoardSelector boardId={state.boardId} />
             <NextSelector
               disabled={state.boardId === customBoardId}
               nextSelection={state.nextSelection}
+            />
+            <BoardEditPopover
+              isBoardEditing={state.isBoardEditing}
+              boardEditMode={state.boardEditMode}
+              ml={'auto'}
             />
           </HStack>
           <PuyoBoard />
@@ -212,12 +217,10 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         <PoppingLeverageInput leverage={poppingLeverage} />
         <ChainLeverageInput leverage={chainLeverage} />
         <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
-        <hr />
         <AnimationDurationInput duration={animationDuration} />
         <ExplorationTargetSetting target={explorationTarget} />
         <SolutionMethodSelector method={solutionMethod} />
         <hr />
-        <BoardEditSetting boardEditMode={boardEditMode!} />
         <ScreenshotCanvas
           maxWidth={100}
           screenshotInfo={screenshotInfo}

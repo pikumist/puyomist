@@ -5,7 +5,7 @@ import {
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { type Board, emptyBoard } from '../logics/Board';
-import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
+import { HowToEditBoard } from '../logics/BoardEditMode';
 import { getBoostArea } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
@@ -23,7 +23,7 @@ import {
 } from '../logics/PuyoAttribute';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
-  PuyoType,
+  type PuyoType,
   isTraceablePuyo,
   toChanceColoredType,
   toNormalColoredType,
@@ -132,10 +132,6 @@ const puyoAppSlice = createSlice({
       state,
       action: PayloadAction<{ fieldCoord?: PuyoCoord; nextX?: number }>
     ) => {
-      if (!state.boardEditMode) {
-        return;
-      }
-
       if (state.boardId !== customBoardId) {
         state.lastScreenshotBoard = structuredClone(
           getSpecialBoard(state.boardId)
@@ -167,7 +163,7 @@ const puyoAppSlice = createSlice({
         return state.lastScreenshotBoard!.nextPuyos![nextX!];
       };
 
-      const setTargetPuyoType = (puyoType: PuyoType) => {
+      const setTargetPuyoType = (puyoType: PuyoType | undefined) => {
         if (fieldCoord) {
           const coord = fieldCoord;
           state.lastScreenshotBoard!.field[coord.y][coord.x] = puyoType;
@@ -176,25 +172,25 @@ const puyoAppSlice = createSlice({
         }
       };
 
-      const { howToEdit, customType } = state.boardEditMode!;
+      const { howToEdit, customType } = state.boardEditMode;
       const prevType = getTargetPuyoType();
 
-      if (howToEdit !== HowToEditBoard.ToCustomType && !prevType) {
+      if (!prevType && howToEdit !== HowToEditBoard.ToCustomType) {
         return;
       }
 
       switch (howToEdit) {
-        case HowToEditBoard.ToNormal:
+        case HowToEditBoard.ClearEnhance:
           setTargetPuyoType(toNormalColoredType(prevType!));
           break;
-        case HowToEditBoard.ToChance:
+        case HowToEditBoard.AddChance:
           setTargetPuyoType(toChanceColoredType(prevType!));
           break;
-        case HowToEditBoard.ToPlus:
+        case HowToEditBoard.AddPlus:
           setTargetPuyoType(toPlusColoredType(prevType!));
           break;
         case HowToEditBoard.ToCustomType:
-          setTargetPuyoType(customType!);
+          setTargetPuyoType(customType);
           break;
       }
 
@@ -485,30 +481,28 @@ const puyoAppSlice = createSlice({
       ];
     },
 
-    /** 盤面編集の仕方の項目が変更されたとき */
-    howToEditBoardItemSelected: (
-      state,
-      action: PayloadAction<HowToEditBoard>
-    ) => {
-      const howToEdit = action.payload;
-      const mode: BoardEditMode = {
-        howToEdit,
-        customType: state.boardEditMode?.customType ?? PuyoType.Red
-      };
-      state.boardEditMode = mode;
+    /** 盤面編集が開始されたとき */
+    boardEditingStarted: (state) => {
+      state.isBoardEditing = true;
     },
 
-    /** 盤面編集時の変換先のぷよタイプ項目が選択されたとき */
-    boardEditCustomTypeItemSelected: (
+    /** 盤面編集が終了されたとき */
+    boardEditingEnded: (state) => {
+      state.isBoardEditing = false;
+    },
+
+    /** 盤面編集の仕方が変更されたとき */
+    howToEditBoardChanged: (state, action: PayloadAction<HowToEditBoard>) => {
+      state.boardEditMode.howToEdit = action.payload;
+    },
+
+    /** 盤面編集時の変換先のぷよタイプが変更されたとき */
+    boardEditCustomTypeChanged: (
       state,
       action: PayloadAction<PuyoType | undefined>
     ) => {
-      const customType = action.payload;
-      const mode: BoardEditMode = {
-        howToEdit: HowToEditBoard.ToCustomType,
-        customType
-      };
-      state.boardEditMode = mode;
+      state.boardEditMode.howToEdit = HowToEditBoard.ToCustomType;
+      state.boardEditMode.customType = action.payload;
     },
 
     ///
@@ -613,8 +607,10 @@ export const {
   explorationCountingBonusStepRepeatCheckChanged,
   solutionMethodItemSelected,
   boostAreaKeyListChanged,
-  howToEditBoardItemSelected,
-  boardEditCustomTypeItemSelected,
+  boardEditingStarted,
+  boardEditingEnded,
+  howToEditBoardChanged,
+  boardEditCustomTypeChanged,
   /// 最適解探索系
   solvingStarted,
   solved,

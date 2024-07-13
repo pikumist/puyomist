@@ -17,6 +17,7 @@ import GridLines from './board-parts/GridLines';
 import OptimalTrace from './board-parts/OptimalTrace';
 import PuyoMatrix from './board-parts/PuyoMatrix';
 import Trace from './board-parts/Trace';
+import { getCursorClass } from './board-parts/cursors';
 import {
   detectHitInField,
   detectHitInNext
@@ -31,11 +32,15 @@ const PuyoBoard: React.FC = React.memo(() => {
   const dispatch = useDispatch<AppDispatch>();
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  const { boardEditMode, simulationData, animating, explorationResult } = state;
+  const {
+    isBoardEditing,
+    boardEditMode,
+    simulationData,
+    animating,
+    explorationResult
+  } = state;
   const { nextPuyos, field, boostAreaCoordList, traceCoords } = simulationData;
-  const editing = Boolean(
-    boardEditMode && boardEditMode.howToEdit !== HowToEditBoard.None
-  );
+  const editing = isBoardEditing;
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
   const [touching, setTouching] = useState(false);
 
@@ -118,7 +123,17 @@ const PuyoBoard: React.FC = React.memo(() => {
     dispatch(tracingCanceled());
   };
 
-  const cursor = editing ? styles.crosshair : styles.pointer;
+  const { howToEdit, customType } = boardEditMode ?? {};
+
+  const cursor = editing
+    ? howToEdit === HowToEditBoard.ToCustomType
+      ? styles[getCursorClass(customType)]
+      : howToEdit === HowToEditBoard.AddChance
+        ? styles.cursorChance
+        : howToEdit === HowToEditBoard.AddPlus
+          ? styles.cursorPlus
+          : styles.cursorCrosshair
+    : styles.cursorPointer;
 
   const viewBox = `0 0 ${W} ${H}`;
 

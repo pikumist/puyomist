@@ -19,7 +19,7 @@ const BoostAreaSetting: React.FC<IProps> = (props) => {
     dispatch(boostAreaKeyListChanged(keyList));
 
   return (
-    <Stack spacing={0}>
+    <Stack my={2} spacing={0}>
       <Box>
         <Text fontSize="sm">ブーストエリア:</Text>
       </Box>

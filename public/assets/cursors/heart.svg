@@ -1,0 +1,9 @@
+<svg
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  viewBox="0 0 48 48"
+  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <path d="M43.049,8.629L43.049,39.42C43.049,41.423 41.423,43.049 39.42,43.049L8.629,43.049C6.626,43.049 5,41.423 5,39.42L5,8.629C5,6.626 6.626,5 8.629,5L39.42,5C41.423,5 43.049,6.626 43.049,8.629Z" style="fill:rgb(217,117,194);"/>
+  <path d="M8,18C8,14.16 11.611,11 16,11C20.389,11 24,14.16 24,18C24,14.16 27.611,11 32,11C36.389,11 40,14.16 40,18C40,25 34.667,32 24,39C13.333,32 8,25 8,18Z" style="fill:rgb(230,183,219);fill-rule:nonzero;"/>
+</svg>

@@ -1,5 +1,5 @@
 import type { Board } from './Board';
-import type { BoardEditMode } from './BoardEditMode';
+import { type BoardEditMode, HowToEditBoard } from './BoardEditMode';
 import {
   AllClearPreference,
   ChancePopPreference,
@@ -30,6 +30,10 @@ export class Session {
 
   constructor(storage: Storage) {
     this.storage = storage;
+  }
+
+  clear(): void {
+    this.storage.clear();
   }
 
   getBoardId(): string {
@@ -133,10 +137,12 @@ export class Session {
     );
   }
 
-  getBoardEditMode(): BoardEditMode | undefined {
+  getBoardEditMode(): BoardEditMode {
     const boardEditModeStr = this.storage.getItem(Session.boardEditModeKey);
     if (!boardEditModeStr) {
-      return undefined;
+      return {
+        howToEdit: HowToEditBoard.ClearEnhance
+      };
     }
     return JSON.parse(boardEditModeStr);
   }
