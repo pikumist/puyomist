@@ -50,6 +50,17 @@ const PuyoApp: React.FC = () => {
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
+  const {
+    boardId,
+    nextSelection,
+    isBoardEditing,
+    boardEditMode,
+    explorationResult,
+    solving,
+    simulationData,
+    lastTraceCoords,
+    chains
+  } = state;
   const dispatch = useDispatch<AppDispatch>();
 
   const onBoardRestButtonCliecked = () => {
@@ -95,14 +106,14 @@ const PuyoApp: React.FC = () => {
         {/* Content */}
         <Stack>
           <HStack maxW="395">
-            <BoardSelector boardId={state.boardId} />
+            <BoardSelector boardId={boardId} />
             <NextSelector
-              disabled={state.boardId === customBoardId}
-              nextSelection={state.nextSelection}
+              disabled={boardId === customBoardId}
+              nextSelection={nextSelection}
             />
             <BoardEditPopover
-              isBoardEditing={state.isBoardEditing}
-              boardEditMode={state.boardEditMode}
+              isBoardEditing={isBoardEditing}
+              boardEditMode={boardEditMode}
               ml={'auto'}
             />
           </HStack>
@@ -123,7 +134,7 @@ const PuyoApp: React.FC = () => {
                     variant="outline"
                     aria-label="探索結果クリア"
                     icon={<DeleteIcon />}
-                    isDisabled={Boolean(!state.explorationResult)}
+                    isDisabled={Boolean(!explorationResult)}
                     onClick={onSolutionResetButtonClicked}
                   />
                 </Tooltip>
@@ -132,7 +143,7 @@ const PuyoApp: React.FC = () => {
                     variant="outline"
                     aria-label="解でなぞり"
                     icon={<Icon as={FaPlay} />}
-                    isDisabled={Boolean(!state.explorationResult)}
+                    isDisabled={Boolean(!explorationResult)}
                     onClick={onPlaySolutionButtonClicked}
                   />
                 </Tooltip>
@@ -146,14 +157,14 @@ const PuyoApp: React.FC = () => {
                 </Tooltip>
               </HStack>
               <SolutionResultView
-                solving={state.solving}
-                result={state.explorationResult}
+                solving={solving}
+                result={explorationResult}
               />
             </Box>
             <TracingResultView
-              tracingCoords={state.simulationData.traceCoords}
-              lastTraceCoords={state.lastTraceCoords}
-              chains={state.chains}
+              tracingCoords={simulationData.traceCoords}
+              lastTraceCoords={lastTraceCoords}
+              chains={chains}
             />
           </HStack>
         </Stack>
@@ -177,7 +188,6 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
     simulationData,
     explorationTarget,
     solutionMethod,
-    boardEditMode,
     screenshotInfo,
     screenshotErrorMessage
   } = state;
