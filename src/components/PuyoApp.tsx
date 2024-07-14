@@ -122,7 +122,7 @@ const PuyoApp: React.FC = () => {
               ml={'auto'}
             />
           </HStack>
-          <PuyoBoard />
+          <PuyoBoard width={395} />
           <HStack align="top" spacing="4">
             <Box>
               <HStack spacing="1">

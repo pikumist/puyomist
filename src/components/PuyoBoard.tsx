@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HowToEditBoard } from '../logics/BoardEditMode';
@@ -24,8 +24,13 @@ import {
 } from './board-parts/logics/hit-detector';
 import { H, W, fw } from './board-parts/logics/measurements';
 
+interface IProps {
+  width?: number;
+}
+
 /** ぷよの盤面を描画するSVG */
-const PuyoBoard: React.FC = React.memo(() => {
+const PuyoBoard: React.FC<IProps> = (props) => {
+  const { width } = props;
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
@@ -44,32 +49,28 @@ const PuyoBoard: React.FC = React.memo(() => {
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
   const [touching, setTouching] = useState(false);
 
+  const ratio = (width ?? W) / W;
+
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || animating) {
       return;
     }
 
+    const svg = svgRef.current;
+    const rect = svg!.getBoundingClientRect();
+    const px = ~~((e.clientX - rect.left) / ratio);
+    const py = ~~((e.clientY - rect.top) / ratio);
+
     if (!editing) {
       if (!touching) {
         setTouching(true);
       }
-
-      const svg = svgRef.current;
-      const rect = svg!.getBoundingClientRect();
-      const px = ~~(e.clientX - rect.left);
-      const py = ~~(e.clientY - rect.top);
-
       const coord = detectHitInField(px, py);
       if (coord) {
         dispatch(tracingCoordAdded(coord));
       }
     }
     {
-      const svg = svgRef.current;
-      const rect = svg!.getBoundingClientRect();
-      const px = ~~(e.clientX - rect.left);
-      const py = ~~(e.clientY - rect.top);
-
       const coord = detectHitInField(px, py);
       if (coord) {
         dispatch(puyoEdited({ fieldCoord: coord }));
@@ -89,8 +90,8 @@ const PuyoBoard: React.FC = React.memo(() => {
 
     const svg = svgRef.current;
     const rect = svg!.getBoundingClientRect();
-    const px = ~~(e.clientX - rect.left);
-    const py = ~~(e.clientY - rect.top);
+    const px = ~~((e.clientX - rect.left) / ratio);
+    const py = ~~((e.clientY - rect.top) / ratio);
 
     const coord = detectHitInField(px, py);
     if (coord) {
@@ -112,8 +113,8 @@ const PuyoBoard: React.FC = React.memo(() => {
 
     const svg = svgRef.current;
     const rect = svg!.getBoundingClientRect();
-    const px = ~~(e.clientX - rect.left);
-    const py = ~~(e.clientY - rect.top);
+    const px = ~~((e.clientX - rect.left) / ratio);
+    const py = ~~((e.clientY - rect.top) / ratio);
 
     if (px > 0 && px < W && py > 0 && py < H) {
       return;
@@ -142,8 +143,8 @@ const PuyoBoard: React.FC = React.memo(() => {
       ref={svgRef}
       className={`board ${styles.svg} ${cursor}`}
       viewBox={viewBox}
-      width={W}
-      height={H}
+      width={W * ratio}
+      height={H * ratio}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -167,6 +168,6 @@ const PuyoBoard: React.FC = React.memo(() => {
       </g>
     </svg>
   );
-});
+};
 
 export default PuyoBoard;
