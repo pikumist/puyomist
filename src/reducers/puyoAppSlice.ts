@@ -512,6 +512,7 @@ const puyoAppSlice = createSlice({
     /** 最適解探索が開始されたとき */
     solvingStarted: (state) => {
       state.solving = true;
+      state.abortControllerForSolving = new AbortController();
     },
 
     /** 解が求まったとき */
@@ -528,6 +529,19 @@ const puyoAppSlice = createSlice({
 
       state.explorationResult = result;
       state.solving = false;
+      state.abortControllerForSolving = undefined;
+    },
+
+    /** 解を求めるのが失敗したとき */
+    solveFailed: (state) => {
+      state.explorationResult = undefined;
+      state.solving = false;
+      state.abortControllerForSolving = undefined;
+    },
+
+    /** 最適解計算をキャンセルするボタンがクリックされたとき */
+    solveCancelButtonClicked: (state) => {
+      state.abortControllerForSolving?.abort();
     },
 
     /** 最適解リセットボタンがクリックされたとき */
@@ -613,7 +627,7 @@ export const {
   boardEditCustomTypeChanged,
   /// 最適解探索系
   solvingStarted,
-  solved,
+  solveCancelButtonClicked,
   solutionResetButtonClicked,
   /// スクリーンショット系
   screenshotReceived,
@@ -669,7 +683,7 @@ export const solveButtonClicked =
 
     dispatch(solvingStarted());
 
-    let solve: () => Promise<ExplorationResult | undefined>;
+    let solve: (signal: AbortSignal) => Promise<ExplorationResult | undefined>;
 
     switch (state.solutionMethod) {
       case SolutionMethod.solveAllInSerial:
@@ -687,8 +701,13 @@ export const solveButtonClicked =
     }
 
     (async () => {
-      const result = await solve();
-      dispatch(solved(result));
+      try {
+        const signal = getState().puyoApp.abortControllerForSolving!.signal;
+        const result = await solve(signal);
+        dispatch(puyoAppSlice.actions.solved(result));
+      } catch (_) {
+        dispatch(puyoAppSlice.actions.solveFailed());
+      }
     })();
   };
 

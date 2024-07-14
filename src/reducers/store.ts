@@ -20,7 +20,8 @@ export const store = configureStore({
           'puyoApp.simulationData.boostAreaCoordList',
           'puyoApp.simulationData.traceCoords',
           'puyoApp.explorationResult',
-          'puyoApp.lastTraceCoords'
+          'puyoApp.lastTraceCoords',
+          'puyoApp.abortControllerForSolving'
         ]
       }
     }),

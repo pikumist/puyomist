@@ -40,8 +40,10 @@ export interface PuyoAppState {
   lastTraceCoords: PuyoCoord[] | undefined;
   /** 全連鎖情報 */
   chains: Chain[];
-  /** 最適化計算中かどうか */
+  /** 最適解探索中かどうか */
   solving: boolean;
+  /** 最適解探索の中断コントローラー */
+  abortControllerForSolving: AbortController | undefined;
   /** 最適解探索結果 */
   explorationResult: ExplorationResult | undefined;
   /** スクリーンショット情報 */
@@ -84,6 +86,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   lastTraceCoords: undefined,
   chains: [],
   solving: false,
+  abortControllerForSolving: undefined,
   explorationResult: undefined,
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined
