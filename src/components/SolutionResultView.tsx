@@ -1,3 +1,4 @@
+import { Progress } from '@chakra-ui/react';
 import type React from 'react';
 import {
   ExplorationCategory,
@@ -24,11 +25,14 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = (props) => {
 
   return (
     <>
-      <div>{solving ? '探索中…' : '探索結果'}</div>
+      <Progress
+        size="xs"
+        visibility={solving ? 'visible' : 'hidden'}
+        isIndeterminate={solving}
+      />
       <hr />
       {result ? (
         <div>
-          <div>探索法: {result?.solutionMethod}</div>
           <div>
             探索対象:{' '}
             {getExplorationCategoryDescription(

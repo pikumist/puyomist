@@ -42,8 +42,6 @@ export interface SolutionResult {
 
 /** solve() メソッドの呼び出し結果 */
 export interface ExplorationResult {
-  /** 探索法 */
-  solutionMethod?: SolutionMethod;
   /** 探索対象 */
   explorationTarget: ExplorationTarget;
   /** 経過時間 */
