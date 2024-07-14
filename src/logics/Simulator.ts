@@ -188,7 +188,10 @@ export class Simulator {
     const totalAttrDamage = chains.reduce((m, chain) => {
       return m + (chain.attributes[targetAttr]?.strength || 0);
     }, 0);
-    return totalAttrDamage + Simulator.calcTotalPrismDamage(chains);
+    const boostRatio = Simulator.calcBoostRatio(chains);
+    return (
+      boostRatio * (totalAttrDamage + Simulator.calcTotalPrismDamage(chains))
+    );
   }
 
   /**
@@ -201,7 +204,10 @@ export class Simulator {
     const totalWildDamage = chains.reduce((m, chain) => {
       return m + chain.wild.strength;
     }, 0);
-    return totalWildDamage + Simulator.calcTotalPrismDamage(chains);
+    const boostRatio = Simulator.calcBoostRatio(chains);
+    return (
+      boostRatio * (totalWildDamage + Simulator.calcTotalPrismDamage(chains))
+    );
   }
 
   /**
@@ -218,6 +224,27 @@ export class Simulator {
       return m + (chain.attributes[targetAttr]?.poppedNum ?? 0);
     }, 0);
     return totalCount;
+  }
+
+  /**
+   * ブーストカウントの総数を計算する。
+   * @param chains
+   * @returns
+   */
+  static calcTotalBoostCount(chains: Chain[]): number {
+    return chains.reduce((m, chain) => {
+      return m + chain.boostCount;
+    }, 0);
+  }
+
+  /**
+   * ブーストカウントによる倍率を計算する。
+   * @param chains
+   * @returns
+   */
+  static calcBoostRatio(chains: Chain[]): number {
+    const boostCount = Math.min(Simulator.calcTotalBoostCount(chains), 50);
+    return 1 + boostCount * 0.04;
   }
 
   /**
@@ -448,11 +475,13 @@ export class Simulator {
 
     const chainNum = ++this.currentChainNum;
     const poppedPuyoNum = this.calcPoppedPuyoNum(blocks);
+    const boostCount = this.calcBoostCount(blocks);
     const puyoTsukaiCount = this.calcPuyoTsukaiCount(blocks);
 
     const result: Chain = {
       chainNum,
       poppedPuyoNum,
+      boostCount,
       puyoTsukaiCount,
       attributes: {} as Record<PuyoAttribute, AttributeChain>,
       wild: {
@@ -587,6 +616,44 @@ export class Simulator {
 
   private coordIsInBoostArea(coord: PuyoCoord): boolean {
     return this.boostAreaCoordSet.has(coord);
+  }
+
+  private calcBoostCount(
+    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
+  ) {
+    return blocks.reduce((m, block) => {
+      // 色ぷよのブロックの場合
+      if (isColoredPuyoAttribute(block.attr)) {
+        let num = 0;
+        for (const [coord] of block.coordIdMap) {
+          if (!this.coordIsInBoostArea(coord)) {
+            continue;
+          }
+          const puyo = this.field[coord.y][coord.x]!;
+          num += isPlusPuyo(puyo.type) ? 2 : 1;
+        }
+        return m + num;
+      }
+
+      // 固ぷよブロックの場合
+      if (
+        block.attr === PuyoAttribute.Kata ||
+        block.attr === PuyoAttribute.Padding
+      ) {
+        // カウントしない
+        return m;
+      }
+
+      // その他のブロック(ハート、プリズム、おじゃま)の場合
+      let num = 0;
+      for (const [coord] of block.coordIdMap) {
+        if (!this.coordIsInBoostArea(coord)) {
+          continue;
+        }
+        num += 1;
+      }
+      return m + num;
+    }, 0);
   }
 
   private calcPuyoTsukaiCount(

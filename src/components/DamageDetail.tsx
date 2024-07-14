@@ -1,6 +1,10 @@
 import type React from 'react';
 import type { Chain } from '../logics/Chain';
-import { PuyoAttribute, getPuyoAttributeName } from '../logics/PuyoAttribute';
+import {
+  type PuyoAttribute,
+  getPuyoAttributeName
+} from '../logics/PuyoAttribute';
+import { Simulator } from '../logics/Simulator';
 import styles from './DamageDetail.module.css';
 
 interface IProps {
@@ -29,17 +33,9 @@ const DamageDetail: React.FC<IProps> = (props) => {
       };
     });
 
-  const totalDamageByPrism = chains
-    .map((chain) => {
-      return chain.attributes[PuyoAttribute.Prism];
-    })
-    .reduce((m, attributeChain) => {
-      return m + (attributeChain?.strength ?? 0);
-    }, 0);
-
-  const totalAttrDamage = (
-    totalDamageByPrism +
-    chainsByAttr.reduce((m, chain) => m + chain.attributeChain.strength, 0)
+  const totalAttrDamage = Simulator.calcTotalDamageOfTargetAttr(
+    chains,
+    attr
   ).toFixed(2);
 
   const totalAttrPoppedNum = chainsByAttr.reduce(

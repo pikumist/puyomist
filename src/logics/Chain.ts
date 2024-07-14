@@ -19,7 +19,9 @@ export interface Chain {
   chainNum: number;
   /** 同時消しのぷよ数(同時消しダメージに影響する数) */
   poppedPuyoNum: number;
-  /** ぷよ使いイベントでカウントされるぷよ数 (ハートが含まれブーストエリアも加味される。なぞって直接消えた分は含まれない) */
+  /** ブーストエリアで内で消したぷよ(色ぷよ、ハート、プリズム、おじゃま)の数 (プラスぷよは2個としてカウント) */
+  boostCount: number;
+  /** ぷよ使いイベントでカウントされるぷよ数 */
   puyoTsukaiCount: number;
   /** ぷよ属性ごとの連鎖情報 */
   attributes: Record<PuyoAttribute, AttributeChain>;
