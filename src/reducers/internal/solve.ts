@@ -1,4 +1,5 @@
 import { releaseProxy } from 'comlink';
+import pLimit from 'p-limit';
 import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import type { SimulationData } from '../../logics/SimulationData';
 import type { ExplorationResult, SolutionResult } from '../../logics/solution';
@@ -17,17 +18,22 @@ export const createSolveAllInParallel =
   async () => {
     const startTime = Date.now();
 
+    const limit = pLimit(window.navigator.hardwareConcurrency || 1);
+
     const solutionsByIndexs = await Promise.all(
       [...new Array(48)].map((_, i) => {
-        const { workerInstance, workerProxy } = createWorker();
-        return workerProxy
-          .solveIncludingTraceIndex(simulationData, explorationTarget, i)
-          .then((result) => {
-            console.log(i, result?.candidatesNum, `${result?.elapsedTime}ms`);
-            workerProxy[releaseProxy]();
-            workerInstance.terminate();
-            return result;
-          });
+        return limit(async () => {
+          const { workerInstance, workerProxy } = createWorker();
+          const result = await workerProxy.solveIncludingTraceIndex(
+            simulationData,
+            explorationTarget,
+            i
+          );
+          console.log(i, result?.candidatesNum, `${result?.elapsedTime}ms`);
+          workerProxy[releaseProxy]();
+          workerInstance.terminate();
+          return result;
+        });
       })
     );
 
