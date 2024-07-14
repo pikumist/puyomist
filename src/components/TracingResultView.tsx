@@ -17,6 +17,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
   const lastCoords = lastTraceCoords?.map((c) => c.toCellAddr()).join(',');
+  const boostCount = chains ? Simulator.calcTotalBoostCount(chains) : '';
   const puyoTsukaiCount = chains
     ? Simulator.calcTotalPuyoTsukaiCount(chains)
     : '';
@@ -25,6 +26,7 @@ const TracingResultView: React.FC<IProps> = (props) => {
     <div>
       <div>現在なぞり: {coords}</div>
       <div>最後のなぞり: {lastCoords}</div>
+      <div>ブーストカウント: {boostCount}</div>
       <div>ぷよ使いカウント: {puyoTsukaiCount}</div>
       {[
         PuyoAttribute.Red,

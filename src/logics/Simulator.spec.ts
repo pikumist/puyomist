@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Board } from './Board';
+import type { AttributeChain, Chain } from './Chain';
 import { __resetPuyoIdCount } from './Puyo';
 import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
+import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { B, E, G, H, P, R, W, Y } from './boards/alias';
+
+const Rp = PuyoType.RedPlus;
+const Bp = PuyoType.BluePlus;
+const Gp = PuyoType.GreenPlus;
+const Yp = PuyoType.YellowPlus;
+const Pp = PuyoType.PurplePlus;
 
 describe('Simulator', () => {
   beforeEach(() => {
@@ -289,6 +297,7 @@ describe('Simulator', () => {
           {
             chainNum: 1,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -305,6 +314,7 @@ describe('Simulator', () => {
           {
             chainNum: 2,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -321,6 +331,7 @@ describe('Simulator', () => {
           {
             chainNum: 3,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -337,6 +348,7 @@ describe('Simulator', () => {
           {
             chainNum: 4,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Yellow]: {
@@ -353,6 +365,7 @@ describe('Simulator', () => {
           {
             chainNum: 5,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -369,6 +382,7 @@ describe('Simulator', () => {
           {
             chainNum: 6,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -390,6 +404,7 @@ describe('Simulator', () => {
           {
             chainNum: 7,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -406,6 +421,7 @@ describe('Simulator', () => {
           {
             chainNum: 8,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -427,6 +443,7 @@ describe('Simulator', () => {
           {
             chainNum: 9,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -443,6 +460,7 @@ describe('Simulator', () => {
           {
             chainNum: 10,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Yellow]: {
@@ -464,6 +482,7 @@ describe('Simulator', () => {
           {
             chainNum: 11,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -480,6 +499,7 @@ describe('Simulator', () => {
           {
             chainNum: 12,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -496,6 +516,7 @@ describe('Simulator', () => {
           {
             chainNum: 13,
             poppedPuyoNum: 3,
+            boostCount: 0,
             puyoTsukaiCount: 3,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -512,6 +533,7 @@ describe('Simulator', () => {
           {
             chainNum: 14,
             poppedPuyoNum: 10,
+            boostCount: 0,
             puyoTsukaiCount: 10,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -556,6 +578,7 @@ describe('Simulator', () => {
           {
             chainNum: 1,
             poppedPuyoNum: 6,
+            boostCount: 0,
             puyoTsukaiCount: 7,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -577,6 +600,7 @@ describe('Simulator', () => {
           {
             chainNum: 2,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -593,6 +617,7 @@ describe('Simulator', () => {
           {
             chainNum: 3,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Yellow]: {
@@ -609,6 +634,7 @@ describe('Simulator', () => {
           {
             chainNum: 4,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -625,6 +651,7 @@ describe('Simulator', () => {
           {
             chainNum: 5,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -641,6 +668,7 @@ describe('Simulator', () => {
           {
             chainNum: 6,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -657,6 +685,7 @@ describe('Simulator', () => {
           {
             chainNum: 7,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
@@ -673,6 +702,7 @@ describe('Simulator', () => {
           {
             chainNum: 8,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -689,6 +719,7 @@ describe('Simulator', () => {
           {
             chainNum: 9,
             poppedPuyoNum: 4,
+            boostCount: 0,
             puyoTsukaiCount: 4,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -705,6 +736,7 @@ describe('Simulator', () => {
           {
             chainNum: 10,
             poppedPuyoNum: 13,
+            boostCount: 0,
             puyoTsukaiCount: 13,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -745,6 +777,7 @@ describe('Simulator', () => {
           {
             chainNum: 1,
             poppedPuyoNum: 9,
+            boostCount: 0,
             puyoTsukaiCount: 9,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -766,6 +799,7 @@ describe('Simulator', () => {
           {
             chainNum: 2,
             poppedPuyoNum: 12,
+            boostCount: 0,
             puyoTsukaiCount: 12,
             attributes: {
               [PuyoAttribute.Blue]: {
@@ -787,6 +821,7 @@ describe('Simulator', () => {
           {
             chainNum: 3,
             poppedPuyoNum: 11,
+            boostCount: 0,
             puyoTsukaiCount: 11,
             attributes: {
               [PuyoAttribute.Green]: {
@@ -808,6 +843,7 @@ describe('Simulator', () => {
           {
             chainNum: 4,
             poppedPuyoNum: 8,
+            boostCount: 0,
             puyoTsukaiCount: 8,
             attributes: {
               [PuyoAttribute.Red]: {
@@ -828,14 +864,100 @@ describe('Simulator', () => {
             allCleared: true
           }
         ]
+      },
+      {
+        maxTraceNum: 5,
+        poppingLeverage: 1.0,
+        // アルルのエリア
+        boostAreaCoordList: ['E2', 'D3', 'E3', 'D4', 'E4', 'D5', 'E6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        board: {
+          field: [
+            [H, R, R, G, P, B, H, B],
+            [H, P, B, B, G, R, P, G],
+            [G, P, R, Gp, H, Y, B, G],
+            [G, P, R, R, P, B, B, Y],
+            [B, P, R, G, R, Y, Y, P],
+            [P, B, P, G, P, G, P, R]
+          ],
+          nextPuyos: [Pp, Pp, Pp, Rp, Yp, Yp, Pp, Bp],
+          isChanceMode: false
+        } satisfies Board,
+        traceCoords: [
+          PuyoCoord.cellAddrToCoord('C3'),
+          PuyoCoord.cellAddrToCoord('D4'),
+          PuyoCoord.cellAddrToCoord('E4'),
+          PuyoCoord.cellAddrToCoord('E5'),
+          PuyoCoord.cellAddrToCoord('F4')
+        ],
+        expected: [
+          {
+            chainNum: 1,
+            poppedPuyoNum: 9,
+            boostCount: 4,
+            puyoTsukaiCount: 19,
+            attributes: {
+              [PuyoAttribute.Green]: {
+                strength: 1.75,
+                poppedNum: 5,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Purple]: {
+                strength: 1.75,
+                poppedNum: 4,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Heart]: {
+                strength: 0,
+                poppedNum: 2,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              separatedBlocksNum: 2,
+              strength: 3.5
+            }
+          },
+          {
+            chainNum: 2,
+            poppedPuyoNum: 10,
+            boostCount: 4,
+            puyoTsukaiCount: 18,
+            attributes: {
+              [PuyoAttribute.Red]: {
+                strength: 2.6599999999999997,
+                poppedNum: 5,
+                separatedBlocksNum: 1
+              },
+              [PuyoAttribute.Yellow]: {
+                strength: 2.6599999999999997,
+                poppedNum: 5,
+                separatedBlocksNum: 1
+              }
+            },
+            wild: {
+              strength: 5.319999999999999,
+              separatedBlocksNum: 2
+            }
+          }
+        ]
       }
     ])(
       'should calculate chains',
-      ({ maxTraceNum, poppingLeverage, board, traceCoords, expected }) => {
+      ({
+        maxTraceNum,
+        poppingLeverage,
+        boostAreaCoordList,
+        board,
+        traceCoords,
+        expected
+      }) => {
         // Arrange
         const simulationData = createSimulationData(board, {
           maxTraceNum,
-          poppingLeverage
+          poppingLeverage,
+          boostAreaCoordList
         });
         const simulator = new Simulator(simulationData);
         simulator.setTraceCoords(traceCoords as PuyoCoord[]);
@@ -848,5 +970,128 @@ describe('Simulator', () => {
         expect(chains).toEqual(expected);
       }
     );
+  });
+
+  describe('calcTotalDamageOfTargetAttr()', () => {
+    it('should take account of boostCount', () => {
+      // Arrange
+      const chains: Chain[] = [
+        {
+          chainNum: 1,
+          poppedPuyoNum: 9,
+          boostCount: 4,
+          puyoTsukaiCount: 19,
+          attributes: {
+            [PuyoAttribute.Green]: {
+              strength: 1.75,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Purple]: {
+              strength: 1.75,
+              poppedNum: 4,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Heart]: {
+              strength: 0,
+              poppedNum: 2,
+              separatedBlocksNum: 1
+            }
+          } as Record<PuyoAttribute, AttributeChain>,
+          wild: {
+            separatedBlocksNum: 2,
+            strength: 3.5
+          }
+        },
+        {
+          chainNum: 2,
+          poppedPuyoNum: 10,
+          boostCount: 4,
+          puyoTsukaiCount: 18,
+          attributes: {
+            [PuyoAttribute.Red]: {
+              strength: 2.6599999999999997,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Yellow]: {
+              strength: 2.6599999999999997,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            }
+          } as Record<PuyoAttribute, AttributeChain>,
+          wild: {
+            strength: 5.319999999999999,
+            separatedBlocksNum: 2
+          }
+        }
+      ];
+
+      // Act
+      const actualRed = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Red
+      );
+      const actualBlue = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Blue
+      );
+      const actualGreen = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Green
+      );
+      const actualYellow = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Yellow
+      );
+      const actualPurple = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Purple
+      );
+
+      // Assert
+      expect(actualRed).toBe(3.5111999999999997);
+      expect(actualBlue).toBe(0);
+      expect(actualGreen).toBe(2.31);
+      expect(actualYellow).toBe(3.5111999999999997);
+      expect(actualPurple).toBe(2.31);
+    });
+
+    it.each([
+      { boostCount: 0, expected: 1.0 },
+      { boostCount: 1, expected: 1.04 },
+      { boostCount: 50, expected: 3.0 },
+      { boostCount: 51, expected: 3.0 }
+    ])('boostRatio should be up to 3.0', ({ boostCount, expected }) => {
+      // Arrange
+      const chains: Chain[] = [
+        {
+          chainNum: 1,
+          poppedPuyoNum: 4,
+          boostCount,
+          puyoTsukaiCount: 0,
+          attributes: {
+            [PuyoAttribute.Red]: {
+              strength: 1,
+              poppedNum: 4,
+              separatedBlocksNum: 1
+            }
+          } as Record<PuyoAttribute, AttributeChain>,
+          wild: {
+            separatedBlocksNum: 1,
+            strength: 1
+          }
+        }
+      ];
+
+      // Actual
+      const actual = Simulator.calcTotalDamageOfTargetAttr(
+        chains,
+        PuyoAttribute.Red
+      );
+
+      // Assert
+      expect(actual).toBe(expected);
+    });
   });
 });
