@@ -1,9 +1,4 @@
-import {
-  CloseIcon,
-  DeleteIcon,
-  HamburgerIcon,
-  SearchIcon
-} from '@chakra-ui/icons';
+import { HamburgerIcon } from '@chakra-ui/icons';
 import {
   Box,
   type BoxProps,
@@ -13,27 +8,18 @@ import {
   Flex,
   type FlexProps,
   HStack,
-  Icon,
   IconButton,
   Stack,
   Text,
-  Tooltip,
   useColorModeValue,
   useDisclosure
 } from '@chakra-ui/react';
-import { FaPlay, FaRotateRight } from 'react-icons/fa6';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { customBoardId } from '../logics/boards';
-import {
-  boardResetButtonClicked,
-  playSolutionButtonClicked,
-  solutionResetButtonClicked,
-  solveButtonClicked,
-  solveCancelButtonClicked
-} from '../reducers/puyoAppSlice';
-import type { AppDispatch, RootState } from '../reducers/store';
+import type { RootState } from '../reducers/store';
 import PuyoBoard from './PuyoBoard';
 import ScreenshotCanvas from './ScreenshotCanvas';
+import SolutionMenu from './SolutionMenu';
 import SolutionResultView from './SolutionResultView';
 import TracingResultView from './TracingResultView';
 import AnimationDurationInput from './settings/AnimationDurationInput';
@@ -66,23 +52,6 @@ const PuyoApp: React.FC = () => {
     lastTraceCoords,
     chains
   } = state;
-  const dispatch = useDispatch<AppDispatch>();
-
-  const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
-
-  const onSolutionResetButtonClicked = () =>
-    dispatch(solutionResetButtonClicked());
-
-  const onPlaySolutionButtonClicked = () =>
-    dispatch(playSolutionButtonClicked());
-
-  const onSolveOrCancelButtonClicked = () => {
-    if (solving) {
-      dispatch(solveCancelButtonClicked());
-    } else {
-      dispatch(solveButtonClicked());
-    }
-  };
 
   return (
     <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
@@ -125,42 +94,7 @@ const PuyoApp: React.FC = () => {
           <PuyoBoard width={395} />
           <HStack align="top" spacing="4">
             <Box>
-              <HStack spacing="1">
-                <Tooltip label={!solving ? '最適解を探索' : '探索をキャンセル'}>
-                  <IconButton
-                    variant="outline"
-                    aria-label={!solving ? '最適解を探索' : '探索をキャンセル'}
-                    icon={!solving ? <SearchIcon /> : <CloseIcon />}
-                    onClick={onSolveOrCancelButtonClicked}
-                  />
-                </Tooltip>
-                <Tooltip label="探索結果クリア">
-                  <IconButton
-                    variant="outline"
-                    aria-label="探索結果クリア"
-                    icon={<DeleteIcon />}
-                    isDisabled={Boolean(!explorationResult)}
-                    onClick={onSolutionResetButtonClicked}
-                  />
-                </Tooltip>
-                <Tooltip label="解でなぞり">
-                  <IconButton
-                    variant="outline"
-                    aria-label="解でなぞり"
-                    icon={<Icon as={FaPlay} />}
-                    isDisabled={Boolean(!explorationResult)}
-                    onClick={onPlaySolutionButtonClicked}
-                  />
-                </Tooltip>
-                <Tooltip label="盤面リセット">
-                  <IconButton
-                    variant="outline"
-                    aria-label="盤面リセット"
-                    icon={<Icon as={FaRotateRight} />}
-                    onClick={onBoardRestButtonCliecked}
-                  />
-                </Tooltip>
-              </HStack>
+              <SolutionMenu solving={solving} result={explorationResult} />
               <SolutionResultView
                 solving={solving}
                 result={explorationResult}
