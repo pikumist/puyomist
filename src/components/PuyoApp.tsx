@@ -90,7 +90,10 @@ const PuyoApp: React.FC = () => {
           <Stack>
             <HStack align="top" spacing={{ base: '4', lg: '6' }}>
               <Box>
-                <HStack maxW={{ base: '360px', lg: '395px', xl: '500px' }}>
+                <HStack
+                  maxW={{ base: '360px', lg: '395px', xl: '500px' }}
+                  mb="1"
+                >
                   <BoardSelector boardId={boardId} />
                   <NextSelector
                     disabled={boardId === customBoardId}

@@ -16,6 +16,7 @@ import {
   RadioGroup,
   Select,
   SimpleGrid,
+  Stack,
   Text,
   Tooltip,
   useBoolean
@@ -100,22 +101,6 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
         <PopoverHeader>
           <HStack>
             <Text>盤面編集</Text>
-            <HStack ml="auto" mr="8">
-              <Button
-                hidden={!isBoardEditing}
-                size="sm"
-                onClick={onEditEndButtonClicked}
-              >
-                終了
-              </Button>
-              <Button
-                hidden={isBoardEditing}
-                size="sm"
-                onClick={onEditStartButtonClicked}
-              >
-                開始
-              </Button>
-            </HStack>
           </HStack>
         </PopoverHeader>
         <PopoverBody>
@@ -164,6 +149,25 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
               </SimpleGrid>
             </RadioGroup>
           ) : null}
+
+          <Stack mt="2">
+            <HStack ml="auto">
+              <Button
+                hidden={!isBoardEditing}
+                size="sm"
+                onClick={onEditEndButtonClicked}
+              >
+                編集終了
+              </Button>
+              <Button
+                hidden={isBoardEditing}
+                size="sm"
+                onClick={onEditStartButtonClicked}
+              >
+                編集開始
+              </Button>
+            </HStack>
+          </Stack>
         </PopoverBody>
       </PopoverContent>
     </Popover>
