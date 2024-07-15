@@ -1,3 +1,4 @@
+import { type ResponsiveValue, useBreakpointValue } from '@chakra-ui/react';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,7 +26,7 @@ import {
 import { H, W, fw } from './board-parts/logics/measurements';
 
 interface IProps {
-  width?: number;
+  width: ResponsiveValue<number>;
 }
 
 /** ぷよの盤面を描画するSVG */
@@ -36,6 +37,9 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   );
   const dispatch = useDispatch<AppDispatch>();
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  const responsiveWidth =
+    typeof width !== 'number' ? useBreakpointValue(width) : width;
 
   const {
     isBoardEditing,
@@ -49,7 +53,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
   const [touching, setTouching] = useState(false);
 
-  const ratio = (width ?? W) / W;
+  const ratio = (responsiveWidth ?? W) / W;
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || animating) {

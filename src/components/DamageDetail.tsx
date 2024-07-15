@@ -1,10 +1,7 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import type React from 'react';
 import type { Chain } from '../logics/Chain';
-import {
-  type PuyoAttribute,
-  getPuyoAttributeName
-} from '../logics/PuyoAttribute';
+import type { PuyoAttribute } from '../logics/PuyoAttribute';
 import { Simulator } from '../logics/Simulator';
 import PuyoIcon from './PuyoIcon';
 
@@ -14,13 +11,14 @@ interface IProps {
 
   /** 全連鎖情報 */
   chains: Chain[];
+
+  /** 2行表示にするかどうか */
+  isTwoLine: boolean;
 }
 
 /** あるぷよ色におけるダメージ詳細 */
 const DamageDetail: React.FC<IProps> = (props) => {
-  const { chains, attr } = props;
-  const attrName = getPuyoAttributeName(attr);
-
+  const { chains, attr, isTwoLine } = props;
   const chainsByAttr = chains
     .filter((chain) => {
       const attributeChain = chain.attributes[attr];
@@ -54,15 +52,20 @@ const DamageDetail: React.FC<IProps> = (props) => {
       <HStack spacing="1">
         <PuyoIcon position="relative" top="1px" size={18} attr={attr} />
         <Text>
-          {attrName}: <Text as="span">{totalAttrDamage}</Text>{' '}
+          <Text as="span">{totalAttrDamage}</Text>{' '}
           <Text as="span" fontSize="xs">
             ({totalAttrPoppedNum}個)
           </Text>
         </Text>
+        {!isTwoLine ? (
+          <Text fontSize="xs">&nbsp;{cspList.join(', ')}</Text>
+        ) : null}
       </HStack>
-      <Text ml="4" fontSize="xs">
-        &nbsp;{cspList.join(', ')}
-      </Text>
+      {isTwoLine ? (
+        <Text ml="4" fontSize="xs">
+          &nbsp;{cspList.join(', ')}
+        </Text>
+      ) : null}
     </Box>
   );
 };

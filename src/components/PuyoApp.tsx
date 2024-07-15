@@ -10,6 +10,7 @@ import {
   HStack,
   IconButton,
   Progress,
+  Show,
   Stack,
   Text,
   useColorModeValue,
@@ -79,45 +80,63 @@ const PuyoApp: React.FC = () => {
       {/* For mobile */}
       <MobileNav display={{ base: 'flex', md: 'none' }} onOpen={onOpen} />
 
-      <Box ml={{ base: 0, md: 80 }} p="4">
+      <Box
+        ml={{ base: 0, md: 80 }}
+        p={{ base: '4', lg: '8', xl: '10' }}
+        fontSize={{ base: '1em', xl: '1.15em' }}
+      >
         {/* Content */}
-        <Stack>
-          <HStack align="top" spacing="4">
+        <Stack align={{ base: 'center', md: 'start', lg: 'center' }}>
+          <Stack>
+            <HStack align="top" spacing={{ base: '4', lg: '6' }}>
+              <Box>
+                <HStack maxW={{ base: '360px', lg: '395px', xl: '500px' }}>
+                  <BoardSelector boardId={boardId} />
+                  <NextSelector
+                    disabled={boardId === customBoardId}
+                    nextSelection={nextSelection}
+                  />
+                  <BoardEditPopover
+                    isBoardEditing={isBoardEditing}
+                    boardEditMode={boardEditMode}
+                    ml={'auto'}
+                  />
+                </HStack>
+                <PuyoBoard width={{ base: 360, lg: 395, xl: 500 }} />
+              </Box>
+              <Show above="sm">
+                <TracingResultView
+                  minW={{ base: '9em' }}
+                  isDamageTwoLine
+                  hasBoostArea={hasBoostArea}
+                  tracingCoords={simulationData.traceCoords}
+                  lastTraceCoords={lastTraceCoords}
+                  chains={chains}
+                />
+              </Show>
+            </HStack>
             <Box>
-              <HStack maxW="395">
-                <BoardSelector boardId={boardId} />
-                <NextSelector
-                  disabled={boardId === customBoardId}
-                  nextSelection={nextSelection}
+              <Show below="sm">
+                <TracingResultView
+                  mb="2"
+                  isDamageTwoLine={false}
+                  hasBoostArea={hasBoostArea}
+                  tracingCoords={simulationData.traceCoords}
+                  lastTraceCoords={lastTraceCoords}
+                  chains={chains}
                 />
-                <BoardEditPopover
-                  isBoardEditing={isBoardEditing}
-                  boardEditMode={boardEditMode}
-                  ml={'auto'}
-                />
-              </HStack>
-              <PuyoBoard width={395} />
+              </Show>
+              <SolutionMenu solving={solving} result={explorationResult} />
+              <Progress
+                w="172px"
+                mt="1"
+                size="xs"
+                visibility={solving ? 'visible' : 'hidden'}
+                isIndeterminate={solving}
+              />
+              <SolutionResultView result={explorationResult} />
             </Box>
-            <TracingResultView
-              mt="40px"
-              minW="140px"
-              hasBoostArea={hasBoostArea}
-              tracingCoords={simulationData.traceCoords}
-              lastTraceCoords={lastTraceCoords}
-              chains={chains}
-            />
-          </HStack>
-          <Box>
-            <SolutionMenu solving={solving} result={explorationResult} />
-            <Progress
-              w="172px"
-              mt="1"
-              size="xs"
-              visibility={solving ? 'visible' : 'hidden'}
-              isIndeterminate={solving}
-            />
-            <SolutionResultView result={explorationResult} />
-          </Box>
+          </Stack>
         </Stack>
       </Box>
     </Box>
