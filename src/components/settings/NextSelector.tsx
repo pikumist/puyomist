@@ -23,8 +23,7 @@ const NextSelector: React.FC<IProps> = (props) => {
   return (
     <Select
       aria-label="ネクストぷよの選択"
-      w="6.5em"
-      size="sm"
+      w="7em"
       disabled={disabled}
       value={nextSelection}
       onChange={onChanged}

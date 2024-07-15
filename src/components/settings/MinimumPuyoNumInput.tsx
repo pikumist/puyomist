@@ -32,11 +32,10 @@ const MinimumPuyoNumInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text fontSize="sm">ぷよが消えるのに必要な個数:</Text>
+        <Text>ぷよが消えるのに必要な個数:</Text>
       </Box>
       <NumberInput
         width="4em"
-        size="sm"
         value={num}
         step={1}
         min={3}

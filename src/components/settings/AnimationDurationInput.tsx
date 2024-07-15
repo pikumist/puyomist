@@ -29,11 +29,10 @@ const AnimationDurationInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text fontSize="sm">ステップ時間間隔(ms):</Text>
+        <Text>ステップ時間間隔(ms):</Text>
       </Box>
       <NumberInput
-        width="5em"
-        size="sm"
+        width="6em"
         value={duration}
         step={100}
         min={0}

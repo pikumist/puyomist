@@ -29,11 +29,10 @@ const ChainLeverageInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text fontSize="sm">連鎖倍率:</Text>
+        <Text>連鎖倍率:</Text>
       </Box>
       <NumberInput
-        width="5em"
-        size="sm"
+        width="5.5em"
         value={leverage.toFixed(1)}
         step={0.1}
         min={1.0}

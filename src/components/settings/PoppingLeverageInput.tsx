@@ -29,11 +29,10 @@ const PoppingLeverageInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text fontSize="sm">同時消し倍率:</Text>
+        <Text>同時消し倍率:</Text>
       </Box>
       <NumberInput
         width="4.5em"
-        size="sm"
         value={leverage.toFixed(1)}
         step={0.1}
         min={1.0}

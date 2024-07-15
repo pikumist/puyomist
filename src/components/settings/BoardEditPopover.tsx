@@ -99,7 +99,7 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
         <PopoverCloseButton />
         <PopoverHeader>
           <HStack>
-            <Text size="sm">盤面編集</Text>
+            <Text>盤面編集</Text>
             <HStack ml="auto" mr="8">
               <Button
                 hidden={!isBoardEditing}
@@ -122,8 +122,7 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
           <HStack>
             <Text fontSize="sm">モード:</Text>
             <Select
-              w="11em"
-              size="sm"
+              w="13em"
               value={boardEditMode?.howToEdit}
               onChange={onHowToEditItemSelected}
             >

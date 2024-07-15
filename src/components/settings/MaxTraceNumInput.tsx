@@ -29,11 +29,10 @@ const MaxTraceNumInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text fontSize="sm">最大なぞり消し数:</Text>
+        <Text>最大なぞり消し数:</Text>
       </Box>
       <NumberInput
-        width="4em"
-        size="sm"
+        width="4.5em"
         value={maxTraceNum}
         step={1}
         min={1}

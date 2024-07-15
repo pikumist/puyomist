@@ -82,11 +82,10 @@ const CategorySelector: React.FC<{
 
   return (
     <HStack>
-      <Text fontSize="sm">探索対象:</Text>
+      <Text>探索対象:</Text>
       <Select
         aria-label="探索対象の選択"
-        w="10em"
-        size="sm"
+        w="11em"
         value={category}
         onChange={onChanged}
       >
@@ -117,11 +116,10 @@ const AllClearPreferenceSelector: React.FC<{
 
   return (
     <HStack>
-      <Text fontSize="sm">全消し優先:</Text>
+      <Text>全消し優先:</Text>
       <Select
         aria-label="全消し優先の選択"
-        w="8em"
-        size="sm"
+        w="9em"
         value={preference}
         onChange={onChanged}
       >
@@ -152,11 +150,10 @@ const ChancePopPreferenceSelector: React.FC<{
 
   return (
     <HStack>
-      <Text fontSize="sm">チャンスぷよ消し優先:</Text>
+      <Text>チャンスぷよ消し優先:</Text>
       <Select
         aria-label="チャンスぷよ消し優先の選択"
-        w="8em"
-        size="sm"
+        w="9em"
         value={preference}
         onChange={onChanged}
       >
@@ -232,11 +229,10 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
   return (
     <Stack spacing="0">
       <HStack>
-        <Text fontSize="sm">主属性:</Text>
+        <Text>主属性:</Text>
         <Select
           aria-label="主属性の選択"
-          w="6em"
-          size="sm"
+          w="7em"
           value={target.mainAttr}
           onChange={onDamageMainAttrSelected}
         >
@@ -253,11 +249,10 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
       </HStack>
 
       <HStack>
-        <Text fontSize="sm">副属性:</Text>
+        <Text>副属性:</Text>
         <Select
           aria-label="副属性の選択"
-          w="4em"
-          size="sm"
+          w="5em"
           value={target.subAttr ?? notAvailable}
           isDisabled={target.mainAttr === wildAttribute}
           onChange={onDamageSubAttrSelected}
@@ -276,11 +271,10 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
 
       {target.subAttr ? (
         <HStack>
-          <Text fontSize="sm">副属性のダメージ率:</Text>
+          <Text>副属性のダメージ率:</Text>
           <Select
             aria-label="副属性のダメージ率の選択"
             w="5em"
-            size="sm"
             value={target.mainSubRatio}
             onChange={onDamageMainSubRatioSelected}
           >
@@ -338,11 +332,10 @@ const SkilPuyoCountSetting: React.FC<{
   return (
     <Stack spacing="0">
       <HStack>
-        <Text fontSize="sm">主属性:</Text>
+        <Text>主属性:</Text>
         <Select
           aria-label="主属性の選択"
           w="6em"
-          size="sm"
           value={target.mainAttr}
           onChange={onCountMainAttrSelected}
         >
@@ -355,8 +348,7 @@ const SkilPuyoCountSetting: React.FC<{
       </HStack>
 
       <Checkbox
-        w="7em"
-        size="sm"
+        w="8em"
         checked={target.countingBonus?.type === CountingBonusType.Step}
         onChange={onCountBonusCheckChanged}
       >
@@ -367,11 +359,10 @@ const SkilPuyoCountSetting: React.FC<{
         <Stack spacing="0">
           {/* TODO: 項目の追加・削除に対応する */}
           <HStack>
-            <Text fontSize="sm">ボーナス属性:</Text>
+            <Text>ボーナス属性:</Text>
             <Select
               aria-label="ボーナス属性の選択"
-              w="6.5em"
-              size="sm"
+              w="7em"
               value={target.countingBonus?.targetAttrs?.[0]}
               onChange={onCountStepTargetAttrSelected}
             >
@@ -384,10 +375,9 @@ const SkilPuyoCountSetting: React.FC<{
           </HStack>
 
           <HStack>
-            <Text fontSize="sm">段高:</Text>
+            <Text>段高:</Text>
             <NumberInput
-              width="4em"
-              size="sm"
+              width="5em"
               value={target.countingBonus?.stepHeight}
               step={1}
               min={1}
@@ -403,7 +393,7 @@ const SkilPuyoCountSetting: React.FC<{
           </HStack>
 
           <HStack>
-            <Text fontSize="sm">ボーナス数:</Text>
+            <Text>ボーナス数:</Text>
             <NumberInput
               width="4em"
               size="sm"
@@ -422,8 +412,7 @@ const SkilPuyoCountSetting: React.FC<{
           </HStack>
 
           <Checkbox
-            w="7em"
-            size="sm"
+            w="8em"
             checked={target.countingBonus?.repeat}
             onChange={onBonusStepRepeatCheckChanged}
           >

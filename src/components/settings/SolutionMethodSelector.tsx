@@ -24,11 +24,10 @@ const SolutionMethodSelector: React.FC<IProps> = (props) => {
 
   return (
     <HStack>
-      <Text fontSize="sm">探索法:</Text>
+      <Text>探索法:</Text>
       <Select
         aria-label="探索法の選択"
-        w="12em"
-        size="sm"
+        w="14em"
         value={method}
         onChange={onChanged}
       >
