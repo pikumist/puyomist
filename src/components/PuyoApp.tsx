@@ -9,6 +9,7 @@ import {
   type FlexProps,
   HStack,
   IconButton,
+  Progress,
   Stack,
   Text,
   useColorModeValue,
@@ -44,6 +45,7 @@ const PuyoApp: React.FC = () => {
   const {
     boardId,
     nextSelection,
+    boostAreaKeyList,
     isBoardEditing,
     boardEditMode,
     explorationResult,
@@ -52,6 +54,7 @@ const PuyoApp: React.FC = () => {
     lastTraceCoords,
     chains
   } = state;
+  const hasBoostArea = boostAreaKeyList.length > 0;
 
   return (
     <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
@@ -79,33 +82,42 @@ const PuyoApp: React.FC = () => {
       <Box ml={{ base: 0, md: 80 }} p="4">
         {/* Content */}
         <Stack>
-          <HStack maxW="395">
-            <BoardSelector boardId={boardId} />
-            <NextSelector
-              disabled={boardId === customBoardId}
-              nextSelection={nextSelection}
-            />
-            <BoardEditPopover
-              isBoardEditing={isBoardEditing}
-              boardEditMode={boardEditMode}
-              ml={'auto'}
-            />
-          </HStack>
-          <PuyoBoard width={395} />
           <HStack align="top" spacing="4">
             <Box>
-              <SolutionMenu solving={solving} result={explorationResult} />
-              <SolutionResultView
-                solving={solving}
-                result={explorationResult}
-              />
+              <HStack maxW="395">
+                <BoardSelector boardId={boardId} />
+                <NextSelector
+                  disabled={boardId === customBoardId}
+                  nextSelection={nextSelection}
+                />
+                <BoardEditPopover
+                  isBoardEditing={isBoardEditing}
+                  boardEditMode={boardEditMode}
+                  ml={'auto'}
+                />
+              </HStack>
+              <PuyoBoard width={395} />
             </Box>
             <TracingResultView
+              mt="40px"
+              minW="140px"
+              hasBoostArea={hasBoostArea}
               tracingCoords={simulationData.traceCoords}
               lastTraceCoords={lastTraceCoords}
               chains={chains}
             />
           </HStack>
+          <Box>
+            <SolutionMenu solving={solving} result={explorationResult} />
+            <Progress
+              w="172px"
+              mt="1"
+              size="xs"
+              visibility={solving ? 'visible' : 'hidden'}
+              isIndeterminate={solving}
+            />
+            <SolutionResultView result={explorationResult} />
+          </Box>
         </Stack>
       </Box>
     </Box>

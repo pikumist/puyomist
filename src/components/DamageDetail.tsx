@@ -1,3 +1,4 @@
+import { Box, HStack, Text } from '@chakra-ui/react';
 import type React from 'react';
 import type { Chain } from '../logics/Chain';
 import {
@@ -5,7 +6,7 @@ import {
   getPuyoAttributeName
 } from '../logics/PuyoAttribute';
 import { Simulator } from '../logics/Simulator';
-import styles from './DamageDetail.module.css';
+import PuyoIcon from './PuyoIcon';
 
 interface IProps {
   /** ダメージ表示するぷよの属性 */
@@ -49,11 +50,20 @@ const DamageDetail: React.FC<IProps> = (props) => {
   });
 
   return (
-    <div>
-      {attrName}: <span>{totalAttrDamage}</span>{' '}
-      <span className={styles.poppedNum}>({totalAttrPoppedNum}個)</span>
-      <span className={styles.appendix}>{cspList.join(', ')}</span>
-    </div>
+    <Box>
+      <HStack spacing="1">
+        <PuyoIcon position="relative" top="1px" size={18} attr={attr} />
+        <Text>
+          {attrName}: <Text as="span">{totalAttrDamage}</Text>{' '}
+          <Text as="span" fontSize="xs">
+            ({totalAttrPoppedNum}個)
+          </Text>
+        </Text>
+      </HStack>
+      <Text ml="4" fontSize="xs">
+        &nbsp;{cspList.join(', ')}
+      </Text>
+    </Box>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Box, Progress, Text } from '@chakra-ui/react';
+import { Box, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
 import {
   ExplorationCategory,
@@ -10,11 +10,9 @@ import {
 } from '../logics/PuyoAttribute';
 import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
+import PuyoIcon from './PuyoIcon';
 
 interface SolutionResultViewProps {
-  /** 探索中かどうか */
-  solving: boolean;
-
   /** 解 */
   result: ExplorationResult | undefined;
 }
@@ -22,15 +20,10 @@ interface SolutionResultViewProps {
 /** 探索結果ビュー */
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
   (props) => {
-    const { solving, result } = props;
+    const { result } = props;
 
     return (
-      <Box mt="1">
-        <Progress
-          size="xs"
-          visibility={solving ? 'visible' : 'hidden'}
-          isIndeterminate={solving}
-        />
+      <>
         {result ? (
           <Box>
             <Text>
@@ -53,19 +46,25 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 optimalValue={result?.optimalSolution?.value}
               />
               {Simulator.colorAttrs.map((attr) => (
-                <Text key={attr}>
-                  {getPuyoAttributeName(attr)}:{' '}
-                  {result?.optimalSolution?.totalDamages[
-                    attr as ColoredPuyoAttribute
-                  ]?.toFixed(2)}
-                </Text>
+                <HStack key={attr} spacing="1">
+                  <PuyoIcon
+                    position="relative"
+                    top="1px"
+                    size={18}
+                    attr={attr}
+                  />
+                  <Text>
+                    {getPuyoAttributeName(attr)}:{' '}
+                    {result?.optimalSolution?.totalDamages[
+                      attr as ColoredPuyoAttribute
+                    ]?.toFixed(2)}
+                  </Text>
+                </HStack>
               ))}
             </Text>
           </Box>
-        ) : (
-          ''
-        )}
-      </Box>
+        ) : null}
+      </>
     );
   }
 );
