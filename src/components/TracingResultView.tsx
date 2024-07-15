@@ -1,4 +1,5 @@
-import type React from 'react';
+import { Box, Text } from '@chakra-ui/react';
+import React from 'react';
 import type { Chain } from '../logics/Chain';
 import { PuyoAttribute } from '../logics/PuyoAttribute';
 import type { PuyoCoord } from '../logics/PuyoCoord';
@@ -11,8 +12,8 @@ interface IProps {
   chains: Chain[];
 }
 
-/** なぞり消し結果View */
-const TracingResultView: React.FC<IProps> = (props) => {
+/** なぞり消し結果ビュー */
+const TracingResultView: React.FC<IProps> = React.memo((props) => {
   const { tracingCoords, lastTraceCoords, chains } = props;
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
@@ -23,11 +24,11 @@ const TracingResultView: React.FC<IProps> = (props) => {
     : '';
 
   return (
-    <div>
-      <div>現在なぞり: {coords}</div>
-      <div>最後のなぞり: {lastCoords}</div>
-      <div>ブーストカウント: {boostCount}</div>
-      <div>ぷよ使いカウント: {puyoTsukaiCount}</div>
+    <Box>
+      <Text>現在なぞり: {coords}</Text>
+      <Text>最後のなぞり: {lastCoords}</Text>
+      <Text>ブーストカウント: {boostCount}</Text>
+      <Text>ぷよ使いカウント: {puyoTsukaiCount}</Text>
       {[
         PuyoAttribute.Red,
         PuyoAttribute.Blue,
@@ -37,8 +38,8 @@ const TracingResultView: React.FC<IProps> = (props) => {
       ].map((attr) => (
         <DamageDetail key={attr} attr={attr} chains={chains} />
       ))}
-    </div>
+    </Box>
   );
-};
+});
 
 export default TracingResultView;
