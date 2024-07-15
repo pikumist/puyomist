@@ -109,7 +109,8 @@ const PuyoApp: React.FC = () => {
               </Box>
               <Show above="sm">
                 <TracingResultView
-                  minW={{ base: '9em' }}
+                  w={{ base: '9em' }}
+                  overflowX="auto"
                   isDamageTwoLine
                   hasBoostArea={hasBoostArea}
                   tracingCoords={simulationData.traceCoords}
