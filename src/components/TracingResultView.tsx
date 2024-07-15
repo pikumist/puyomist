@@ -5,11 +5,11 @@ import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
 import DamageDetail from './DamageDetail';
 
-type IProps = {
+interface IProps {
   tracingCoords: PuyoCoord[];
   lastTraceCoords: PuyoCoord[] | undefined;
   chains: Chain[];
-};
+}
 
 /** なぞり消し結果View */
 const TracingResultView: React.FC<IProps> = (props) => {

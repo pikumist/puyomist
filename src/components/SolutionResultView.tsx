@@ -11,13 +11,13 @@ import {
 import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
 
-type SolutionResultViewProps = {
+interface SolutionResultViewProps {
   /** 探索中かどうか */
   solving: boolean;
 
   /** 解 */
   result: ExplorationResult | undefined;
-};
+}
 
 /** 探索結果ビュー */
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(

@@ -2,10 +2,10 @@ import React from 'react';
 import type { Puyo } from '../../logics/Puyo';
 import HybridPuyo from './HybridPuyo';
 
-type PuyoMatrixProps = {
+interface PuyoMatrixProps {
   nextPuyos: (Puyo | undefined)[];
   field: (Puyo | undefined)[][];
-};
+}
 
 function* enumerateField(
   nextPuyos: (Puyo | undefined)[],

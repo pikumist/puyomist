@@ -13,10 +13,10 @@ import {
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
 
-type IProps = {
+interface IProps {
   solving: boolean;
   result: ExplorationResult | undefined;
-};
+}
 
 /** 探索系のメニュー */
 const SolutionMenu: React.FC<IProps> = React.memo((props) => {
