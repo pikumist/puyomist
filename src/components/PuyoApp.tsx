@@ -204,9 +204,9 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         <AnimationDurationInput duration={animationDuration} />
         <ExplorationTargetSetting target={explorationTarget} />
         <SolutionMethodSelector method={solutionMethod} />
-        <hr />
         <ScreenshotCanvas
-          maxWidth={100}
+          mt="2"
+          canvasMaxWidth={100}
           screenshotInfo={screenshotInfo}
           errorMessage={screenshotErrorMessage}
         />
