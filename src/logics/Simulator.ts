@@ -8,11 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {
-  type AnimationStep,
-  type FieldAndNext,
-  cloneFieldAndNext
-} from './AnimationStep';
+import { type AnimationStep, cloneFieldAndNext } from './AnimationStep';
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
 import {
@@ -32,7 +28,6 @@ import {
 import type { SimulationData } from './SimulationData';
 import { TraceMode } from './TraceMode';
 import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
-import { sleep } from './generics/sleep';
 
 /** 連鎖シミュレーター */
 export class Simulator {

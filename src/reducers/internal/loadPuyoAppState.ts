@@ -76,7 +76,6 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     animationSteps: [],
     activeAnimationStepIndex: -1,
     lastTraceCoords: undefined,
-    chains: [],
     solving: false,
     abortControllerForSolving: undefined,
     explorationResult: undefined,

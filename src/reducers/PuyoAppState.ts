@@ -1,8 +1,7 @@
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
-import type { AnimationStep, FieldAndNext } from '../logics/AnimationStep';
+import type { AnimationStep } from '../logics/AnimationStep';
 import type { Board } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
-import type { Chain } from '../logics/Chain';
 import {
   AllClearPreference,
   ChancePopPreference,
@@ -43,8 +42,6 @@ export interface PuyoAppState {
   activeAnimationStepIndex: number;
   /** 最後になぞり消しが発生した際のなぞり位置 */
   lastTraceCoords: PuyoCoord[] | undefined;
-  /** 全連鎖情報 */
-  chains: Chain[];
   /** 最適解探索中かどうか */
   solving: boolean;
   /** 最適解探索の中断コントローラー */
@@ -91,7 +88,6 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   animationSteps: [],
   activeAnimationStepIndex: -1,
   lastTraceCoords: undefined,
-  chains: [],
   solving: false,
   abortControllerForSolving: undefined,
   explorationResult: undefined,

@@ -13,10 +13,12 @@ interface IProps extends BoxProps {
   hasBoostArea: boolean;
   tracingCoords: PuyoCoord[];
   lastTraceCoords: PuyoCoord[] | undefined;
-  chains: Chain[];
+  chains: Chain[] | undefined;
   animationSteps: AnimationStep[];
   activeAnimationStepIndex: number;
 }
+
+const emptyChains: Chain[] = [];
 
 /** なぞり消し結果ビュー */
 const TracingResultView: React.FC<IProps> = React.memo((props) => {
@@ -65,7 +67,7 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
             key={attr}
             isTwoLine={isDamageTwoLine}
             attr={attr}
-            chains={chains}
+            chains={chains ?? emptyChains}
           />
         ))}
       </Box>

@@ -4,15 +4,10 @@ import {
   createSlice
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
-import {
-  type AnimationStep,
-  type FieldAndNext,
-  cloneFieldAndNext
-} from '../logics/AnimationStep';
+import type { AnimationStep } from '../logics/AnimationStep';
 import { type Board, emptyBoard } from '../logics/Board';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
-import type { Chain } from '../logics/Chain';
 import {
   type AllClearPreference,
   type ChancePopPreference,
@@ -199,7 +194,6 @@ const puyoAppSlice = createSlice({
         );
       }
 
-      state.chains = [];
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
     },
@@ -217,7 +211,6 @@ const puyoAppSlice = createSlice({
     /** なぞり消しによる連鎖が終了したとき */
     chainEnded: (state, action: PayloadAction<AnimationStep[]>) => {
       const animationSteps = action.payload;
-      state.chains = animationSteps.at(-1)?.chains ?? [];
       state.simulationData.traceCoords = [];
       state.animationSteps = animationSteps;
     },
@@ -288,7 +281,6 @@ const puyoAppSlice = createSlice({
         );
       }
 
-      state.chains = [];
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
       state.explorationResult = undefined;
@@ -300,7 +292,6 @@ const puyoAppSlice = createSlice({
       state.nextSelection = nextSelection;
       const nextPuyos = createNextPuyos(nextSelection);
       state.simulationData.nextPuyos = nextPuyos;
-      state.chains = [];
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
     },
