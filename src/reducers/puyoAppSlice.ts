@@ -272,6 +272,17 @@ const puyoAppSlice = createSlice({
       if (traceMode !== TraceMode.Normal) {
         state.simulationData.minimumPuyoNumForPopping = 4;
       }
+      if (state.boardId !== customBoardId) {
+        const board = structuredClone(getSpecialBoard(state.boardId));
+        // biome-ignore lint/performance/noDelete: カスタムボードではboard内のtraceModeは無い想定
+        delete board.traceMode;
+        state.lastScreenshotBoard = board;
+        if (!state.lastScreenshotBoard.nextPuyos) {
+          state.lastScreenshotBoard.nextPuyos =
+            state.simulationData.nextPuyos.map((puyo) => puyo?.type);
+        }
+        state.boardId = customBoardId;
+      }
     },
 
     /** ぷよが消えるのに必要な個数が変更されたとき */

@@ -14,7 +14,7 @@ export enum TraceMode {
   ToPurple = 5
 }
 
-const traceModeMap: ReadonlyMap<TraceMode, string> = new Map([
+export const traceModeMap: ReadonlyMap<TraceMode, string> = new Map([
   [TraceMode.Normal, 'ぷよを消す'],
   [TraceMode.ToRed, '赤ぷよに変える'],
   [TraceMode.ToBlue, '青ぷよに変える'],

@@ -55,27 +55,35 @@ const PuyoBoard: React.FC<IProps> = (props) => {
 
   const ratio = (responsiveWidth ?? W) / W;
 
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (e.button !== 0 || animating) {
-      return;
-    }
-
+  const getPosition = (e: React.PointerEvent<SVGSVGElement>) => {
     const svg = svgRef.current;
     const rect = svg!.getBoundingClientRect();
     const px = ~~((e.clientX - rect.left) / ratio);
     const py = ~~((e.clientY - rect.top) / ratio);
 
+    return {
+      px,
+      py
+    };
+  };
+
+  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0 || animating) {
+      return;
+    }
+
+    if (!editing && !touching) {
+      setTouching(true);
+    }
+
+    const { px, py } = getPosition(e);
+    const coord = detectHitInField(px, py);
+
     if (!editing) {
-      if (!touching) {
-        setTouching(true);
-      }
-      const coord = detectHitInField(px, py);
       if (coord) {
         dispatch(tracingCoordAdded(coord));
       }
-    }
-    {
-      const coord = detectHitInField(px, py);
+    } else {
       if (coord) {
         dispatch(puyoEdited({ fieldCoord: coord }));
       } else {
@@ -92,12 +100,9 @@ const PuyoBoard: React.FC<IProps> = (props) => {
       return;
     }
 
-    const svg = svgRef.current;
-    const rect = svg!.getBoundingClientRect();
-    const px = ~~((e.clientX - rect.left) / ratio);
-    const py = ~~((e.clientY - rect.top) / ratio);
-
+    const { px, py } = getPosition(e);
     const coord = detectHitInField(px, py);
+
     if (coord) {
       dispatch(tracingCoordAdded(coord));
     }
@@ -115,10 +120,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
       return;
     }
 
-    const svg = svgRef.current;
-    const rect = svg!.getBoundingClientRect();
-    const px = ~~((e.clientX - rect.left) / ratio);
-    const py = ~~((e.clientY - rect.top) / ratio);
+    const { px, py } = getPosition(e);
 
     if (px > 0 && px < W && py > 0 && py < H) {
       return;
