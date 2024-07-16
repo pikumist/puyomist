@@ -26,8 +26,7 @@ import { useDispatch } from 'react-redux';
 import {
   type BoardEditMode,
   HowToEditBoard,
-  getHowToEditBoardDescription,
-  possibleHowToEditBoardList
+  howToEditBoardDescriptionMap
 } from '../../logics/BoardEditMode';
 import { type PuyoType, puyoTypeMap } from '../../logics/PuyoType';
 import {
@@ -111,13 +110,15 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
               value={boardEditMode?.howToEdit}
               onChange={onHowToEditItemSelected}
             >
-              {possibleHowToEditBoardList.map((howToEdit) => {
-                return (
-                  <option value={howToEdit} key={howToEdit}>
-                    {getHowToEditBoardDescription(howToEdit)}
-                  </option>
-                );
-              })}
+              {[...howToEditBoardDescriptionMap].map(
+                ([howToEdit, description]) => {
+                  return (
+                    <option value={howToEdit} key={howToEdit}>
+                      {description}
+                    </option>
+                  );
+                }
+              )}
             </Select>
           </HStack>
 

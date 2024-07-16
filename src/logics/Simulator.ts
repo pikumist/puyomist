@@ -12,8 +12,8 @@ import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
 import {
   PuyoAttribute,
-  isColoredPuyoAttribute,
-  possibleColoredPuyoAttributeList
+  coloredPuyoAttributeList,
+  isColoredPuyoAttribute
 } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import {
@@ -32,7 +32,7 @@ import { sleep } from './generics/sleep';
 /** 連鎖シミュレーター */
 export class Simulator {
   static readonly colorAttrs: ReadonlyArray<PuyoAttribute> =
-    possibleColoredPuyoAttributeList;
+    coloredPuyoAttributeList;
   static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
     PuyoAttribute.Heart,
     PuyoAttribute.Prism,

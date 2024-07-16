@@ -20,20 +20,15 @@ export enum AllClearPreference {
   PreferIfExists = 2
 }
 
-const allClearPreferenceMap: ReadonlyMap<AllClearPreference, string> = new Map([
+/** 全消し優先度と説明のマップ */
+export const allClearPreferenceDescriptionMap: ReadonlyMap<
+  AllClearPreference,
+  string
+> = new Map([
   [AllClearPreference.NotCare, 'しない'],
   [AllClearPreference.PreferIfBestValue, '最善値のみ'],
   [AllClearPreference.PreferIfExists, '常に']
 ]);
-
-export const possibleAllClearPreferenceList: ReadonlyArray<AllClearPreference> =
-  [...allClearPreferenceMap.keys()];
-
-export const getAllClearPreferenceDescription = (
-  preference: AllClearPreference | undefined
-) => {
-  return allClearPreferenceMap.get(preference!);
-};
 
 /** チャンスぷよ消し優先度 */
 export enum ChancePopPreference {
@@ -45,21 +40,15 @@ export enum ChancePopPreference {
   PreferIfExists = 2
 }
 
-const chancePopPreferenceMap: ReadonlyMap<ChancePopPreference, string> =
-  new Map([
-    [ChancePopPreference.NotCare, 'しない'],
-    [ChancePopPreference.PreferIfBestValue, '最善値のみ'],
-    [ChancePopPreference.PreferIfExists, '常に']
-  ]);
-
-export const possibleChancePopPreferenceList: ReadonlyArray<ChancePopPreference> =
-  [...chancePopPreferenceMap.keys()];
-
-export const getChancePopPreferenceDescription = (
-  preference: ChancePopPreference | undefined
-) => {
-  return chancePopPreferenceMap.get(preference!);
-};
+/** チャンスぷよ消し優先度と説明のマップ */
+export const chancePopPreferenceDescriptionMap: ReadonlyMap<
+  ChancePopPreference,
+  string
+> = new Map([
+  [ChancePopPreference.NotCare, 'しない'],
+  [ChancePopPreference.PreferIfBestValue, '最善値のみ'],
+  [ChancePopPreference.PreferIfExists, '常に']
+]);
 
 /** 探索共通設定 */
 export interface ExplorationTargetCommon {
@@ -130,44 +119,12 @@ export type ExplorationTarget =
   | ExplorationTargetSkillPuyoCount
   | ExplorationTargetPuyoTasukaiCount;
 
-const explorationCategoryMap: ReadonlyMap<ExplorationCategory, string> =
-  new Map([
-    [ExplorationCategory.Damage, 'ダメージ量'],
-    [ExplorationCategory.SkillPuyoCount, 'スキル溜め数'],
-    [ExplorationCategory.PuyotsukaiCount, 'ぷよ使いカウント']
-  ]);
-
-/** 取りうる探索カテゴリーのリスト */
-export const possibleExplorationCategoryList: ReadonlyArray<ExplorationCategory> =
-  [...explorationCategoryMap.keys()];
-
-/**
- * 探索カテゴリーの説明を取得する。
- * @param category
- * @returns
- */
-export const getExplorationCategoryDescription = (
-  category: ExplorationCategory | undefined
-): string | undefined => {
-  return explorationCategoryMap.get(category!);
-};
-
-const countingBonusTypeMap: ReadonlyMap<CountingBonusType, string> = new Map([
-  [CountingBonusType.Step, '階段加速']
+/** 探索カテゴリーと説明のマップ */
+export const explorationCategoryDescriptionMap: ReadonlyMap<
+  ExplorationCategory,
+  string
+> = new Map([
+  [ExplorationCategory.Damage, 'ダメージ量'],
+  [ExplorationCategory.SkillPuyoCount, 'スキル溜め数'],
+  [ExplorationCategory.PuyotsukaiCount, 'ぷよ使いカウント']
 ]);
-
-/** 取りうる加速ボーナスタイプのリスト */
-export const possibleCountingBonusTypeList: ReadonlyArray<CountingBonusType> = [
-  CountingBonusType.Step
-];
-
-/**
- * 加速ボーナスタイプの説明を取得する。
- * @param bonusType
- * @returns
- */
-export const getCountingBonusTypeDescription = (
-  bonusType: CountingBonusType | undefined
-): string | undefined => {
-  return countingBonusTypeMap.get(bonusType!);
-};

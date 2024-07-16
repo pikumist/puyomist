@@ -24,27 +24,11 @@ export enum HowToEditBoard {
   ToCustomType = 4
 }
 
-const howToEditBoardMap: ReadonlyMap<HowToEditBoard, string> = new Map<
-  HowToEditBoard,
-  string
->([
-  [HowToEditBoard.ClearEnhance, '色ぷよの付与を消去'],
-  [HowToEditBoard.AddChance, 'チャンスを付与'],
-  [HowToEditBoard.AddPlus, 'プラスを付与'],
-  [HowToEditBoard.ToCustomType, '任意のぷよに変換']
-]);
-
-/** 取りうる盤面編集の仕方のリスト */
-export const possibleHowToEditBoardList: ReadonlyArray<HowToEditBoard> = [
-  ...howToEditBoardMap.keys()
-];
-
-/**
- * 盤面編集の仕方の説明を取得する。
- * @returns
- */
-export const getHowToEditBoardDescription = (
-  howToEditBoard: HowToEditBoard
-): string | undefined => {
-  return howToEditBoardMap.get(howToEditBoard);
-};
+/** ボード編集の仕方と説明のマップ */
+export const howToEditBoardDescriptionMap: ReadonlyMap<HowToEditBoard, string> =
+  new Map<HowToEditBoard, string>([
+    [HowToEditBoard.ClearEnhance, '色ぷよの付与を消去'],
+    [HowToEditBoard.AddChance, 'チャンスを付与'],
+    [HowToEditBoard.AddPlus, 'プラスを付与'],
+    [HowToEditBoard.ToCustomType, '任意のぷよに変換']
+  ]);

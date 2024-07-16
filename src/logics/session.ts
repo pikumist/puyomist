@@ -6,7 +6,7 @@ import {
   ExplorationCategory,
   type ExplorationTarget
 } from './ExplorationTarget';
-import { TraceMode, traceModeMap } from './TraceMode';
+import { TraceMode, traceModeDescriptionMap } from './TraceMode';
 import { SolutionMethod } from './solution';
 
 export class Session {
@@ -59,7 +59,9 @@ export class Session {
       this.storage.getItem(Session.traceModeKey) as string,
       10
     ) as TraceMode;
-    return traceModeMap.has(traceMode) ? traceMode : TraceMode.Normal;
+    return traceModeDescriptionMap.has(traceMode)
+      ? traceMode
+      : TraceMode.Normal;
   }
 
   setTraceMode(traceMode: TraceMode): void {

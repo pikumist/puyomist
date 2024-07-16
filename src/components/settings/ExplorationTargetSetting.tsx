@@ -21,19 +21,16 @@ import {
   type ExplorationTarget,
   type ExplorationTargetDamage,
   type ExplorationTargetSkillPuyoCount,
-  getAllClearPreferenceDescription,
-  getChancePopPreferenceDescription,
-  getExplorationCategoryDescription,
-  possibleAllClearPreferenceList,
-  possibleChancePopPreferenceList,
-  possibleExplorationCategoryList,
+  allClearPreferenceDescriptionMap,
+  chancePopPreferenceDescriptionMap,
+  explorationCategoryDescriptionMap,
   wildAttribute
 } from '../../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttribute,
   PuyoAttribute,
-  getPuyoAttributeName,
-  possibleColoredPuyoAttributeList
+  coloredPuyoAttributeList,
+  getPuyoAttributeName
 } from '../../logics/PuyoAttribute';
 import {
   explorationAllClearPreferenceSelected,
@@ -89,13 +86,15 @@ const CategorySelector: React.FC<{
         value={category}
         onChange={onChanged}
       >
-        {possibleExplorationCategoryList.map((category) => {
-          return (
-            <option value={category} key={category}>
-              {getExplorationCategoryDescription(category)}
-            </option>
-          );
-        })}
+        {[...explorationCategoryDescriptionMap].map(
+          ([category, description]) => {
+            return (
+              <option value={category} key={category}>
+                {description}
+              </option>
+            );
+          }
+        )}
       </Select>
     </HStack>
   );
@@ -123,10 +122,10 @@ const AllClearPreferenceSelector: React.FC<{
         value={preference}
         onChange={onChanged}
       >
-        {possibleAllClearPreferenceList.map((pref) => {
+        {[...allClearPreferenceDescriptionMap].map(([pref, description]) => {
           return (
             <option value={pref} key={pref}>
-              {getAllClearPreferenceDescription(pref)}
+              {description}
             </option>
           );
         })}
@@ -157,10 +156,10 @@ const ChancePopPreferenceSelector: React.FC<{
         value={preference}
         onChange={onChanged}
       >
-        {possibleChancePopPreferenceList.map((pref) => {
+        {[...chancePopPreferenceDescriptionMap].map(([pref, description]) => {
           return (
             <option value={pref} key={pref}>
-              {getChancePopPreferenceDescription(pref)}
+              {description}
             </option>
           );
         })}
@@ -170,12 +169,9 @@ const ChancePopPreferenceSelector: React.FC<{
 };
 
 const notAvailable = '--' as const;
-const possibleStepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
-  PuyoAttribute.Red,
-  PuyoAttribute.Blue,
-  PuyoAttribute.Green,
-  PuyoAttribute.Yellow,
-  PuyoAttribute.Purple,
+
+const stepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
+  ...coloredPuyoAttributeList,
   PuyoAttribute.Heart,
   PuyoAttribute.Prism,
   PuyoAttribute.Ojama
@@ -236,7 +232,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
           value={target.mainAttr}
           onChange={onDamageMainAttrSelected}
         >
-          {[wildAttribute, ...possibleColoredPuyoAttributeList].map((attr) => {
+          {[wildAttribute, ...coloredPuyoAttributeList].map((attr) => {
             return (
               <option value={attr} key={attr}>
                 {attr === wildAttribute
@@ -257,7 +253,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
           isDisabled={target.mainAttr === wildAttribute}
           onChange={onDamageSubAttrSelected}
         >
-          {[notAvailable, ...possibleColoredPuyoAttributeList].map((attr) => {
+          {[notAvailable, ...coloredPuyoAttributeList].map((attr) => {
             return (
               <option hidden={attr === target.mainAttr} value={attr} key={attr}>
                 {attr === notAvailable
@@ -339,7 +335,7 @@ const SkilPuyoCountSetting: React.FC<{
           value={target.mainAttr}
           onChange={onCountMainAttrSelected}
         >
-          {possibleColoredPuyoAttributeList.map((attr) => (
+          {coloredPuyoAttributeList.map((attr) => (
             <option value={attr} key={attr}>
               {getPuyoAttributeName(attr)}
             </option>
@@ -366,7 +362,7 @@ const SkilPuyoCountSetting: React.FC<{
               value={target.countingBonus?.targetAttrs?.[0]}
               onChange={onCountStepTargetAttrSelected}
             >
-              {possibleStepPuyoAtrributeList.map((attr) => (
+              {stepPuyoAtrributeList.map((attr) => (
                 <option value={attr} key={attr}>
                   {getPuyoAttributeName(attr)}
                 </option>

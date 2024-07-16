@@ -1,7 +1,7 @@
 import { Box, Checkbox, CheckboxGroup, Stack, Text } from '@chakra-ui/react';
 import type React from 'react';
 import { useDispatch } from 'react-redux';
-import { getBoostArea, possibleBoostAreaKeyList } from '../../logics/BoostArea';
+import { boostAreaKeyMap } from '../../logics/BoostArea';
 import { boostAreaKeyListChanged } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
 
@@ -25,9 +25,9 @@ const BoostAreaSetting: React.FC<IProps> = (props) => {
       </Box>
       <CheckboxGroup value={boostAreaKeyList} onChange={onKeyListChanged}>
         <Stack spacing={[1, 5]} direction={['column', 'row']}>
-          {possibleBoostAreaKeyList.map((key) => (
+          {[...boostAreaKeyMap].map(([key, area]) => (
             <Checkbox key={key} value={key}>
-              {getBoostArea(key)!.name}
+              {area.name}
             </Checkbox>
           ))}
         </Stack>

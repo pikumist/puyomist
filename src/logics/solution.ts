@@ -213,19 +213,8 @@ export enum SolutionMethod {
   solveAllInParallel = 'solveAllInParallel'
 }
 
-const solutionMethodMap = new Map<SolutionMethod, string>([
+/** 探索法と説明のマップ */
+export const solutionMethodDescriptionMap = new Map<SolutionMethod, string>([
   [SolutionMethod.solveAllInSerial, '全探索シングルスレッド'],
   [SolutionMethod.solveAllInParallel, '全探索マルチスレッド']
 ]);
-
-/** 取りうる探索法リスト */
-export const possibleSolutionMethodList: ReadonlyArray<SolutionMethod> = [
-  ...solutionMethodMap.keys()
-];
-
-/** 探索法の説明を取得する。 */
-export const getSolutionMethodDescription = (
-  solutionMethod: SolutionMethod
-) => {
-  return solutionMethodMap.get(solutionMethod);
-};

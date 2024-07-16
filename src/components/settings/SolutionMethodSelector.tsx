@@ -3,8 +3,7 @@ import type React from 'react';
 import { useDispatch } from 'react-redux';
 import {
   type SolutionMethod,
-  getSolutionMethodDescription,
-  possibleSolutionMethodList
+  solutionMethodDescriptionMap
 } from '../../logics/solution';
 import { solutionMethodItemSelected } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
@@ -31,10 +30,10 @@ const SolutionMethodSelector: React.FC<IProps> = (props) => {
         value={method}
         onChange={onChanged}
       >
-        {possibleSolutionMethodList.map((method) => {
+        {[...solutionMethodDescriptionMap].map(([method, description]) => {
           return (
             <option value={method} key={method}>
-              {getSolutionMethodDescription(method)}
+              {description}
             </option>
           );
         })}

@@ -2,13 +2,13 @@ import { Box, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
 import {
   ExplorationCategory,
-  getExplorationCategoryDescription
+  explorationCategoryDescriptionMap
 } from '../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttribute,
+  coloredPuyoAttributeList,
   getPuyoAttributeName
 } from '../logics/PuyoAttribute';
-import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
 import PuyoIcon from './PuyoIcon';
 
@@ -28,7 +28,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
           <Box>
             <Text>
               探索対象:{' '}
-              {getExplorationCategoryDescription(
+              {explorationCategoryDescriptionMap.get(
                 result?.explorationTarget.category
               )}
             </Text>
@@ -45,7 +45,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 category={result?.explorationTarget?.category}
                 optimalValue={result?.optimalSolution?.value}
               />
-              {Simulator.colorAttrs.map((attr) => (
+              {coloredPuyoAttributeList.map((attr) => (
                 <HStack key={attr} spacing="1">
                   <PuyoIcon
                     position="relative"

@@ -9,7 +9,8 @@ export interface BoostArea {
   coordSet: ReadonlySet<PuyoCoord>;
 }
 
-const boostAreaMap: ReadonlyMap<string, BoostArea> = new Map([
+/** ブーストエリアのキーとエリア情報とのマップ */
+export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
   [
     'rulue',
     {
@@ -44,17 +45,3 @@ const boostAreaMap: ReadonlyMap<string, BoostArea> = new Map([
     }
   ]
 ]);
-
-/** 取りうるブーストエリアキーのリスト */
-export const possibleBoostAreaKeyList: ReadonlyArray<string> = [
-  ...boostAreaMap.keys()
-];
-
-/**
- * キーからブーストエリアを取得する。
- * @param key
- * @returns
- */
-export const getBoostArea = (key: string): BoostArea | undefined => {
-  return boostAreaMap.get(key);
-};

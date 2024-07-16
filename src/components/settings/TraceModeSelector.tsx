@@ -3,8 +3,7 @@ import type React from 'react';
 import { useDispatch } from 'react-redux';
 import {
   type TraceMode,
-  getTraceModeDescription,
-  possibleTraceModeList
+  traceModeDescriptionMap
 } from '../../logics/TraceMode';
 import { traceModeChanged } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
@@ -32,10 +31,10 @@ const TraceModeSelector: React.FC<IProps> = (props) => {
         value={traceMode}
         onChange={onChanged}
       >
-        {possibleTraceModeList.map((traceMode) => {
+        {[...traceModeDescriptionMap].map(([traceMode, description]) => {
           return (
             <option value={traceMode} key={traceMode}>
-              {getTraceModeDescription(traceMode)}
+              {description}
             </option>
           );
         })}

@@ -1,4 +1,4 @@
-import { getBoostArea } from '../../logics/BoostArea';
+import { boostAreaKeyMap } from '../../logics/BoostArea';
 import type { PuyoCoord } from '../../logics/PuyoCoord';
 import type { SimulationData } from '../../logics/SimulationData';
 import { customBoardId, getSpecialBoard } from '../../logics/boards';
@@ -25,7 +25,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const animationDuration = s.getAnimationDuration();
   const boostAreaCoordList = [
     ...boostAreaKeyList
-      .map((key) => getBoostArea(key)?.coordSet)
+      .map((key) => boostAreaKeyMap.get(key)?.coordSet)
       .filter(Boolean)
       .reduce((m, s) => unionSet(m!, s!), new Set<PuyoCoord>([]))!
       .keys()

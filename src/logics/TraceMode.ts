@@ -14,7 +14,8 @@ export enum TraceMode {
   ToPurple = 5
 }
 
-export const traceModeMap: ReadonlyMap<TraceMode, string> = new Map([
+/** なぞり消しモードと説明のマップ */
+export const traceModeDescriptionMap: ReadonlyMap<TraceMode, string> = new Map([
   [TraceMode.Normal, 'ぷよを消す'],
   [TraceMode.ToRed, '赤ぷよに変える'],
   [TraceMode.ToBlue, '青ぷよに変える'],
@@ -22,11 +23,3 @@ export const traceModeMap: ReadonlyMap<TraceMode, string> = new Map([
   [TraceMode.ToYellow, '黄ぷよに変える'],
   [TraceMode.ToPurple, '紫ぷよに変える']
 ]);
-
-export const possibleTraceModeList: ReadonlyArray<TraceMode> = [
-  ...traceModeMap.keys()
-];
-
-/** なぞり消しモードの説明を取得する。 */
-export const getTraceModeDescription = (traceMode: TraceMode) =>
-  traceModeMap.get(traceMode);

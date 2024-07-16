@@ -6,7 +6,7 @@ import {
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { type Board, emptyBoard } from '../logics/Board';
 import { HowToEditBoard } from '../logics/BoardEditMode';
-import { getBoostArea } from '../logics/BoostArea';
+import { boostAreaKeyMap } from '../logics/BoostArea';
 import type { Chain } from '../logics/Chain';
 import {
   type AllClearPreference,
@@ -485,7 +485,7 @@ const puyoAppSlice = createSlice({
       state.boostAreaKeyList = keyList;
       state.simulationData.boostAreaCoordList = [
         ...keyList
-          .map((key) => getBoostArea(key)?.coordSet)
+          .map((key) => boostAreaKeyMap.get(key)?.coordSet)
           .filter(Boolean)
           .reduce((m, s) => unionSet(m!, s!), new Set<PuyoCoord>([]))!
           .keys()
