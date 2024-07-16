@@ -1,18 +1,24 @@
 import { Box, type BoxProps, Text } from '@chakra-ui/react';
 import React from 'react';
+import type { AnimationStep } from '../logics/AnimationStep';
 import type { Chain } from '../logics/Chain';
 import { PuyoAttribute } from '../logics/PuyoAttribute';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
 import DamageDetail from './DamageDetail';
+import AnimationStepSlider from './settings/AnimationStepSlider';
 
 interface IProps extends BoxProps {
   isDamageTwoLine: boolean;
   hasBoostArea: boolean;
   tracingCoords: PuyoCoord[];
   lastTraceCoords: PuyoCoord[] | undefined;
-  chains: Chain[];
+  chains: Chain[] | undefined;
+  animationSteps: AnimationStep[];
+  activeAnimationStepIndex: number;
 }
+
+const emptyChains: Chain[] = [];
 
 /** なぞり消し結果ビュー */
 const TracingResultView: React.FC<IProps> = React.memo((props) => {
@@ -22,6 +28,8 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
     tracingCoords,
     lastTraceCoords,
     chains,
+    animationSteps,
+    activeAnimationStepIndex,
     ...rest
   } = props;
 
@@ -34,6 +42,10 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
 
   return (
     <Box {...rest}>
+      <AnimationStepSlider
+        animationSteps={animationSteps}
+        index={activeAnimationStepIndex}
+      />
       <Box>
         <Text>&nbsp;{coords || ''}</Text>
       </Box>
@@ -55,7 +67,7 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
             key={attr}
             isTwoLine={isDamageTwoLine}
             attr={attr}
-            chains={chains}
+            chains={chains ?? emptyChains}
           />
         ))}
       </Box>

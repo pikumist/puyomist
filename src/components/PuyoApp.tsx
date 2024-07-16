@@ -17,6 +17,7 @@ import {
   useDisclosure
 } from '@chakra-ui/react';
 import { useSelector } from 'react-redux';
+import { selectActiveChains } from '../hooks/selectActiveChains';
 import { customBoardId } from '../logics/boards';
 import type { RootState } from '../reducers/store';
 import PuyoBoard from './PuyoBoard';
@@ -53,8 +54,10 @@ const PuyoApp: React.FC = () => {
     solving,
     simulationData,
     lastTraceCoords,
-    chains
+    animationSteps,
+    activeAnimationStepIndex
   } = state;
+  const chains = selectActiveChains(state);
   const hasBoostArea = boostAreaKeyList.length > 0;
 
   return (
@@ -116,6 +119,8 @@ const PuyoApp: React.FC = () => {
                   tracingCoords={simulationData.traceCoords}
                   lastTraceCoords={lastTraceCoords}
                   chains={chains}
+                  animationSteps={animationSteps}
+                  activeAnimationStepIndex={activeAnimationStepIndex}
                 />
               </Show>
             </HStack>
@@ -128,6 +133,8 @@ const PuyoApp: React.FC = () => {
                   tracingCoords={simulationData.traceCoords}
                   lastTraceCoords={lastTraceCoords}
                   chains={chains}
+                  animationSteps={animationSteps}
+                  activeAnimationStepIndex={activeAnimationStepIndex}
                 />
               </Show>
               <SolutionMenu solving={solving} result={explorationResult} />

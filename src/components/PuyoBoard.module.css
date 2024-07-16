@@ -41,6 +41,10 @@
   cursor: pointer;
 }
 
+.cursorNotAllowed {
+  cursor: not-allowed;
+}
+
 .cursorCrosshair {
   cursor: crosshair;
 }

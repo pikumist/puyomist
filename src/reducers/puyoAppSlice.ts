@@ -4,10 +4,10 @@ import {
   createSlice
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
+import type { AnimationStep } from '../logics/AnimationStep';
 import { type Board, emptyBoard } from '../logics/Board';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
-import type { Chain } from '../logics/Chain';
 import {
   type AllClearPreference,
   type ChancePopPreference,
@@ -29,14 +29,12 @@ import {
   toNormalColoredType,
   toPlusColoredType
 } from '../logics/PuyoType';
-import {
-  type SimulationData,
-  cloneSimulationData
-} from '../logics/SimulationData';
+import { cloneSimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import { TraceMode } from '../logics/TraceMode';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
+import { sleep } from '../logics/generics/sleep';
 import { type ExplorationResult, SolutionMethod } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
 import { createNextPuyos } from './internal/createNextPuyos';
@@ -95,36 +93,6 @@ const puyoAppSlice = createSlice({
     /** なぞり消しがキャンセルされたとき */
     tracingCanceled: (state) => {
       state.simulationData.traceCoords = [];
-    },
-
-    /** アニメーションが開始したとき */
-    animationStart: (state) => {
-      state.animating = true;
-      state.lastTraceCoords = [...state.simulationData.traceCoords];
-    },
-
-    /** アニメーションステップ(連鎖の1コマ)が発生したとき */
-    animationStep: (
-      state,
-      action: PayloadAction<{
-        simulationData: SimulationData;
-        chains: Chain[];
-      }>
-    ) => {
-      const { simulationData, chains } = action.payload;
-      state.chains = chains;
-      state.simulationData = simulationData;
-    },
-
-    /** アニメーションが終了したとき */
-    animationEnd: (
-      state,
-      action: PayloadAction<{ simulationData: SimulationData; chains: Chain[] }>
-    ) => {
-      const { simulationData, chains } = action.payload;
-      state.chains = chains;
-      state.animating = false;
-      state.simulationData = simulationData;
     },
 
     /** 盤面(ネクストを含む)内のぷよが編集されたとき */
@@ -226,7 +194,64 @@ const puyoAppSlice = createSlice({
         );
       }
 
-      state.chains = [];
+      state.animationSteps = [];
+      state.activeAnimationStepIndex = -1;
+    },
+
+    ///
+    /// 連鎖系
+    ///
+
+    /** なぞり消しによる連鎖を開始したとき */
+    chainStarted: (state) => {
+      state.lastTraceCoords = [...state.simulationData.traceCoords];
+      state.animationSteps = [];
+    },
+
+    /** なぞり消しによる連鎖が終了したとき */
+    chainEnded: (state, action: PayloadAction<AnimationStep[]>) => {
+      const animationSteps = action.payload;
+      state.simulationData.traceCoords = [];
+      state.animationSteps = animationSteps;
+    },
+
+    /** 連鎖アニメーションを開始したとき */
+    chainAnimationStarted: (state) => {
+      state.animating = true;
+    },
+
+    /** 連鎖アニメーションのステップが一コマ戻されたとき */
+    chainAnimationStepBack: (state) => {
+      if (state.animationSteps.length === 0) {
+        state.activeAnimationStepIndex = -1;
+        return;
+      }
+      state.activeAnimationStepIndex = Math.max(
+        0,
+        state.activeAnimationStepIndex - 1
+      );
+    },
+
+    /** 連鎖アニメーションのステップが一コマ進んだとき */
+    chainAnimationStepForward: (state) => {
+      if (state.animationSteps.length === 0) {
+        state.activeAnimationStepIndex = -1;
+        return;
+      }
+      state.activeAnimationStepIndex = Math.min(
+        state.animationSteps.length - 1,
+        state.activeAnimationStepIndex + 1
+      );
+    },
+
+    /** 連鎖アニメーションのステップが変更されたとき */
+    chainAnimationStep: (state, action: PayloadAction<number>) => {
+      state.activeAnimationStepIndex = action.payload;
+    },
+
+    /** 連鎖アニメーションが終了したとき */
+    chainAnimationEnded: (state) => {
+      state.animating = false;
     },
 
     ///
@@ -255,6 +280,10 @@ const puyoAppSlice = createSlice({
           simulationData as any
         );
       }
+
+      state.animationSteps = [];
+      state.activeAnimationStepIndex = -1;
+      state.explorationResult = undefined;
     },
 
     /** ネクストの項目が選択されたとき */
@@ -263,6 +292,8 @@ const puyoAppSlice = createSlice({
       state.nextSelection = nextSelection;
       const nextPuyos = createNextPuyos(nextSelection);
       state.simulationData.nextPuyos = nextPuyos;
+      state.animationSteps = [];
+      state.activeAnimationStepIndex = -1;
     },
 
     /** なぞり消しモードが変更されたとき */
@@ -609,6 +640,10 @@ export const {
   tracingCanceled,
   puyoEdited,
   boardResetButtonClicked,
+  /// 連鎖系
+  chainAnimationStepBack,
+  chainAnimationStepForward,
+  chainAnimationStep,
   /// 設定系
   boardIdChanged,
   nextItemSelected,
@@ -651,37 +686,38 @@ export const puyoAppReducer = puyoAppSlice.reducer;
 /// Redux Thunk
 ///
 
+/** 連鎖アニメーションを実行する */
+export const doChainAnimation =
+  () => async (dispatch: AppDispatch, getState: () => RootState) => {
+    dispatch(puyoAppSlice.actions.chainAnimationStarted());
+
+    const getAnimationDuration = () =>
+      getState().puyoApp.simulationData.animationDuration;
+    const animationSteps = getState().puyoApp.animationSteps;
+
+    for (let i = 0; i < animationSteps.length; i++) {
+      if (i !== 0) {
+        await sleep(getAnimationDuration());
+      }
+      dispatch(puyoAppSlice.actions.chainAnimationStep(i));
+    }
+
+    dispatch(puyoAppSlice.actions.chainAnimationEnded());
+  };
+
 /** なぞりが完了したとき */
 export const tracingFinished =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
-    dispatch(puyoAppSlice.actions.animationStart());
+    dispatch(puyoAppSlice.actions.chainStarted());
 
     const state = getState().puyoApp;
     const simulator = new Simulator(cloneSimulationData(state.simulationData));
 
-    // TODO:
-    // dispatchするとaction引数のオブジェクトがfreeze(readonly状態)するので、
-    // Simulatorでデータ操作する際にエラーになってしまう。
-    // 全て計算してから途中状態も合わせて一回のみコールバックする形にすべきか？
+    const animationSteps = simulator.doChains(true)!;
 
-    simulator.doChains({
-      onAnimateStep: (simulationData: SimulationData, chains: Chain[]) => {
-        dispatch(
-          puyoAppSlice.actions.animationStep({
-            simulationData: cloneSimulationData(simulationData),
-            chains: [...chains]
-          })
-        );
-      },
-      onAnimateEnd: (simulationData: SimulationData, chains: Chain[]) => {
-        dispatch(
-          puyoAppSlice.actions.animationEnd({
-            simulationData: cloneSimulationData(simulationData),
-            chains: [...chains]
-          })
-        );
-      }
-    });
+    dispatch(puyoAppSlice.actions.chainEnded(animationSteps));
+
+    dispatch(doChainAnimation());
   };
 
 /** 最適解探索ボタンがクリックされたとき */
