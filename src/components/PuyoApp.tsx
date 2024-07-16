@@ -81,7 +81,7 @@ const PuyoApp: React.FC = () => {
       <MobileNav display={{ base: 'flex', md: 'none' }} onOpen={onOpen} />
 
       <Box
-        ml={{ base: 0, md: 80 }}
+        ml={{ base: 0, md: '290px' }}
         p={{ base: '4', lg: '8', xl: '10' }}
         fontSize={{ base: '1em', xl: '1.15em' }}
       >
@@ -179,7 +179,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
       bg={useColorModeValue('white', 'gray.900')}
       borderRight="1px"
       borderRightColor={useColorModeValue('gray.200', 'gray.700')}
-      w={{ base: 'full', md: 80 }}
+      w={{ base: 'full', md: '290px' }}
       pos="fixed"
       overflowY="auto"
       h="full"
@@ -222,7 +222,7 @@ interface MobileProps extends FlexProps {
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
   return (
     <Flex
-      ml={{ base: 0, md: 80 }}
+      ml={{ base: 0, md: '290px' }}
       px={{ base: 4, md: 24 }}
       height="14"
       alignItems="center"
