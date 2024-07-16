@@ -19,6 +19,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const boostAreaKeyList = s.getBoostAreaKeyList();
   const boardEditMode = s.getBoardEditMode();
 
+  const traceMode = s.getTraceMode();
   const maxTraceNum = s.getMaxTraceNum();
   const poppingLeverage = s.getPoppingLeverage();
   const animationDuration = s.getAnimationDuration();
@@ -42,17 +43,23 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     try {
       const board = getSpecialBoard(boardId);
       const nextPuyos = createNextPuyos(nextSelection);
-      simulationData = createSimulationData(board, {
-        ...options,
-        nextPuyos
-      });
+      simulationData = createSimulationData(
+        board,
+        {
+          ...options,
+          nextPuyos
+        },
+        { traceMode }
+      );
     } catch (ex) {
       simulationData = createSimulationData({}, options);
     }
   } else if (lastScreenshotBoard) {
-    simulationData = createSimulationData(lastScreenshotBoard, options);
+    simulationData = createSimulationData(lastScreenshotBoard, options, {
+      traceMode
+    });
   } else {
-    simulationData = createSimulationData({}, options);
+    simulationData = createSimulationData({}, options, { traceMode });
   }
 
   return {

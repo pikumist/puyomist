@@ -6,11 +6,13 @@ import {
   ExplorationCategory,
   type ExplorationTarget
 } from './ExplorationTarget';
+import { TraceMode, traceModeMap } from './TraceMode';
 import { SolutionMethod } from './solution';
 
 export class Session {
   private static readonly boardIdKey = 'boardId';
   private static readonly nextSelectionKey = 'nextSelection';
+  private static readonly traceModeKey = 'traceMode';
   private static readonly maxTraceNumKey = 'maxTraceNum';
   private static readonly poppingLeverageKey = 'poppingLeverage';
   private static readonly animationDurationKey = 'animationDuration';
@@ -50,6 +52,18 @@ export class Session {
 
   setNextSelection(nextSelection: string): void {
     this.storage.setItem(Session.nextSelectionKey, nextSelection);
+  }
+
+  getTraceMode(): TraceMode {
+    const traceMode = Number.parseInt(
+      this.storage.getItem(Session.traceModeKey) as string,
+      10
+    ) as TraceMode;
+    return traceModeMap.has(traceMode) ? traceMode : TraceMode.Normal;
+  }
+
+  setTraceMode(traceMode: TraceMode): void {
+    this.storage.setItem(Session.traceModeKey, String(traceMode));
   }
 
   getMaxTraceNum(): number {
