@@ -3,6 +3,7 @@
   padding: 0;
   border-radius: 2px;
   touch-action: none;
+  user-select: none;
 }
 
 .boardBackground {
