@@ -4,6 +4,10 @@ import {
   createSlice
 } from '@reduxjs/toolkit';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
+import {
+  type AnimationStepData,
+  cloneAnimationStepData
+} from '../logics/AnimationStepData';
 import { type Board, emptyBoard } from '../logics/Board';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
@@ -107,24 +111,31 @@ const puyoAppSlice = createSlice({
     animationStep: (
       state,
       action: PayloadAction<{
-        simulationData: SimulationData;
+        animationStepData: AnimationStepData;
         chains: Chain[];
       }>
     ) => {
-      const { simulationData, chains } = action.payload;
+      const { animationStepData, chains } = action.payload;
       state.chains = chains;
-      state.simulationData = simulationData;
+      state.simulationData.traceCoords = [];
+      state.simulationData.field = animationStepData.field;
+      state.simulationData.nextPuyos = animationStepData.nextPuyos;
     },
 
     /** アニメーションが終了したとき */
     animationEnd: (
       state,
-      action: PayloadAction<{ simulationData: SimulationData; chains: Chain[] }>
+      action: PayloadAction<{
+        animationStepData: AnimationStepData;
+        chains: Chain[];
+      }>
     ) => {
-      const { simulationData, chains } = action.payload;
+      const { animationStepData, chains } = action.payload;
       state.chains = chains;
       state.animating = false;
-      state.simulationData = simulationData;
+      state.simulationData.traceCoords = [];
+      state.simulationData.field = animationStepData.field;
+      state.simulationData.nextPuyos = animationStepData.nextPuyos;
     },
 
     /** 盤面(ネクストを含む)内のぷよが編集されたとき */
@@ -668,7 +679,7 @@ export const tracingFinished =
       onAnimateStep: (simulationData: SimulationData, chains: Chain[]) => {
         dispatch(
           puyoAppSlice.actions.animationStep({
-            simulationData: cloneSimulationData(simulationData),
+            animationStepData: cloneAnimationStepData(simulationData),
             chains: [...chains]
           })
         );
@@ -676,7 +687,7 @@ export const tracingFinished =
       onAnimateEnd: (simulationData: SimulationData, chains: Chain[]) => {
         dispatch(
           puyoAppSlice.actions.animationEnd({
-            simulationData: cloneSimulationData(simulationData),
+            animationStepData: cloneAnimationStepData(simulationData),
             chains: [...chains]
           })
         );
