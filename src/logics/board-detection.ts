@@ -240,7 +240,7 @@ const detectPrism = (rgbList: number[][]) => {
   rgbList.map((rgb) => {
     attrSet.add(detectPuyoAttr(rgb));
   });
-  if (attrSet.size >= 5) {
+  if (attrSet.size >= 3) {
     return PuyoAttribute.Prism;
   }
   return PuyoAttribute.Padding;
