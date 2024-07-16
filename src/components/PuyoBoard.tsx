@@ -73,8 +73,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
       if (coord) {
         dispatch(tracingCoordAdded(coord));
       }
-    }
-    {
+    } else {
       const coord = detectHitInField(px, py);
       if (coord) {
         dispatch(puyoEdited({ fieldCoord: coord }));
