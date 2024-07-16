@@ -290,7 +290,11 @@ const detectNextPuyoType = (rgbList: number[][]) => {
 
   const hsv2 = rgbToHsv(rgb2[0], rgb2[1], rgb2[2]);
   const { h, s, v } = hsv2;
-  const isPlus = !(h > 150 && h < 200 && s < 30 && v > 70);
+  const isPlus =
+    // 通常
+    !(h > 150 && h < 200 && s < 30 && v > 70) &&
+    // 特別ルール
+    !(h > 140 && h < 200 && s >= 45 && s <= 60 && v >= 80);
 
   switch (puyoAttr) {
     case PuyoAttribute.Red:
