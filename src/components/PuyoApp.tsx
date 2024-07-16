@@ -205,7 +205,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         <ExplorationTargetSetting target={explorationTarget} />
         <SolutionMethodSelector method={solutionMethod} />
         <ScreenshotCanvas
-          mt="2"
+          mt="4"
           canvasMaxWidth={100}
           screenshotInfo={screenshotInfo}
           errorMessage={screenshotErrorMessage}

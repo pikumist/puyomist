@@ -109,7 +109,7 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
   }, [canvasMaxWidth, screenshotInfo, dispatch]);
 
   return (
-    <Stack {...rest}>
+    <Stack align="center" {...rest}>
       <DropZone accept={accept} onFileAccepted={handleFile} />
 
       <Box>
