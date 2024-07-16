@@ -16,7 +16,8 @@ import {
   useColorModeValue,
   useDisclosure
 } from '@chakra-ui/react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { dispatchWhenScreenshotReceivedViaWebSocket } from '../hooks/dispatchWhenScreenshotReceivedViaWebSocket';
 import { selectActiveChains } from '../hooks/selectActiveChains';
 import { customBoardId } from '../logics/boards';
 import type { RootState } from '../reducers/store';
@@ -41,6 +42,8 @@ import TraceModeSelector from './settings/TraceModeSelector';
 /** ぷよクエの最適解探索アプリ */
 const PuyoApp: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const dispatch = useDispatch();
+  dispatchWhenScreenshotReceivedViaWebSocket(dispatch);
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
