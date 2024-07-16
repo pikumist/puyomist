@@ -177,7 +177,7 @@ const detectBoardMeta = (
   const fieldRect = { left, top, right, bottom };
   const isChanceMode = detectChanceMode(ctx, width, height, unitWidth);
 
-  console.log({ fieldRect, unitWidth, unitHeight, isChanceMode });
+  // console.log({ fieldRect, unitWidth, unitHeight, isChanceMode });
 
   /*
   ctx.fillStyle = '#000';
@@ -220,7 +220,7 @@ const detectPuyoAttr = (rgb: number[]) => {
     return PuyoAttribute.Yellow;
   }
 
-  if (h > 100 && h < 160) {
+  if (h > 95 && h < 160) {
     return PuyoAttribute.Green;
   }
 
@@ -235,6 +235,17 @@ const detectPuyoAttr = (rgb: number[]) => {
   return PuyoAttribute.Padding;
 };
 
+const detectPrism = (rgbList: number[][]) => {
+  const attrSet = new Set<PuyoAttribute>();
+  rgbList.map((rgb) => {
+    attrSet.add(detectPuyoAttr(rgb));
+  });
+  if (attrSet.size >= 5) {
+    return PuyoAttribute.Prism;
+  }
+  return PuyoAttribute.Padding;
+};
+
 /**
  * RGB2色からフィールド内ぷよの種別を判別する。
  * @param rgbList
@@ -242,16 +253,23 @@ const detectPuyoAttr = (rgb: number[]) => {
  * @returns
  */
 const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
-  const [rgb1, rgb2] = rgbList;
+  const [rgb1, rgb2, rgb3, rgb4, rgb5, rgb6, rgb7] = rgbList;
 
-  const puyoAttr = detectPuyoAttr(rgb1);
+  let puyoAttr = detectPuyoAttr(rgb1);
+
+  if (puyoAttr === PuyoAttribute.Padding) {
+    puyoAttr = detectPrism([rgb3, rgb4, rgb5, rgb6, rgb7]);
+  }
+
   if (!isColoredPuyoAttribute(puyoAttr)) {
     switch (puyoAttr) {
-      case PuyoAttribute.Padding:
-        return isChanceMode ? undefined : PuyoType.Padding;
       case PuyoAttribute.Heart:
         return PuyoType.Heart;
-      // TODO: prism, kata
+      case PuyoAttribute.Prism:
+        return PuyoType.Prism;
+      case PuyoAttribute.Padding:
+        return isChanceMode ? undefined : PuyoType.Padding;
+      // TODO: ojama, ojama
     }
   }
 
@@ -334,8 +352,10 @@ const detectNextPuyos = (
       const rgba = getPixel(ctx, x, y);
       const hsv = rgbToHsv(rgba[0], rgba[1], rgba[2]);
 
+      /*
       ctx.fillStyle = '#000';
       ctx.fillRect(x, y, 1, 1);
+      */
 
       return { rgba, hsv };
     });
@@ -361,8 +381,16 @@ const detectField = (
   const { top, left } = fieldRect;
 
   const offsets = [
+    // main
     [0.25, 0.28],
-    [0.75, 0.72]
+    // plus
+    [0.75, 0.72],
+    // prism
+    [0.5, 0.2],
+    [0.75, 0.4],
+    [0.65, 0.7],
+    [0.35, 0.7],
+    [0.25, 0.4]
   ];
 
   const field: (PuyoType | undefined)[][] = [[], [], [], [], [], []];
@@ -385,10 +413,16 @@ const detectField = (
       //const hsv2 = rgbToHsv(rgbaList[1][0], rgbaList[1][1], rgbaList[1][2]);
       //console.log({ i, j, puyoType, hsv2 });
 
+      /*
       ctx.fillStyle = '#000';
       ctx.fillRect(xList[0], yList[0], 1, 1);
-      ctx.fillStyle = '#000';
       ctx.fillRect(xList[1], yList[1], 1, 1);
+      ctx.fillRect(xList[2], yList[2], 1, 1);
+      ctx.fillRect(xList[3], yList[3], 1, 1);
+      ctx.fillRect(xList[4], yList[4], 1, 1);
+      ctx.fillRect(xList[5], yList[5], 1, 1);
+      ctx.fillRect(xList[6], yList[6], 1, 1);
+      */
 
       field[i][j] = puyoType;
     }
