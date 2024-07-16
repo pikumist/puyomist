@@ -1,5 +1,7 @@
+import { Box, Stack, type StackProps, Text } from '@chakra-ui/react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Accept } from 'react-dropzone';
 import { useDispatch } from 'react-redux';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
 import { detectBoard } from '../logics/board-detection';
@@ -9,10 +11,11 @@ import {
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
 import styles from './ScreenshotCanvas.module.css';
+import DropZone from './settings/DropZone';
 
-interface ScreenshotCanvasProps {
-  /** 表示上の最大幅 */
-  maxWidth: number;
+interface ScreenshotCanvasProps extends StackProps {
+  /** キャンバスの最大幅 */
+  canvasMaxWidth: number;
 
   /** スクリーンショット画像の情報 */
   screenshotInfo: ScreenshotInfo | undefined;
@@ -24,24 +27,25 @@ interface ScreenshotCanvasProps {
 const white1x1Png =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=';
 
+const accept: Accept = {
+  'image/*': ['.png', '.gif', '.jpeg', '.jpg']
+};
+
 /** スクリーンショット画像を描画するキャンバス */
 const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
-  const { screenshotInfo, errorMessage, maxWidth } = props;
+  const { screenshotInfo, errorMessage, canvasMaxWidth, ...rest } = props;
   const dispatch = useDispatch<AppDispatch>();
 
-  const [naturalWidth, setNaturalWidth] = useState(0);
-  const [naturalHeight, setNaturalHeight] = useState(0);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [naturalWidth, setNaturalWidth] = useState(
+    undefined as number | undefined
+  );
+  const [naturalHeight, setNaturalHeight] = useState(
+    undefined as number | undefined
+  );
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFiles = useCallback(
-    (files: FileList | null) => {
-      if (!files) {
-        return;
-      }
-
-      const file = files[0];
+  const handleFile = useCallback(
+    (file: File | null) => {
       if (!file || file.type.indexOf('image/') < 0) {
         return;
       }
@@ -66,42 +70,6 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
     [dispatch]
   );
 
-  const onInputChanged = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFiles(e.target.files);
-    },
-    [handleFiles]
-  );
-
-  const onCanvasClicked = useCallback(() => {
-    const input = inputRef.current!;
-    input.click();
-  }, []);
-
-  const onCanvasDragOver = useCallback(
-    (e: React.DragEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-      setIsDragOver(true);
-    },
-    []
-  );
-
-  const onCanvasDragLeave = useCallback(() => {
-    setIsDragOver(false);
-  }, []);
-
-  const onCanvasDrop = useCallback(
-    (e: React.DragEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      setIsDragOver(false);
-      handleFiles(e.dataTransfer.files);
-    },
-    [handleFiles]
-  );
-
-  const conditionalDragOverClass = isDragOver ? styles.dragover : '';
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const blobURl = screenshotInfo?.blobUrl ?? white1x1Png;
@@ -116,7 +84,7 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
         canvas!.width = sw;
         canvas!.height = sh;
 
-        const ratio = maxWidth / sw;
+        const ratio = canvasMaxWidth / sw;
 
         canvas!.style.width = `${Math.floor(sw * ratio)}px`;
         canvas!.style.height = `${Math.floor(sh * ratio)}px`;
@@ -138,36 +106,32 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
     }
 
     img.src = blobURl;
-  }, [maxWidth, screenshotInfo, dispatch]);
+  }, [canvasMaxWidth, screenshotInfo, dispatch]);
 
   return (
-    <div>
-      <div>
-        <input
-          ref={inputRef}
-          id="fileInput"
-          type="file"
-          accept="image/*"
-          onChange={onInputChanged}
-        />
-      </div>
+    <Stack {...rest}>
+      <DropZone accept={accept} onFileAccepted={handleFile} />
+
+      <Box>
+        <Text>
+          <Text as="span" mr="1">
+            {screenshotInfo?.fileName}
+          </Text>
+          {screenshotInfo ? (
+            <Text as="span">
+              ({naturalWidth}px, {naturalHeight}px)
+            </Text>
+          ) : null}
+        </Text>
+        <Text color="red.400">{errorMessage}</Text>
+      </Box>
+
       <canvas
-        className={`${styles.screenshot} ${conditionalDragOverClass}`}
+        hidden={!screenshotInfo}
+        className={styles.screenshot}
         ref={canvasRef}
-        onClick={onCanvasClicked}
-        onKeyDown={onCanvasClicked}
-        onDragOver={onCanvasDragOver}
-        onDragLeave={onCanvasDragLeave}
-        onDrop={onCanvasDrop}
       />
-      <div>
-        <div>{screenshotInfo?.fileName}</div>
-        <div>
-          ({naturalWidth}px, {naturalHeight}px)
-        </div>
-        <div>{errorMessage}</div>
-      </div>
-    </div>
+    </Stack>
   );
 };
 
