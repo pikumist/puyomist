@@ -73,6 +73,8 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     isBoardEditing: false,
     simulationData,
     animating: false,
+    animationSteps: [],
+    activeAnimationStepIndex: -1,
     lastTraceCoords: undefined,
     chains: [],
     solving: false,

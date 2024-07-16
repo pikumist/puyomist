@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import type { RootState } from '../reducers/store';
+import { selectAppState } from './selectAppState';
 
-export const usePuyoAppState = () =>
-  useSelector<RootState, RootState['puyoApp']>((state) => state.puyoApp);
+export const usePuyoAppState = () => useSelector(selectAppState);

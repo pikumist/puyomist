@@ -1,4 +1,5 @@
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
+import type { AnimationStep, FieldAndNext } from '../logics/AnimationStep';
 import type { Board } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import type { Chain } from '../logics/Chain';
@@ -36,6 +37,10 @@ export interface PuyoAppState {
   simulationData: SimulationData;
   /** アニメーション中かどうか */
   animating: boolean;
+  /** アニメーションのステップ情報のリスト */
+  animationSteps: AnimationStep[];
+  /** アクティブなステップ */
+  activeAnimationStepIndex: number;
   /** 最後になぞり消しが発生した際のなぞり位置 */
   lastTraceCoords: PuyoCoord[] | undefined;
   /** 全連鎖情報 */
@@ -83,6 +88,8 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
     animationDuration: Simulator.defaultAnimationDuration
   },
   animating: false,
+  animationSteps: [],
+  activeAnimationStepIndex: -1,
   lastTraceCoords: undefined,
   chains: [],
   solving: false,

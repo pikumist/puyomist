@@ -8,6 +8,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {
+  type AnimationStep,
+  type FieldAndNext,
+  cloneFieldAndNext
+} from './AnimationStep';
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
 import {
@@ -258,53 +263,61 @@ export class Simulator {
     }, 0);
   }
 
-  /** なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける */
-  async doChains(animate?: {
-    onAnimateStep: (simulationData: SimulationData, chains: Chain[]) => void;
-    onAnimateEnd: (simulationData: SimulationData, chains: Chain[]) => void;
-  }) {
-    const invokeOnAnimateField = async () => {
-      await sleep(this.animationDuration);
-      animate?.onAnimateStep(this.getSimulationData(), this.chains);
+  /**
+   * なぞられているぷよを消すあるいは色を変えるなどして、最後まで連鎖を続ける。
+   * @param animate true のときアニメーションステップのリストを返す。
+   */
+  doChains(animate?: boolean): AnimationStep[] | undefined {
+    const animationSteps: AnimationStep[] = [];
+
+    const invokeOnAnimateField = () => {
+      animationSteps.push({
+        ...cloneFieldAndNext(this.getSimulationData()),
+        chains: [...this.chains]
+      });
     };
 
     this.currentChainNum = 0;
     this.chains = [];
+
+    if (animate) {
+      invokeOnAnimateField();
+    }
 
     // animate オブジェクトがないときの await を出来るだけ回避したいので、
     // やや冗長になっている。
 
     if (this.popTracingPuyos()) {
       if (animate) {
-        await invokeOnAnimateField();
+        invokeOnAnimateField();
       }
 
       while (this.dropInField()) {
         if (animate) {
-          await invokeOnAnimateField();
+          invokeOnAnimateField();
         }
         if (this.popPuyoBlocks()) {
           if (animate) {
-            await invokeOnAnimateField();
+            invokeOnAnimateField();
           }
         }
       }
 
       while (this.dropNextIntoField()) {
         if (animate) {
-          await invokeOnAnimateField();
+          invokeOnAnimateField();
         }
         if (this.popPuyoBlocks()) {
           if (animate) {
-            await invokeOnAnimateField();
+            invokeOnAnimateField();
           }
           while (this.dropInField()) {
             if (animate) {
-              await invokeOnAnimateField();
+              invokeOnAnimateField();
             }
             if (this.popPuyoBlocks()) {
               if (animate) {
-                await invokeOnAnimateField();
+                invokeOnAnimateField();
               }
             }
           }
@@ -312,10 +325,11 @@ export class Simulator {
       }
     }
 
-    const chains = this.chains;
     this.currentChainNum = 0;
 
-    animate?.onAnimateEnd(this.getSimulationData(), chains);
+    if (animate) {
+      return animationSteps;
+    }
   }
 
   /**

@@ -2,6 +2,7 @@ import { type ResponsiveValue, useBreakpointValue } from '@chakra-ui/react';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectActiveFieldAndNextPuyos } from '../hooks/selectActiveFieldAndNextPuyos';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import {
   puyoEdited,
@@ -41,17 +42,14 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   const responsiveWidth =
     typeof width !== 'number' ? useBreakpointValue(width) : width;
 
-  const {
-    isBoardEditing,
-    boardEditMode,
-    simulationData,
-    animating,
-    explorationResult
-  } = state;
-  const { nextPuyos, field, boostAreaCoordList, traceCoords } = simulationData;
+  const { isBoardEditing, boardEditMode, simulationData, explorationResult } =
+    state;
+  const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
+  const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
   const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
   const [touching, setTouching] = useState(false);
+  const hasAnimation = state.animationSteps.length > 0;
 
   const ratio = (responsiveWidth ?? W) / W;
 
@@ -68,7 +66,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   };
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (e.button !== 0 || animating) {
+    if (e.button !== 0 || hasAnimation) {
       return;
     }
 
@@ -96,7 +94,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   };
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (e.buttons !== 1 || animating || editing) {
+    if (e.buttons !== 1 || hasAnimation || editing) {
       return;
     }
 
@@ -109,14 +107,14 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   };
 
   const onPointerUp = () => {
-    if (animating || !touching) {
+    if (hasAnimation || !touching) {
       return;
     }
     dispatch(tracingFinished());
   };
 
   const onPointerOut = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (animating || editing || !touching) {
+    if (hasAnimation || editing || !touching) {
       return;
     }
 
@@ -132,15 +130,28 @@ const PuyoBoard: React.FC<IProps> = (props) => {
 
   const { howToEdit, customType } = boardEditMode ?? {};
 
-  const cursor = editing
-    ? howToEdit === HowToEditBoard.ToCustomType
-      ? styles[getCursorClass(customType)]
-      : howToEdit === HowToEditBoard.AddChance
-        ? styles.cursorChance
-        : howToEdit === HowToEditBoard.AddPlus
-          ? styles.cursorPlus
-          : styles.cursorCrosshair
-    : styles.cursorPointer;
+  let cursor: string;
+
+  if (hasAnimation) {
+    cursor = styles.cursorNotAllowed;
+  } else if (editing) {
+    switch (howToEdit) {
+      case HowToEditBoard.ClearEnhance:
+        cursor = styles.cursorCrosshair;
+        break;
+      case HowToEditBoard.ToCustomType:
+        cursor = styles[getCursorClass(customType)];
+        break;
+      case HowToEditBoard.AddChance:
+        cursor = styles.cursorChance;
+        break;
+      case HowToEditBoard.AddPlus:
+        cursor = styles.cursorPlus;
+        break;
+    }
+  } else {
+    cursor = styles.cursorPointer;
+  }
 
   const viewBox = `0 0 ${W} ${H}`;
 
