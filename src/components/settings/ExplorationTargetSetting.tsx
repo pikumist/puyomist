@@ -149,9 +149,9 @@ const ChancePopPreferenceSelector: React.FC<{
 
   return (
     <HStack>
-      <Text>チャンスぷよ消し優先:</Text>
+      <Text>チャンスぷよ優先:</Text>
       <Select
-        aria-label="チャンスぷよ消し優先の選択"
+        aria-label="チャンスぷよ優先の選択"
         w="9em"
         value={preference}
         onChange={onChanged}
