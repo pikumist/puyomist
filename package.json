@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build-wasm": "cd packages/solver-wasm; wasm-pack build --target web",
     "lint": "biome lint .",
     "preview": "vite preview",
     "test": "vitest",
+    "test-wasm": "cd packages/solver-wasm; cargo test",
     "coverage": "vitest run --coverage",
     "server": "tsx server/cli.ts"
   },
