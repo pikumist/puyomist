@@ -1,7 +1,10 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive, Serialize, Deserialize)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive, Serialize_repr, Deserialize_repr,
+)]
+#[repr(u8)]
 pub enum TraceMode {
     Normal = 0,
     ToRed = 1,

@@ -1,10 +1,20 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::ToPrimitive;
-use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(
-    Debug, Copy, Clone, Hash, PartialEq, Eq, FromPrimitive, ToPrimitive, Serialize, Deserialize,
+    Debug,
+    Copy,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    FromPrimitive,
+    ToPrimitive,
+    Serialize_repr,
+    Deserialize_repr,
 )]
+#[repr(u8)]
 pub enum PuyoAttr {
     Red = 1,
     Blue = 2,
