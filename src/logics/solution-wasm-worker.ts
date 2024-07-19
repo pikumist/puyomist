@@ -1,13 +1,16 @@
 import { expose } from 'comlink';
-import init from '../../packages/solver-wasm/pkg/solver_wasm';
+import init, {
+  detect_pop_blocks
+} from '../../packages/solver-wasm/pkg/solver_wasm';
 import type { ExplorationTarget } from './ExplorationTarget';
 import type { SimulationData } from './SimulationData';
 import type { ExplorationResult } from './solution';
+import type { WasmBlocks, WasmField, WasmSimulationEnvironment } from './wasm';
 
 const initPromise = init();
 
 export async function solveAllTraces(
-  simulationData: SimulationData,
+  _simulationData: SimulationData,
   explorationTarget: ExplorationTarget
 ): Promise<ExplorationResult> {
   await initPromise;
@@ -20,9 +23,9 @@ export async function solveAllTraces(
 }
 
 export async function solveIncludingTraceIndex(
-  simulationData: SimulationData,
+  _simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
-  index: number
+  _index: number
 ) {
   await initPromise;
   return {
@@ -33,7 +36,16 @@ export async function solveIncludingTraceIndex(
   };
 }
 
+export async function detectPopBlocks(
+  environment: WasmSimulationEnvironment,
+  field: WasmField
+): Promise<WasmBlocks> {
+  await initPromise;
+  return detect_pop_blocks(environment, field);
+}
+
 expose({
   solveAllTraces,
-  solveIncludingTraceIndex
+  solveIncludingTraceIndex,
+  detectPopBlocks
 });
