@@ -12,3 +12,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 wasm-bindgen = "0.2"
+approx = "0.5.1"
+num-traits = "0.2"
+num-derive = "0.4"
