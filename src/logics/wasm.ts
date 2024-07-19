@@ -26,7 +26,6 @@ export interface WasmSimulationEnvironment {
   chain_leverage: number;
 }
 
-export type WasmField = WasmPuyo[][];
 export type WasmBlock = Map<WasmPuyoCoord, WasmPuyo>;
 
 export interface WasmBlockWithAttr {
@@ -34,4 +33,18 @@ export interface WasmBlockWithAttr {
   block: WasmBlock;
 }
 
-export type WasmBlocks = WasmBlockWithAttr[];
+export interface WasmAttributeChain {
+  strength: number;
+  popped_num: number;
+  separated_blocks_num: number;
+}
+
+export interface WasmChain {
+  chain_num: number;
+  popped_puyo_num: number;
+  boost_count: number;
+  puyo_tsukai_count: number;
+  attributes: Map<PuyoAttribute, WasmAttributeChain>;
+  is_all_cleared: boolean;
+  is_chance_popped: boolean;
+}

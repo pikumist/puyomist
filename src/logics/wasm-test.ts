@@ -1,7 +1,11 @@
 import { TraceMode } from './TraceMode';
 import { B, G, H, P, R, Y } from './boards/alias';
 import { createWorker } from './solution-wasm-worker-shim';
-import type { WasmField, WasmSimulationEnvironment } from './wasm';
+import type {
+  WasmPuyo,
+  WasmPuyoCoord,
+  WasmSimulationEnvironment
+} from './wasm';
 
 (async () => {
   const { workerProxy } = createWorker();
@@ -13,21 +17,36 @@ import type { WasmField, WasmSimulationEnvironment } from './wasm';
     max_trace_num: 5,
     trace_mode: TraceMode.Normal,
     popping_leverage: 1.0,
-    chain_leverage: 1.0
+    chain_leverage: 7.0
   };
 
   let id_counter = 0;
 
-  const field: WasmField = [
-    [R, R, H, P, Y, Y, Y, Y],
-    [R, R, P, H, Y, G, P, G],
+  const field: WasmPuyo[][] = [
+    [R, P, H, P, Y, G, Y, Y],
+    [R, Y, P, H, Y, G, P, G],
     [B, Y, G, B, H, Y, G, P],
-    [B, R, B, B, P, B, R, P],
+    [B, R, B, R, P, B, R, P],
     [Y, G, P, P, R, B, G, G],
-    [G, G, P, R, B, Y, R, G]
+    [B, G, B, R, B, Y, R, R]
   ].map((row) => row.map((puyo_type) => ({ id: ++id_counter, puyo_type })));
 
-  const result = await workerProxy.detectPopBlocks(environment, field);
+  const nextPuyos: WasmPuyo[] = [G, G, G, G, G, G, G, G].map((puyo_type) => ({
+    id: ++id_counter,
+    puyo_type
+  }));
 
-  console.log('detectPopBlocks', result);
+  const traceCoords: WasmPuyoCoord[] = [
+    { x: 5, y: 2 },
+    { x: 6, y: 2 }
+  ];
+
+  const result = await workerProxy.doChains(
+    environment,
+    field,
+    nextPuyos,
+    traceCoords
+  );
+
+  console.log('doChains', result);
 })();

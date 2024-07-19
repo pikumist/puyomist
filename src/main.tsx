@@ -3,11 +3,12 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import PuyoApp from './components/PuyoApp.tsx';
-import { session } from './logics/session.ts';
-import { loadPuyoAppState } from './reducers/internal/loadPuyoAppState.ts';
-import { hydrate } from './reducers/puyoAppSlice.ts';
-import { store } from './reducers/store.ts';
-import theme from './theme.ts';
+import { session } from './logics/session';
+import { loadPuyoAppState } from './reducers/internal/loadPuyoAppState';
+import { hydrate } from './reducers/puyoAppSlice';
+import { store } from './reducers/store';
+import theme from './theme';
+import './logics/wasm-test';
 
 store.dispatch(hydrate(loadPuyoAppState()));
 
