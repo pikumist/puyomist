@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct PuyoCoord {
     pub x: u8,
     pub y: u8,

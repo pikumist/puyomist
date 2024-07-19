@@ -1,9 +1,10 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
 
 use crate::puyo_attr::*;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive, ToPrimitive, Serialize, Deserialize)]
 pub enum PuyoType {
     Red = 1,
     RedPlus = 2,

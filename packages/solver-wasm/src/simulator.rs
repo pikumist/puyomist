@@ -4,6 +4,7 @@ use std::{
 };
 
 use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     chain::{AttributeChain, Chain},
@@ -18,13 +19,13 @@ use crate::{
 // 同種ぷよの集まり
 type Block = HashMap<PuyoCoord, Puyo>;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct BlockWithAttr {
     attr: PuyoAttr,
     block: Block,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimulationEnvironment {
     pub boost_area_coord_set: HashSet<PuyoCoord>,
     pub is_chance_mode: bool,
@@ -37,22 +38,10 @@ pub struct SimulationEnvironment {
 
 #[derive(Debug)]
 pub struct Simulator {
-    environment: SimulationEnvironment,
+    pub environment: SimulationEnvironment,
 }
 
 impl Simulator {
-    pub fn set_environment(&mut self, environment: &SimulationEnvironment) {
-        self.environment = SimulationEnvironment {
-            boost_area_coord_set: environment.boost_area_coord_set.clone(),
-            is_chance_mode: environment.is_chance_mode,
-            minimum_puyo_num_for_popping: environment.minimum_puyo_num_for_popping,
-            max_trace_num: environment.max_trace_num,
-            trace_mode: environment.trace_mode,
-            popping_leverage: environment.popping_leverage,
-            chain_leverage: environment.chain_leverage,
-        }
-    }
-
     pub fn max_id(field: &Field) -> i32 {
         field.iter().fold(0, |acc, row| {
             row.iter().fold(acc, |m, cell| match cell {
@@ -92,7 +81,7 @@ impl Simulator {
         return chains;
     }
 
-    fn detect_pop_blocks(&self, field: &Field) -> Vec<BlockWithAttr> {
+    pub fn detect_pop_blocks(&self, field: &Field) -> Vec<BlockWithAttr> {
         let mut rbgyp_blocks: [Vec<Block>; 5] =
             [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()];
         let red_attr_value = PuyoAttr::Red.to_usize().unwrap();
@@ -563,10 +552,10 @@ impl Simulator {
                 Some(p) => p,
             };
 
-            let topY = PuyoCoord::Y_NUM - 1 - puyo_num_in_col;
+            let top_y = PuyoCoord::Y_NUM - 1 - puyo_num_in_col;
 
-            for y in (0..topY).rev() {
-                let p = if y == topY {
+            for y in (0..top_y).rev() {
+                let p = if y == top_y {
                     next
                 } else {
                     *id_counter += 1;
