@@ -305,10 +305,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 1,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -322,10 +318,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 3.8000000000000003,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -339,10 +331,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 5.8999999999999995,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -356,10 +344,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 8,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -373,10 +357,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 9.4,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -395,10 +375,6 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 0
               }
-            },
-            wild: {
-              strength: 10.799999999999999,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -412,10 +388,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 12.200000000000001,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -434,10 +406,6 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 0
               }
-            },
-            wild: {
-              strength: 13.6,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -451,10 +419,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 15,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -473,10 +437,6 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 0
               }
-            },
-            wild: {
-              strength: 16.400000000000002,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -490,10 +450,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 17.800000000000004,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -507,10 +463,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 19.2,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -524,10 +476,6 @@ describe('Simulator', () => {
                 poppedNum: 3,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 20.599999999999998,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -541,10 +489,6 @@ describe('Simulator', () => {
                 poppedNum: 10,
                 separatedBlocksNum: 2
               }
-            },
-            wild: {
-              strength: 90.19999999999999,
-              separatedBlocksNum: 2
             }
           }
         ]
@@ -591,10 +535,6 @@ describe('Simulator', () => {
                 poppedNum: 1,
                 separatedBlocksNum: 0
               }
-            },
-            wild: {
-              strength: 1.3,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -608,10 +548,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 5,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -625,10 +561,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 8,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -642,10 +574,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 11,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -659,10 +587,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 13,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -676,10 +600,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 15,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -693,10 +613,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 17,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -710,10 +626,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 19,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -727,10 +639,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 21,
-              separatedBlocksNum: 1
             }
           },
           {
@@ -744,10 +652,6 @@ describe('Simulator', () => {
                 poppedNum: 13,
                 separatedBlocksNum: 2
               }
-            },
-            wild: {
-              strength: 108.09999999999998,
-              separatedBlocksNum: 2
             }
           }
         ]
@@ -790,10 +694,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 3.5,
-              separatedBlocksNum: 2
             }
           },
           {
@@ -812,10 +712,6 @@ describe('Simulator', () => {
                 poppedNum: 7,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 6.16,
-              separatedBlocksNum: 2
             }
           },
           {
@@ -834,10 +730,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 6.969999999999999,
-              separatedBlocksNum: 2
             }
           },
           {
@@ -856,10 +748,6 @@ describe('Simulator', () => {
                 poppedNum: 4,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 6.4,
-              separatedBlocksNum: 2
             },
             allCleared: true
           }
@@ -913,10 +801,6 @@ describe('Simulator', () => {
                 poppedNum: 2,
                 separatedBlocksNum: 0
               }
-            },
-            wild: {
-              separatedBlocksNum: 2,
-              strength: 3.5
             }
           },
           {
@@ -935,10 +819,6 @@ describe('Simulator', () => {
                 poppedNum: 5,
                 separatedBlocksNum: 1
               }
-            },
-            wild: {
-              strength: 5.319999999999999,
-              separatedBlocksNum: 2
             }
           }
         ]
@@ -997,11 +877,7 @@ describe('Simulator', () => {
               poppedNum: 2,
               separatedBlocksNum: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>,
-          wild: {
-            separatedBlocksNum: 2,
-            strength: 3.5
-          }
+          } as Record<PuyoAttribute, AttributeChain>
         },
         {
           chainNum: 2,
@@ -1019,11 +895,7 @@ describe('Simulator', () => {
               poppedNum: 5,
               separatedBlocksNum: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>,
-          wild: {
-            strength: 5.319999999999999,
-            separatedBlocksNum: 2
-          }
+          } as Record<PuyoAttribute, AttributeChain>
         }
       ];
 
@@ -1076,11 +948,7 @@ describe('Simulator', () => {
               poppedNum: 4,
               separatedBlocksNum: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>,
-          wild: {
-            separatedBlocksNum: 1,
-            strength: 1
-          }
+          } as Record<PuyoAttribute, AttributeChain>
         }
       ];
 
@@ -1125,11 +993,7 @@ describe('Simulator', () => {
               poppedNum: 2,
               separatedBlocksNum: 0
             }
-          } as Record<PuyoAttribute, AttributeChain>,
-          wild: {
-            strength: 4.1,
-            separatedBlocksNum: 2
-          }
+          } as Record<PuyoAttribute, AttributeChain>
         },
         {
           chainNum: 2,
@@ -1147,11 +1011,7 @@ describe('Simulator', () => {
               poppedNum: 5,
               separatedBlocksNum: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>,
-          wild: {
-            strength: 5.319999999999999,
-            separatedBlocksNum: 2
-          }
+          } as Record<PuyoAttribute, AttributeChain>
         }
       ];
 
@@ -1159,7 +1019,7 @@ describe('Simulator', () => {
       const actual = Simulator.calcTotalWildDamage(chains);
 
       // Assert
-      expect(actual).toBe(20.3544);
+      expect(actual).toBeCloseTo(20.3544);
     });
   });
 });

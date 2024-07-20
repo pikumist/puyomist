@@ -25,8 +25,6 @@ export interface Chain {
   puyoTsukaiCount: number;
   /** ぷよ属性ごとの連鎖情報 */
   attributes: Record<PuyoAttribute, AttributeChain>;
-  /** ワイルド状態の連鎖情報 */
-  wild: WildChain;
   /** 全消しされたかどうか */
   allCleared?: boolean;
   /** チャンスぷよが弾けたかどうか */

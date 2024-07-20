@@ -201,13 +201,16 @@ export class Simulator {
    * @returns
    */
   static calcTotalWildDamage(chains: Chain[]): number {
-    const totalWildDamage = chains.reduce((m, chain) => {
-      return m + chain.wild.strength;
+    const totalWildDamageIncludingPrism = chains.reduce((acc, chain) => {
+      return Object.entries(chain.attributes).reduce(
+        (m, [_attrStr, attrChain]) => {
+          return m + attrChain.strength || 0;
+        },
+        acc
+      );
     }, 0);
     const boostRatio = Simulator.calcBoostRatio(chains);
-    return (
-      boostRatio * (totalWildDamage + Simulator.calcTotalPrismDamage(chains))
-    );
+    return boostRatio * totalWildDamageIncludingPrism;
   }
 
   /**
@@ -492,11 +495,7 @@ export class Simulator {
       poppedPuyoNum,
       boostCount,
       puyoTsukaiCount,
-      attributes: {} as Record<PuyoAttribute, AttributeChain>,
-      wild: {
-        strength: 0,
-        separatedBlocksNum: 0
-      }
+      attributes: {} as Record<PuyoAttribute, AttributeChain>
     };
 
     for (const attr of [
@@ -578,19 +577,6 @@ export class Simulator {
     if (allCleared) {
       result.allCleared = allCleared;
     }
-
-    result.wild.separatedBlocksNum = Simulator.colorAttrs.reduce(
-      (m, attr) => m + (result.attributes![attr]?.separatedBlocksNum ?? 0),
-      0
-    );
-    result.wild.strength = calcDamageTerm(
-      1,
-      calcPoppingFactor(poppedPuyoNum, result.wild.separatedBlocksNum, {
-        minimumPuyoNumForPopping: this.minimumPuyoNumForPopping,
-        poppingLeverage: this.poppingLeverage
-      }),
-      calcChainFactor(chainNum, this.chainLeverage)
-    );
 
     this.chains.push(result);
 
