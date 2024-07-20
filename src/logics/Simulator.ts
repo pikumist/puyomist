@@ -522,21 +522,22 @@ export class Simulator {
         result.attributes![attr] = {
           strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
           poppedNum,
-          separatedBlocksNum: 1
+          separatedBlocksNum: 0
         };
       } else {
         const sameColorBlocks = blocks.filter((block) => block.attr === attr);
         const separatedBlocksNum = sameColorBlocks.length;
+
+        if (separatedBlocksNum === 0) {
+          continue;
+        }
+
         const sameColorPoppedNum = sameColorBlocks.reduce((m, block) => {
           const puyoNumInBlock = [...block.coordIdMap]
             .map(([c]) => (isPlusPuyo(this.field[c.y][c.x]!.type) ? 2 : 1))
             .reduce((m, n) => m + n, 0);
           return m + puyoNumInBlock;
         }, 0);
-
-        if (separatedBlocksNum === 0) {
-          continue;
-        }
 
         const strength = calcDamageTerm(
           1,

@@ -393,7 +393,7 @@ describe('Simulator', () => {
               [PuyoAttribute.Heart]: {
                 strength: 0,
                 poppedNum: 1,
-                separatedBlocksNum: 1
+                separatedBlocksNum: 0
               }
             },
             wild: {
@@ -432,7 +432,7 @@ describe('Simulator', () => {
               [PuyoAttribute.Heart]: {
                 strength: 0,
                 poppedNum: 1,
-                separatedBlocksNum: 1
+                separatedBlocksNum: 0
               }
             },
             wild: {
@@ -471,7 +471,7 @@ describe('Simulator', () => {
               [PuyoAttribute.Heart]: {
                 strength: 0,
                 poppedNum: 1,
-                separatedBlocksNum: 1
+                separatedBlocksNum: 0
               }
             },
             wild: {
@@ -589,7 +589,7 @@ describe('Simulator', () => {
               [PuyoAttribute.Heart]: {
                 strength: 0,
                 poppedNum: 1,
-                separatedBlocksNum: 1
+                separatedBlocksNum: 0
               }
             },
             wild: {
@@ -911,7 +911,7 @@ describe('Simulator', () => {
               [PuyoAttribute.Heart]: {
                 strength: 0,
                 poppedNum: 2,
-                separatedBlocksNum: 1
+                separatedBlocksNum: 0
               }
             },
             wild: {
