@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct PuyoCoord {
+    /// ぷよのX座標 (0が一番左、7が一番右)
     pub x: u8,
+    /// ぷよのY座標 (0が一番上、5が一番下)
     pub y: u8,
 }
 

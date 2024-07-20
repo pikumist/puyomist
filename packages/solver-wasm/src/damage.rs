@@ -3,13 +3,13 @@ pub fn calc_damage_term(card_attack: f64, popping_factor: f64, chain_factor: f64
 }
 
 pub fn calc_popping_factor(
-    popped_puyo_num: u32,
+    simultaneous_num: u32,
     separated_blocks_num: u32,
     minimum_puyo_num_for_popping: Option<u32>,
     popping_coeffcient: Option<f64>,
     popping_leverage: Option<f64>,
 ) -> f64 {
-    (1.0 + (popped_puyo_num - minimum_puyo_num_for_popping.unwrap_or(4)) as f64
+    (1.0 + (simultaneous_num - minimum_puyo_num_for_popping.unwrap_or(4)) as f64
         * popping_coeffcient.unwrap_or(0.15)
         * popping_leverage.unwrap_or(1.0))
         * separated_blocks_num as f64

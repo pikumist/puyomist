@@ -242,7 +242,7 @@ impl Simulator {
         }
 
         let chain_num = (chains.len() + 1) as u32;
-        let popped_puyo_num = self.countup(&blocks, &Self::calc_popped_puyo_num);
+        let simultaneous_num = self.countup(&blocks, &Self::calc_simultaneous_num);
         let boost_count =
             self.countup(&blocks, &|attr: PuyoAttr,
                                     coord: &PuyoCoord,
@@ -258,7 +258,7 @@ impl Simulator {
 
         let mut chain = Chain {
             chain_num,
-            popped_puyo_num,
+            simultaneous_num,
             boost_count,
             puyo_tsukai_count,
             attributes: HashMap::new(),
@@ -283,17 +283,16 @@ impl Simulator {
         for (attr, blocks) in blocks_by_attr {
             match attr {
                 PuyoAttr::Heart | PuyoAttr::Prism | PuyoAttr::Ojama => {
-                    let popped_num = blocks[0].block.len() as u32;
+                    let popped_count = blocks[0].block.len() as u32;
                     chain.attributes.insert(
                         attr,
                         AttributeChain {
                             strength: if attr == PuyoAttr::Prism {
-                                3.0 * popped_num as f64
+                                3.0 * popped_count as f64
                             } else {
                                 0.0
                             },
-                            popped_num,
-                            // TODO: 要検証
+                            popped_count,
                             separated_blocks_num: 0,
                         },
                     );
@@ -309,11 +308,11 @@ impl Simulator {
                 | PuyoAttr::Yellow
                 | PuyoAttr::Purple => {
                     let separated_blocks_num = blocks.len() as u32;
-                    let popped_num = self.countup(&blocks, &Self::calc_popped_num);
+                    let popped_count = self.countup(&blocks, &Self::calc_popped_count);
                     let strength = calc_damage_term(
                         1.0,
                         calc_popping_factor(
-                            popped_puyo_num,
+                            simultaneous_num,
                             separated_blocks_num,
                             Some(self.environment.minimum_puyo_num_for_popping),
                             None,
@@ -326,7 +325,7 @@ impl Simulator {
                         attr,
                         AttributeChain {
                             strength,
-                            popped_num,
+                            popped_count,
                             separated_blocks_num,
                         },
                     );
@@ -376,8 +375,7 @@ impl Simulator {
         result
     }
 
-    // 同時消し数
-    fn calc_popped_puyo_num(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
+    fn calc_simultaneous_num(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
             | PuyoAttr::Blue
@@ -396,8 +394,7 @@ impl Simulator {
         }
     }
 
-    // AttributeChain の count
-    fn calc_popped_num(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
+    fn calc_popped_count(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
             | PuyoAttr::Blue
@@ -682,14 +679,14 @@ mod tests {
             actual[0],
             Chain {
                 chain_num: 1,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Purple,
                     AttributeChain {
                         strength: 1.0,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -701,14 +698,14 @@ mod tests {
             actual[1],
             Chain {
                 chain_num: 2,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Green,
                     AttributeChain {
                         strength: 3.8000000000000003,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -720,14 +717,14 @@ mod tests {
             actual[2],
             Chain {
                 chain_num: 3,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Red,
                     AttributeChain {
                         strength: 5.8999999999999995,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -739,14 +736,14 @@ mod tests {
             actual[3],
             Chain {
                 chain_num: 4,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Yellow,
                     AttributeChain {
                         strength: 8.0,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -758,14 +755,14 @@ mod tests {
             actual[4],
             Chain {
                 chain_num: 5,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Blue,
                     AttributeChain {
                         strength: 9.4,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -777,7 +774,7 @@ mod tests {
             actual[5],
             Chain {
                 chain_num: 6,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 4,
                 attributes: HashMap::from([
@@ -785,7 +782,7 @@ mod tests {
                         PuyoAttr::Purple,
                         AttributeChain {
                             strength: 10.799999999999999,
-                            popped_num: 3,
+                            popped_count: 3,
                             separated_blocks_num: 1
                         }
                     ),
@@ -793,7 +790,7 @@ mod tests {
                         PuyoAttr::Heart,
                         AttributeChain {
                             strength: 0.0,
-                            popped_num: 1,
+                            popped_count: 1,
                             separated_blocks_num: 0
                         }
                     )
@@ -806,14 +803,14 @@ mod tests {
             actual[6],
             Chain {
                 chain_num: 7,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Red,
                     AttributeChain {
                         strength: 12.200000000000001,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -825,7 +822,7 @@ mod tests {
             actual[7],
             Chain {
                 chain_num: 8,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 4,
                 attributes: HashMap::from([
@@ -833,7 +830,7 @@ mod tests {
                         PuyoAttr::Blue,
                         AttributeChain {
                             strength: 13.6,
-                            popped_num: 3,
+                            popped_count: 3,
                             separated_blocks_num: 1
                         }
                     ),
@@ -841,7 +838,7 @@ mod tests {
                         PuyoAttr::Heart,
                         AttributeChain {
                             strength: 0.0,
-                            popped_num: 1,
+                            popped_count: 1,
                             separated_blocks_num: 0
                         }
                     )
@@ -854,14 +851,14 @@ mod tests {
             actual[8],
             Chain {
                 chain_num: 9,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Green,
                     AttributeChain {
                         strength: 15.0,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 )]),
@@ -873,7 +870,7 @@ mod tests {
             actual[9],
             Chain {
                 chain_num: 10,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 4,
                 attributes: HashMap::from([
@@ -881,7 +878,7 @@ mod tests {
                         PuyoAttr::Yellow,
                         AttributeChain {
                             strength: 16.400000000000002,
-                            popped_num: 3,
+                            popped_count: 3,
                             separated_blocks_num: 1
                         }
                     ),
@@ -889,7 +886,7 @@ mod tests {
                         PuyoAttr::Heart,
                         AttributeChain {
                             strength: 0.0,
-                            popped_num: 1,
+                            popped_count: 1,
                             separated_blocks_num: 0
                         }
                     )
@@ -902,14 +899,14 @@ mod tests {
             actual[10],
             Chain {
                 chain_num: 11,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Blue,
                     AttributeChain {
                         strength: 17.800000000000004,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 ),]),
@@ -921,14 +918,14 @@ mod tests {
             actual[11],
             Chain {
                 chain_num: 12,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Red,
                     AttributeChain {
                         strength: 19.2,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 ),]),
@@ -940,14 +937,14 @@ mod tests {
             actual[12],
             Chain {
                 chain_num: 13,
-                popped_puyo_num: 3,
+                simultaneous_num: 3,
                 boost_count: 0,
                 puyo_tsukai_count: 3,
                 attributes: HashMap::from([(
                     PuyoAttr::Purple,
                     AttributeChain {
                         strength: 20.599999999999998,
-                        popped_num: 3,
+                        popped_count: 3,
                         separated_blocks_num: 1
                     }
                 ),]),
@@ -959,14 +956,14 @@ mod tests {
             actual[13],
             Chain {
                 chain_num: 14,
-                popped_puyo_num: 10,
+                simultaneous_num: 10,
                 boost_count: 0,
                 puyo_tsukai_count: 10,
                 attributes: HashMap::from([(
                     PuyoAttr::Green,
                     AttributeChain {
                         strength: 90.19999999999999,
-                        popped_num: 10,
+                        popped_count: 10,
                         separated_blocks_num: 2
                     }
                 ),]),
