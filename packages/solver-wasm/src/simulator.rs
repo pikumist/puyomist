@@ -42,21 +42,7 @@ pub struct Simulator {
 }
 
 impl Simulator {
-    pub fn max_id(field: &Field, next_puyos: &NextPuyos) -> i32 {
-        let field_max_id = field.iter().fold(0, |acc, row| {
-            row.iter().fold(acc, |m, cell| match cell {
-                None => m,
-                Some(p) => cmp::max(p.id, m),
-            })
-        });
-        return next_puyos
-            .iter()
-            .fold(field_max_id, |acc, cell| match cell {
-                None => acc,
-                Some(p) => cmp::max(p.id, acc),
-            });
-    }
-
+    /// なぞり消し(あるいは塗り替え)を実施して連鎖を発生させる。
     pub fn do_chains(
         &self,
         field: &mut Field,
@@ -87,6 +73,7 @@ impl Simulator {
         return chains;
     }
 
+    /// フィールド内で繋がって消えるぷよを判定する。
     pub fn detect_pop_blocks(&self, field: &Field) -> Vec<BlockWithAttr> {
         let mut rbgyp_blocks: [Vec<Block>; 5] =
             [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()];
@@ -235,6 +222,23 @@ impl Simulator {
         return blocks_to_be_popped;
     }
 
+    /// フィールドとネクストぷよ内で最も大きいIDを返す。
+    fn max_id(field: &Field, next_puyos: &NextPuyos) -> i32 {
+        let field_max_id = field.iter().fold(0, |acc, row| {
+            row.iter().fold(acc, |m, cell| match cell {
+                None => m,
+                Some(p) => cmp::max(p.id, m),
+            })
+        });
+        return next_puyos
+            .iter()
+            .fold(field_max_id, |acc, cell| match cell {
+                None => acc,
+                Some(p) => cmp::max(p.id, acc),
+            });
+    }
+
+    /// 繋がったぷよを消す。
     fn pop_puyo_blocks(&self, field: &mut Field, chains: &mut Vec<Chain>) -> bool {
         let blocks = self.detect_pop_blocks(field);
         if blocks.len() == 0 {
@@ -360,6 +364,7 @@ impl Simulator {
         return true;
     }
 
+    /// ブロックリストから何らかの数を数え上げる。counterで数え方を指定する。
     fn countup(
         &self,
         blocks: &Vec<BlockWithAttr>,
@@ -375,6 +380,7 @@ impl Simulator {
         result
     }
 
+    /// 同時消し数の数え方
     fn calc_simultaneous_num(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
@@ -394,6 +400,7 @@ impl Simulator {
         }
     }
 
+    /// 繋がって消えたぷよの数え方
     fn calc_popped_count(attr: PuyoAttr, _coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
@@ -412,6 +419,7 @@ impl Simulator {
         }
     }
 
+    /// ブーストカウントの数え方
     fn calc_boost_count(&self, attr: PuyoAttr, coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
@@ -440,6 +448,7 @@ impl Simulator {
         }
     }
 
+    /// ぷよ使いカウントの数え方
     fn calc_puyotsukai_count(&self, attr: PuyoAttr, coord: &PuyoCoord, puyo: &Puyo) -> u32 {
         match attr {
             PuyoAttr::Red
@@ -468,6 +477,7 @@ impl Simulator {
         }
     }
 
+    /// なぞっている箇所を発火させる
     fn activate_tracing(
         &self,
         field: &mut Field,
@@ -511,6 +521,7 @@ impl Simulator {
         return popped_or_cleared;
     }
 
+    /// フィールド内でぷよをドロップさせる (ネクストは動かさない)
     fn drop_in_field(&self, field: &mut Field) -> bool {
         let mut dropped = false;
 
@@ -557,6 +568,7 @@ impl Simulator {
         return dropped;
     }
 
+    /// ネクストをフィールドにドロップする
     fn drop_next_into_field(
         &self,
         field: &mut Field,
