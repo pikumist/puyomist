@@ -8,10 +8,8 @@ import type { SimulationData } from './SimulationData';
 import type { ExplorationResult } from './solution';
 import type {
   WasmBlockWithAttr,
-  WasmBlocks,
   WasmChain,
-  WasmField,
-  WasmNextPuyos,
+  WasmPuyo,
   WasmPuyoCoord,
   WasmSimulationEnvironment
 } from './wasm-interface';
@@ -47,7 +45,7 @@ export async function solveIncludingTraceIndex(
 
 export async function detectPopBlocks(
   environment: WasmSimulationEnvironment,
-  field: WasmField
+  field: (WasmPuyo | undefined)[][]
 ): Promise<WasmBlockWithAttr[]> {
   await initPromise;
   return detect_pop_blocks(environment, field);
@@ -55,8 +53,8 @@ export async function detectPopBlocks(
 
 export async function doChains(
   environment: WasmSimulationEnvironment,
-  field: WasmField,
-  nextPuyos: WasmNextPuyos,
+  field: (WasmPuyo | undefined)[][],
+  nextPuyos: (WasmPuyo | undefined)[],
   traceCoords: WasmPuyoCoord[]
 ): Promise<WasmChain[]> {
   await initPromise;
