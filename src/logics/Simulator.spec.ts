@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createSimulationData } from '../reducers/internal/createSimulationData';
 import type { Board } from './Board';
-import type { AttributeChain, Chain } from './Chain';
+import type { Chain } from './Chain';
 import { __resetPuyoIdCount } from './Puyo';
 import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
@@ -295,203 +295,203 @@ describe('Simulator', () => {
         traceCoords: [PuyoCoord.xyToCoord(5, 2), PuyoCoord.xyToCoord(6, 2)],
         expected: [
           {
-            chainNum: 1,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 1,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 1,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 2,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 2,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 3.8000000000000003,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 3,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 3,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 5.8999999999999995,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 4,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 4,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 5,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 5,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 9.4,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 6,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 6,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 10.799999999999999,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Heart]: {
                 strength: 0,
-                poppedNum: 1,
-                separatedBlocksNum: 0
+                popped_count: 1,
+                separated_blocks_num: 0
               }
             }
           },
           {
-            chainNum: 7,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 7,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 12.200000000000001,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 8,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 8,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 13.6,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Heart]: {
                 strength: 0,
-                poppedNum: 1,
-                separatedBlocksNum: 0
+                popped_count: 1,
+                separated_blocks_num: 0
               }
             }
           },
           {
-            chainNum: 9,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 9,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 15,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 10,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 10,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 16.400000000000002,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Heart]: {
                 strength: 0,
-                poppedNum: 1,
-                separatedBlocksNum: 0
+                popped_count: 1,
+                separated_blocks_num: 0
               }
             }
           },
           {
-            chainNum: 11,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 11,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 17.800000000000004,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 12,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 12,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19.2,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 13,
-            poppedPuyoNum: 3,
-            boostCount: 0,
-            puyoTsukaiCount: 3,
+            chain_num: 13,
+            simultaneous_num: 3,
+            boost_count: 0,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 20.599999999999998,
-                poppedNum: 3,
-                separatedBlocksNum: 1
+                popped_count: 3,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 14,
-            poppedPuyoNum: 10,
-            boostCount: 0,
-            puyoTsukaiCount: 10,
+            chain_num: 14,
+            simultaneous_num: 10,
+            boost_count: 0,
+            puyo_tsukai_count: 10,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 90.19999999999999,
-                poppedNum: 10,
-                separatedBlocksNum: 2
+                popped_count: 10,
+                separated_blocks_num: 2
               }
             }
           }
-        ]
+        ] satisfies Chain[]
       },
       {
         maxTraceNum: 5,
@@ -520,141 +520,141 @@ describe('Simulator', () => {
         ],
         expected: [
           {
-            chainNum: 1,
-            poppedPuyoNum: 6,
-            boostCount: 0,
-            puyoTsukaiCount: 7,
+            chain_num: 1,
+            simultaneous_num: 6,
+            boost_count: 0,
+            puyo_tsukai_count: 7,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 1.3,
-                poppedNum: 6,
-                separatedBlocksNum: 1
+                popped_count: 6,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Heart]: {
                 strength: 0,
-                poppedNum: 1,
-                separatedBlocksNum: 0
+                popped_count: 1,
+                separated_blocks_num: 0
               }
             }
           },
           {
-            chainNum: 2,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 2,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 5,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 3,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 3,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Yellow]: {
                 strength: 8,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 4,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 4,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 11,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 5,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 5,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 13,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 6,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 6,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 15,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 7,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 7,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Purple]: {
                 strength: 17,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 8,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 8,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 19,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 9,
-            poppedPuyoNum: 4,
-            boostCount: 0,
-            puyoTsukaiCount: 4,
+            chain_num: 9,
+            simultaneous_num: 4,
+            boost_count: 0,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 21,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 10,
-            poppedPuyoNum: 13,
-            boostCount: 0,
-            puyoTsukaiCount: 13,
+            chain_num: 10,
+            simultaneous_num: 13,
+            boost_count: 0,
+            puyo_tsukai_count: 13,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 108.09999999999998,
-                poppedNum: 13,
-                separatedBlocksNum: 2
+                popped_count: 13,
+                separated_blocks_num: 2
               }
             }
           }
-        ]
+        ] satisfies Chain[]
       },
       {
         maxTraceNum: 5,
@@ -679,79 +679,79 @@ describe('Simulator', () => {
         ],
         expected: [
           {
-            chainNum: 1,
-            poppedPuyoNum: 9,
-            boostCount: 0,
-            puyoTsukaiCount: 9,
+            chain_num: 1,
+            simultaneous_num: 9,
+            boost_count: 0,
+            puyo_tsukai_count: 9,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 1.75,
-                poppedNum: 5,
-                separatedBlocksNum: 1
+                popped_count: 5,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Yellow]: {
                 strength: 1.75,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 2,
-            poppedPuyoNum: 12,
-            boostCount: 0,
-            puyoTsukaiCount: 12,
+            chain_num: 2,
+            simultaneous_num: 12,
+            boost_count: 0,
+            puyo_tsukai_count: 12,
             attributes: {
               [PuyoAttribute.Blue]: {
                 strength: 3.08,
-                poppedNum: 5,
-                separatedBlocksNum: 1
+                popped_count: 5,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Purple]: {
                 strength: 3.08,
-                poppedNum: 7,
-                separatedBlocksNum: 1
+                popped_count: 7,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 3,
-            poppedPuyoNum: 11,
-            boostCount: 0,
-            puyoTsukaiCount: 11,
+            chain_num: 3,
+            simultaneous_num: 11,
+            boost_count: 0,
+            puyo_tsukai_count: 11,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 3.4849999999999994,
-                poppedNum: 7,
-                separatedBlocksNum: 1
+                popped_count: 7,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Yellow]: {
                 strength: 3.4849999999999994,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             }
           },
           {
-            chainNum: 4,
-            poppedPuyoNum: 8,
-            boostCount: 0,
-            puyoTsukaiCount: 8,
+            chain_num: 4,
+            simultaneous_num: 8,
+            boost_count: 0,
+            puyo_tsukai_count: 8,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 3.2,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Blue]: {
                 strength: 3.2,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               }
             },
-            allCleared: true
+            is_all_cleared: true
           }
-        ]
+        ] satisfies Chain[]
       },
       {
         maxTraceNum: 5,
@@ -781,47 +781,47 @@ describe('Simulator', () => {
         ],
         expected: [
           {
-            chainNum: 1,
-            poppedPuyoNum: 9,
-            boostCount: 4,
-            puyoTsukaiCount: 19,
+            chain_num: 1,
+            simultaneous_num: 9,
+            boost_count: 4,
+            puyo_tsukai_count: 19,
             attributes: {
               [PuyoAttribute.Green]: {
                 strength: 1.75,
-                poppedNum: 5,
-                separatedBlocksNum: 1
+                popped_count: 5,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Purple]: {
                 strength: 1.75,
-                poppedNum: 4,
-                separatedBlocksNum: 1
+                popped_count: 4,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Heart]: {
                 strength: 0,
-                poppedNum: 2,
-                separatedBlocksNum: 0
+                popped_count: 2,
+                separated_blocks_num: 0
               }
             }
           },
           {
-            chainNum: 2,
-            poppedPuyoNum: 10,
-            boostCount: 4,
-            puyoTsukaiCount: 18,
+            chain_num: 2,
+            simultaneous_num: 10,
+            boost_count: 4,
+            puyo_tsukai_count: 18,
             attributes: {
               [PuyoAttribute.Red]: {
                 strength: 2.6599999999999997,
-                poppedNum: 5,
-                separatedBlocksNum: 1
+                popped_count: 5,
+                separated_blocks_num: 1
               },
               [PuyoAttribute.Yellow]: {
                 strength: 2.6599999999999997,
-                poppedNum: 5,
-                separatedBlocksNum: 1
+                popped_count: 5,
+                separated_blocks_num: 1
               }
             }
           }
-        ]
+        ] satisfies Chain[]
       }
     ])(
       'should calculate chains',
@@ -853,49 +853,49 @@ describe('Simulator', () => {
   });
 
   describe('calcTotalDamageOfTargetAttr()', () => {
-    it('should take account of boostCount', () => {
+    it('should take account of boost_count', () => {
       // Arrange
       const chains: Chain[] = [
         {
-          chainNum: 1,
-          poppedPuyoNum: 9,
-          boostCount: 4,
-          puyoTsukaiCount: 19,
+          chain_num: 1,
+          simultaneous_num: 9,
+          boost_count: 4,
+          puyo_tsukai_count: 19,
           attributes: {
             [PuyoAttribute.Green]: {
               strength: 1.75,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Purple]: {
               strength: 1.75,
-              poppedNum: 4,
-              separatedBlocksNum: 1
+              popped_count: 4,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Heart]: {
               strength: 0,
-              poppedNum: 2,
-              separatedBlocksNum: 1
+              popped_count: 2,
+              separated_blocks_num: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>
+          }
         },
         {
-          chainNum: 2,
-          poppedPuyoNum: 10,
-          boostCount: 4,
-          puyoTsukaiCount: 18,
+          chain_num: 2,
+          simultaneous_num: 10,
+          boost_count: 4,
+          puyo_tsukai_count: 18,
           attributes: {
             [PuyoAttribute.Red]: {
               strength: 2.6599999999999997,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Yellow]: {
               strength: 2.6599999999999997,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>
+          }
         }
       ];
 
@@ -930,25 +930,25 @@ describe('Simulator', () => {
     });
 
     it.each([
-      { boostCount: 0, expected: 1.0 },
-      { boostCount: 1, expected: 1.04 },
-      { boostCount: 50, expected: 3.0 },
-      { boostCount: 51, expected: 3.0 }
-    ])('boostRatio should be up to 3.0', ({ boostCount, expected }) => {
+      { boost_count: 0, expected: 1.0 },
+      { boost_count: 1, expected: 1.04 },
+      { boost_count: 50, expected: 3.0 },
+      { boost_count: 51, expected: 3.0 }
+    ])('boostRatio should be up to 3.0', ({ boost_count, expected }) => {
       // Arrange
       const chains: Chain[] = [
         {
-          chainNum: 1,
-          poppedPuyoNum: 4,
-          boostCount,
-          puyoTsukaiCount: 0,
+          chain_num: 1,
+          simultaneous_num: 4,
+          boost_count,
+          puyo_tsukai_count: 0,
           attributes: {
             [PuyoAttribute.Red]: {
               strength: 1,
-              poppedNum: 4,
-              separatedBlocksNum: 1
+              popped_count: 4,
+              separated_blocks_num: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>
+          }
         }
       ];
 
@@ -968,50 +968,50 @@ describe('Simulator', () => {
       // Arrange
       const chains: Chain[] = [
         {
-          chainNum: 1,
-          poppedPuyoNum: 11,
-          boostCount: 4,
-          puyoTsukaiCount: 21,
+          chain_num: 1,
+          simultaneous_num: 11,
+          boost_count: 4,
+          puyo_tsukai_count: 21,
           attributes: {
             [PuyoAttribute.Green]: {
               strength: 2.05,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Purple]: {
               strength: 2.05,
-              poppedNum: 4,
-              separatedBlocksNum: 1
+              popped_count: 4,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Heart]: {
               strength: 0,
-              poppedNum: 2,
-              separatedBlocksNum: 0
+              popped_count: 2,
+              separated_blocks_num: 0
             },
             [PuyoAttribute.Prism]: {
               strength: 6.0,
-              poppedNum: 2,
-              separatedBlocksNum: 0
+              popped_count: 2,
+              separated_blocks_num: 0
             }
-          } as Record<PuyoAttribute, AttributeChain>
+          }
         },
         {
-          chainNum: 2,
-          poppedPuyoNum: 10,
-          boostCount: 4,
-          puyoTsukaiCount: 18,
+          chain_num: 2,
+          simultaneous_num: 10,
+          boost_count: 4,
+          puyo_tsukai_count: 18,
           attributes: {
             [PuyoAttribute.Red]: {
               strength: 2.6599999999999997,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             },
             [PuyoAttribute.Yellow]: {
               strength: 2.6599999999999997,
-              poppedNum: 5,
-              separatedBlocksNum: 1
+              popped_count: 5,
+              separated_blocks_num: 1
             }
-          } as Record<PuyoAttribute, AttributeChain>
+          }
         }
       ];
 

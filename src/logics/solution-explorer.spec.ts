@@ -16,9 +16,9 @@ import { solveAllTraces, solveIncludingTraceIndex } from './solution-explorer';
 
 describe('solution-explorer', () => {
   const calcCsp = (chain: Chain, attr: PuyoAttribute) => {
-    const c = chain.chainNum;
-    const s = chain.attributes[attr]?.separatedBlocksNum;
-    const p = chain.poppedPuyoNum;
+    const c = chain.chain_num;
+    const s = chain.attributes[attr]?.separated_blocks_num;
+    const p = chain.simultaneous_num;
     if (s) {
       return `${c}-${s}-${p}`;
     }

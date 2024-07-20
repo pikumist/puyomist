@@ -150,7 +150,7 @@ export class Simulator {
    * @returns
    */
   static isAllCleared(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.allCleared);
+    return chains.some((chain) => chain.is_all_cleared);
   }
 
   /**
@@ -159,7 +159,7 @@ export class Simulator {
    * @returns
    */
   static isChancePopped(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.chancePopped);
+    return chains.some((chain) => chain.is_chance_popped);
   }
 
   /**
@@ -224,7 +224,7 @@ export class Simulator {
     targetAttr: PuyoAttribute
   ): number {
     const totalCount = chains.reduce((m, chain) => {
-      return m + (chain.attributes[targetAttr]?.poppedNum ?? 0);
+      return m + (chain.attributes[targetAttr]?.popped_count ?? 0);
     }, 0);
     return totalCount;
   }
@@ -236,7 +236,7 @@ export class Simulator {
    */
   static calcTotalBoostCount(chains: Chain[]): number {
     return chains.reduce((m, chain) => {
-      return m + chain.boostCount;
+      return m + chain.boost_count;
     }, 0);
   }
 
@@ -257,7 +257,7 @@ export class Simulator {
    */
   static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
     return chains.reduce((m, chain) => {
-      return m + chain.puyoTsukaiCount;
+      return m + chain.puyo_tsukai_count;
     }, 0);
   }
 
@@ -491,10 +491,10 @@ export class Simulator {
     const puyoTsukaiCount = this.calcPuyoTsukaiCount(blocks);
 
     const result: Chain = {
-      chainNum,
-      poppedPuyoNum,
-      boostCount,
-      puyoTsukaiCount,
+      chain_num: chainNum,
+      simultaneous_num: poppedPuyoNum,
+      boost_count: boostCount,
+      puyo_tsukai_count: puyoTsukaiCount,
       attributes: {} as Record<PuyoAttribute, AttributeChain>
     };
 
@@ -520,8 +520,8 @@ export class Simulator {
         const poppedNum = block.coordIdMap.size;
         result.attributes![attr] = {
           strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
-          poppedNum,
-          separatedBlocksNum: 0
+          popped_count: poppedNum,
+          separated_blocks_num: 0
         };
       } else {
         const sameColorBlocks = blocks.filter((block) => block.attr === attr);
@@ -549,8 +549,8 @@ export class Simulator {
 
         result.attributes![attr] = {
           strength,
-          poppedNum: sameColorPoppedNum,
-          separatedBlocksNum
+          popped_count: sameColorPoppedNum,
+          separated_blocks_num: separatedBlocksNum
         };
       }
     }
@@ -566,7 +566,7 @@ export class Simulator {
       } else {
         for (const [c] of block.coordIdMap) {
           if (isChancePuyo(this.field[c.y][c.x]!.type)) {
-            result.chancePopped = true;
+            result.is_chance_popped = true;
           }
           this.field[c.y][c.x] = undefined;
         }
@@ -575,7 +575,7 @@ export class Simulator {
 
     const allCleared = this.field.every((row) => row.every((puyo) => !puyo));
     if (allCleared) {
-      result.allCleared = allCleared;
+      result.is_all_cleared = allCleared;
     }
 
     this.chains.push(result);
