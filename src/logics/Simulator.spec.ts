@@ -1094,4 +1094,72 @@ describe('Simulator', () => {
       expect(actual).toBe(expected);
     });
   });
+
+  describe('calcTotalWildDamage()', () => {
+    it('should calculate total wild damage including prism and boost count ratio', () => {
+      // Arrange
+      const chains: Chain[] = [
+        {
+          chainNum: 1,
+          poppedPuyoNum: 11,
+          boostCount: 4,
+          puyoTsukaiCount: 21,
+          attributes: {
+            [PuyoAttribute.Green]: {
+              strength: 2.05,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Purple]: {
+              strength: 2.05,
+              poppedNum: 4,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Heart]: {
+              strength: 0,
+              poppedNum: 2,
+              separatedBlocksNum: 0
+            },
+            [PuyoAttribute.Prism]: {
+              strength: 6.0,
+              poppedNum: 2,
+              separatedBlocksNum: 0
+            }
+          } as Record<PuyoAttribute, AttributeChain>,
+          wild: {
+            strength: 4.1,
+            separatedBlocksNum: 2
+          }
+        },
+        {
+          chainNum: 2,
+          poppedPuyoNum: 10,
+          boostCount: 4,
+          puyoTsukaiCount: 18,
+          attributes: {
+            [PuyoAttribute.Red]: {
+              strength: 2.6599999999999997,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            },
+            [PuyoAttribute.Yellow]: {
+              strength: 2.6599999999999997,
+              poppedNum: 5,
+              separatedBlocksNum: 1
+            }
+          } as Record<PuyoAttribute, AttributeChain>,
+          wild: {
+            strength: 5.319999999999999,
+            separatedBlocksNum: 2
+          }
+        }
+      ];
+
+      // Actual
+      const actual = Simulator.calcTotalWildDamage(chains);
+
+      // Assert
+      expect(actual).toBe(20.3544);
+    });
+  });
 });
