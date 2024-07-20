@@ -35,13 +35,13 @@ export interface WasmBlockWithAttr {
 
 export interface WasmAttributeChain {
   strength: number;
-  popped_num: number;
+  popped_count: number;
   separated_blocks_num: number;
 }
 
 export interface WasmChain {
   chain_num: number;
-  popped_puyo_num: number;
+  simultaneous_num: number;
   boost_count: number;
   puyo_tsukai_count: number;
   attributes: Map<PuyoAttribute, WasmAttributeChain>;

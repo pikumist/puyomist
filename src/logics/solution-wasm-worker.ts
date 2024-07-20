@@ -14,7 +14,7 @@ import type {
   WasmNextPuyos,
   WasmPuyoCoord,
   WasmSimulationEnvironment
-} from './wasm';
+} from './wasm-interface';
 
 const initPromise = init();
 

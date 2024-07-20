@@ -5,7 +5,7 @@ import type {
   WasmPuyo,
   WasmPuyoCoord,
   WasmSimulationEnvironment
-} from './wasm';
+} from './wasm-interface';
 
 (async () => {
   const { workerProxy } = createWorker();
