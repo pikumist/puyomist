@@ -9,7 +9,7 @@ pub mod puyo_type;
 pub mod simulator;
 pub mod trace_mode;
 
-#[macro_use]
+#[cfg_attr(test, macro_use)]
 extern crate approx;
 extern crate console_error_panic_hook;
 extern crate num_derive;
