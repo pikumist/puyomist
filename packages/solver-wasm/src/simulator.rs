@@ -638,12 +638,12 @@ mod tests {
     #[allow(warnings)]
     fn test_do_chains_for_special_rule_1_1() {
         // Arrange
-        let R = PuyoType::Red;
-        let B = PuyoType::Blue;
-        let G = PuyoType::Green;
-        let Y = PuyoType::Yellow;
-        let P = PuyoType::Purple;
-        let H = PuyoType::Heart;
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let h = PuyoType::Heart;
 
         let environment = SimulationEnvironment {
             boost_area_coord_set: HashSet::new(),
@@ -656,12 +656,12 @@ mod tests {
         };
         let mut id_counter = 0;
         let mut field = [
-            [R, P, H, P, Y, G, Y, Y],
-            [R, Y, P, H, Y, G, P, G],
-            [B, Y, G, B, H, Y, G, P],
-            [B, R, B, R, P, B, R, P],
-            [Y, G, P, P, R, B, G, G],
-            [B, G, B, R, B, Y, R, R],
+            [r, p, h, p, y, g, y, y],
+            [r, y, p, h, y, g, p, g],
+            [b, y, g, b, h, y, g, p],
+            [b, r, b, r, p, b, r, p],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
         ]
         .map(|row| {
             row.map(|puyo_type| {
@@ -672,7 +672,7 @@ mod tests {
                 })
             })
         });
-        let mut next_puyos = [G, G, G, G, G, G, G, G].map(|puyo_type| {
+        let mut next_puyos = [g, g, g, g, g, g, g, g].map(|puyo_type| {
             id_counter += 1;
             Some(Puyo {
                 id: id_counter,
