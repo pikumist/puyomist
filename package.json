@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test-wasm": "cd packages/solver-wasm; cargo test",
+    "bench-wasm": "cd packages/solver-wasm; cargo bench",
     "coverage": "vitest run --coverage",
     "server": "tsx server/cli.ts"
   },

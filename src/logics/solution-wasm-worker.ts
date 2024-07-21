@@ -2,7 +2,7 @@ import { expose } from 'comlink';
 import init, {
   detect_pop_blocks,
   do_chains
-} from '../../packages/solver-wasm/pkg/solver_wasm';
+} from '../../packages/solver-wasm/pkg/solver';
 import type { ExplorationTarget } from './ExplorationTarget';
 import type { SimulationData } from './SimulationData';
 import type { ExplorationResult } from './solution';

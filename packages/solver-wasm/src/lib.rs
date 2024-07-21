@@ -1,3 +1,5 @@
+// ベンチマークから参照するため pub を付けている。
+// pub をつけることによる wasm へのサイズ影響は 100 バイト程度。
 pub mod chain;
 pub mod damage;
 pub mod puyo;
@@ -55,7 +57,9 @@ pub fn do_chains(
     js_next_puyos: JsValue,
     js_trace_coords: JsValue,
 ) -> JsValue {
+    // フックをつかうことによる wasm へのサイズ影響は 1k バイト程度。
     console_error_panic_hook::set_once();
+
     let environment: SimulationEnvironment =
         serde_wasm_bindgen::from_value(js_environment).unwrap();
     let mut field: Field = serde_wasm_bindgen::from_value(js_field).unwrap();

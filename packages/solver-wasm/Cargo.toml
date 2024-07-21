@@ -2,7 +2,7 @@
 name = "solver-wasm"
 version = "0.1.0"
 authors = ["pikumist <174439048+pikumist@users.noreply.github.com>"]
-description = "A sample project with wasm-pack"
+description = "A puyoque chain simulator with wasm-pack"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/pikumist/puyomist/packages/solver-wasm"
 edition = "2021"
