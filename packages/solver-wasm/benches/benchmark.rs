@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use solver::puyo::Puyo;
 use solver::puyo_coord::PuyoCoord;
@@ -8,7 +8,12 @@ use solver::puyo_type::*;
 use solver::simulator::{SimulationEnvironment, Simulator};
 use solver::trace_mode::TraceMode;
 
-fn solve() {
+fn setup_input() -> (
+    SimulationEnvironment,
+    [[Option<Puyo>; 8]; 6],
+    [Option<Puyo>; 8],
+    Vec<PuyoCoord>,
+) {
     // Arrange
     let R = PuyoType::Red;
     let B = PuyoType::Blue;
@@ -52,14 +57,35 @@ fn solve() {
         })
     });
     let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }];
+
+    return (environment, field, next_puyos, trace_coords);
+}
+
+fn solve(
+    environment: &SimulationEnvironment,
+    field: &mut [[Option<Puyo>; 8]; 6],
+    next_puyos: &mut [Option<Puyo>; 8],
+    trace_coords: &Vec<PuyoCoord>,
+) {
     let simulator = Simulator { environment };
 
     // Act
-    let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
+    let actual1 = simulator.do_chains(field, next_puyos, trace_coords);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("do_chains", |b| b.iter(|| solve()));
+    let (environment, mut field, mut next_puyos, trace_coords) = setup_input();
+
+    c.bench_function("do_chains", |b| {
+        b.iter(|| {
+            solve(
+                black_box(&environment),
+                black_box(&mut field),
+                black_box(&mut next_puyos),
+                black_box(&trace_coords),
+            )
+        })
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

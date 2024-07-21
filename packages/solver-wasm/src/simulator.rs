@@ -37,11 +37,11 @@ pub struct SimulationEnvironment {
 }
 
 #[derive(Debug)]
-pub struct Simulator {
-    pub environment: SimulationEnvironment,
+pub struct Simulator<'a> {
+    pub environment: &'a SimulationEnvironment,
 }
 
-impl Simulator {
+impl<'a> Simulator<'a> {
     /// なぞり消し(あるいは塗り替え)を実施して連鎖を発生させる。
     pub fn do_chains(
         &self,
@@ -680,7 +680,9 @@ mod tests {
             })
         });
         let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }];
-        let simulator = Simulator { environment };
+        let simulator = Simulator {
+            environment: &environment,
+        };
 
         // Act
         let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);

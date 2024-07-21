@@ -44,7 +44,9 @@ pub fn detect_pop_blocks(js_environment: JsValue, js_field: JsValue) -> JsValue 
     console_error_panic_hook::set_once();
     let environment: SimulationEnvironment = from_value(js_environment);
     let field: Field = from_value(js_field);
-    let simulator = Simulator { environment };
+    let simulator = Simulator {
+        environment: &environment,
+    };
     let blocks = simulator.detect_pop_blocks(&field);
     let result = to_value(&blocks);
     return result;
@@ -65,7 +67,9 @@ pub fn do_chains(
     let mut field: Field = serde_wasm_bindgen::from_value(js_field).unwrap();
     let mut next_puyos: NextPuyos = serde_wasm_bindgen::from_value(js_next_puyos).unwrap();
     let trace_coords: Vec<PuyoCoord> = serde_wasm_bindgen::from_value(js_trace_coords).unwrap();
-    let simulator = Simulator { environment };
+    let simulator = Simulator {
+        environment: &environment,
+    };
     let chains = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
     let result = serde_wasm_bindgen::to_value(&chains).unwrap();
     return result;
