@@ -1,11 +1,11 @@
-mod chain;
-mod damage;
-mod puyo;
-mod puyo_attr;
-mod puyo_coord;
-mod puyo_type;
-mod simulator;
-mod trace_mode;
+pub mod chain;
+pub mod damage;
+pub mod puyo;
+pub mod puyo_attr;
+pub mod puyo_coord;
+pub mod puyo_type;
+pub mod simulator;
+pub mod trace_mode;
 
 #[macro_use]
 extern crate approx;
