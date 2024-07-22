@@ -26,4 +26,6 @@ export interface Chain {
   is_all_cleared?: boolean;
   /** チャンスぷよが弾けたかどうか */
   is_chance_popped?: boolean;
+  /** プリズムが弾けたかどうか */
+  is_prism_popped?: boolean;
 }

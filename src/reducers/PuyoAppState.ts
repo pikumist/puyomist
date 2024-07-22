@@ -3,10 +3,9 @@ import type { AnimationStep } from '../logics/AnimationStep';
 import type { Board } from '../logics/Board';
 import { type BoardEditMode, HowToEditBoard } from '../logics/BoardEditMode';
 import {
-  AllClearPreference,
-  ChancePopPreference,
   ExplorationCategory,
-  type ExplorationTarget
+  type ExplorationTarget,
+  PreferenceKind
 } from '../logics/ExplorationTarget';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
@@ -58,8 +57,13 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: customBoardId,
   nextSelection: 'random',
   explorationTarget: {
-    allClearPreference: AllClearPreference.PreferIfBestValue,
-    chancePopPreference: ChancePopPreference.PreferIfBestValue,
+    preferencePriorities: [
+      PreferenceKind.BetterValue,
+      PreferenceKind.ChancePop,
+      PreferenceKind.PrismPop,
+      PreferenceKind.AllClear,
+      PreferenceKind.SmallerTraceNum
+    ],
     category: ExplorationCategory.PuyotsukaiCount
   },
   solutionMethod: SolutionMethod.solveAllInParallel,

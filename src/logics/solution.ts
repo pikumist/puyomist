@@ -36,6 +36,8 @@ export interface SolutionResult {
   allCleared: boolean;
   /** チャンスぷよが弾けたかどうか */
   chancePopped: boolean;
+  /** プリズムが弾けたかどうか */
+  prismPopped: boolean;
   /** 全連鎖情報 */
   chains: Chain[];
 }

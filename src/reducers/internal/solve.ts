@@ -136,7 +136,11 @@ export const createSolveAllInParallel =
         if (!s?.optimalSolution) {
           return m;
         }
-        return betterSolution(explorationTarget, m, s.optimalSolution);
+        return betterSolution(
+          explorationTarget.preferencePriorities,
+          m,
+          s.optimalSolution
+        );
       },
       undefined as SolutionResult | undefined
     );

@@ -9,12 +9,11 @@ import { type Board, emptyBoard } from '../logics/Board';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
 import {
-  type AllClearPreference,
-  type ChancePopPreference,
   CountingBonusType,
   ExplorationCategory,
   type ExplorationTargetDamage,
   type ExplorationTargetSkillPuyoCount,
+  type PreferenceKind,
   wildAttribute
 } from '../logics/ExplorationTarget';
 import {
@@ -350,8 +349,7 @@ const puyoAppSlice = createSlice({
       action: PayloadAction<ExplorationCategory>
     ) => {
       const common = {
-        allClearPreference: state.explorationTarget.allClearPreference,
-        chancePopPreference: state.explorationTarget.chancePopPreference
+        preferencePriorities: state.explorationTarget.preferencePriorities
       };
       switch (action.payload) {
         case ExplorationCategory.Damage:
@@ -376,18 +374,12 @@ const puyoAppSlice = createSlice({
       }
     },
 
-    explorationAllClearPreferenceSelected: (
+    /** 探索対象の優先度に変更があったとき */
+    explorationPreferencePrioritiesChanged: (
       state,
-      action: PayloadAction<AllClearPreference>
+      action: PayloadAction<PreferenceKind[]>
     ) => {
-      state.explorationTarget.allClearPreference = action.payload;
-    },
-
-    explorationChancePopPreferenceSelected: (
-      state,
-      action: PayloadAction<ChancePopPreference>
-    ) => {
-      state.explorationTarget.chancePopPreference = action.payload;
+      state.explorationTarget.preferencePriorities = action.payload;
     },
 
     /** ダメージの主属性項目が選択されたとき */
@@ -654,8 +646,7 @@ export const {
   chainLeverageChanged,
   animationDurationChanged,
   explorationCategorySelected,
-  explorationAllClearPreferenceSelected,
-  explorationChancePopPreferenceSelected,
+  explorationPreferencePrioritiesChanged,
   explorationDamageMainAttrSelected,
   explorationDamageSubAttrSelected,
   explorationDamageMainSubRatioSelected,
