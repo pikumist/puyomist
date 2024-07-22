@@ -11,6 +11,7 @@ import {
   useSensors
 } from '@dnd-kit/core';
 import type { Active, UniqueIdentifier } from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   SortableContext,
   arrayMove,
@@ -47,6 +48,7 @@ const SortableList = <T extends BaseItem>(props: Props<T>) => {
 
   return (
     <DndContext
+      modifiers={[restrictToVerticalAxis]}
       sensors={sensors}
       onDragStart={({ active }) => {
         setActive(active);
