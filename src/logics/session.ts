@@ -1,10 +1,9 @@
 import type { Board } from './Board';
 import { type BoardEditMode, HowToEditBoard } from './BoardEditMode';
 import {
-  AllClearPreference,
-  ChancePopPreference,
   ExplorationCategory,
-  type ExplorationTarget
+  type ExplorationTarget,
+  PreferenceKind
 } from './ExplorationTarget';
 import { TraceMode, traceModeDescriptionMap } from './TraceMode';
 import { SolutionMethod } from './solution';
@@ -23,8 +22,13 @@ export class Session {
   private static readonly boardEditModeKey = 'boardEidtMode';
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
-    allClearPreference: AllClearPreference.PreferIfBestValue,
-    chancePopPreference: ChancePopPreference.PreferIfBestValue,
+    preferencePriorities: [
+      PreferenceKind.BetterValue,
+      PreferenceKind.ChancePop,
+      PreferenceKind.PrismPop,
+      PreferenceKind.AllClear,
+      PreferenceKind.SmallerTraceNum
+    ],
     category: ExplorationCategory.PuyotsukaiCount
   };
 
@@ -100,7 +104,10 @@ export class Session {
   getExplorationTarget(): ExplorationTarget {
     const targetStr = this.storage.getItem(Session.explorationTargetKey);
     try {
-      return JSON.parse(targetStr!) ?? Session.defaultExplorationTarget;
+      const parsed = JSON.parse(targetStr!) as ExplorationTarget;
+      return parsed?.preferencePriorities && parsed?.category
+        ? parsed
+        : Session.defaultExplorationTarget;
     } catch (_) {
       return Session.defaultExplorationTarget;
     }

@@ -9,11 +9,10 @@
  */
 
 import {
-  AllClearPreference,
-  ChancePopPreference,
   CountingBonusType,
   ExplorationCategory,
   type ExplorationTarget,
+  PreferenceKind,
   wildAttribute
 } from './ExplorationTarget';
 import { PuyoCoord } from './PuyoCoord';
@@ -146,16 +145,21 @@ const updateCarry = (
   }
 
   carry.optimalSolution = betterSolution(
-    explorationTarget,
+    explorationTarget.preferencePriorities,
     carry.optimalSolution,
     solutionResult
   );
 };
 
-const betterSolutionByValue = (
-  s1: SolutionResult,
-  s2: SolutionResult
-): SolutionResult | undefined => {
+export type PartialSolutionResult = Omit<
+  SolutionResult,
+  'totalDamages' | 'totalWildDamage' | 'chains'
+>;
+
+const betterSolutionByValue = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
   if (s2.value > s1.value) {
     return s2;
   }
@@ -165,23 +169,10 @@ const betterSolutionByValue = (
   return undefined;
 };
 
-const betterSolutionByTraceCoords = (
-  s1: SolutionResult,
-  s2: SolutionResult
-): SolutionResult | undefined => {
-  if (s2.traceCoords.length < s1.traceCoords.length) {
-    return s2;
-  }
-  if (s2.traceCoords.length > s1.traceCoords.length) {
-    return s1;
-  }
-  return undefined;
-};
-
-const betterSolutionByChancePopped = (
-  s1: SolutionResult,
-  s2: SolutionResult
-): SolutionResult | undefined => {
+const betterSolutionByChancePopped = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
   if (s2.chancePopped && !s1.chancePopped) {
     return s2;
   }
@@ -191,10 +182,23 @@ const betterSolutionByChancePopped = (
   return undefined;
 };
 
-const betterSolutionByAllCleared = (
-  s1: SolutionResult,
-  s2: SolutionResult
-): SolutionResult | undefined => {
+const betterSolutionByPrismPopped = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.prismPopped && !s1.prismPopped) {
+    return s2;
+  }
+  if (!s2.prismPopped && s1.prismPopped) {
+    return s1;
+  }
+  return undefined;
+};
+
+const betterSolutionByAllCleared = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
   if (s2.allCleared && !s1.allCleared) {
     return s2;
   }
@@ -204,98 +208,46 @@ const betterSolutionByAllCleared = (
   return undefined;
 };
 
+const betterSolutionByTraceCoords = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.traceCoords.length < s1.traceCoords.length) {
+    return s2;
+  }
+  if (s2.traceCoords.length > s1.traceCoords.length) {
+    return s1;
+  }
+  return undefined;
+};
+
+const betterMethodMap = new Map([
+  [PreferenceKind.BetterValue, betterSolutionByValue],
+  [PreferenceKind.ChancePop, betterSolutionByChancePopped],
+  [PreferenceKind.PrismPop, betterSolutionByPrismPopped],
+  [PreferenceKind.AllClear, betterSolutionByAllCleared],
+  [PreferenceKind.SmallerTraceNum, betterSolutionByTraceCoords]
+]);
+
 /**
  * s1 と s2 とで良い解法の方を返す。優劣付けれらない場合は s1 を返す。
  * @param s1
  * @param s2
  * @returns
  */
-export const betterSolution = (
-  explorationTarget: ExplorationTarget,
-  s1: SolutionResult,
-  s2: SolutionResult
-): SolutionResult => {
-  const { allClearPreference, chancePopPreference } = explorationTarget;
-
-  switch (allClearPreference) {
-    // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
-    case AllClearPreference.NotCare:
-      switch (chancePopPreference) {
-        case ChancePopPreference.NotCare:
-          return (
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfBestValue:
-          return (
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfExists:
-          return (
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-      }
-    // biome-ignore lint/suspicious/noFallthroughSwitchClause: false positive
-    case AllClearPreference.PreferIfBestValue:
-      switch (chancePopPreference) {
-        case ChancePopPreference.NotCare:
-          return (
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfBestValue:
-          return (
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfExists:
-          return (
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-      }
-    case AllClearPreference.PreferIfExists:
-      switch (chancePopPreference) {
-        case ChancePopPreference.NotCare:
-          return (
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfBestValue:
-          return (
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-        case ChancePopPreference.PreferIfExists:
-          return (
-            betterSolutionByChancePopped(s1, s2) ??
-            betterSolutionByAllCleared(s1, s2) ??
-            betterSolutionByValue(s1, s2) ??
-            betterSolutionByTraceCoords(s1, s2) ??
-            s1
-          );
-      }
+export const betterSolution = <S extends PartialSolutionResult>(
+  preferencePriorities: PreferenceKind[],
+  s1: S,
+  s2: S
+): S => {
+  for (const pref of preferencePriorities) {
+    const betterMethod = betterMethodMap.get(pref);
+    const s = betterMethod?.(s1, s2);
+    if (s) {
+      return s;
+    }
   }
+  return s1;
 };
 
 /**
@@ -317,6 +269,7 @@ const calcSolutionResult = (
   const chains = sim.getChains();
   const allCleared = Simulator.isAllCleared(chains);
   const chancePopped = Simulator.isChancePopped(chains);
+  const prismPopped = Simulator.isPrismPopped(chains);
 
   const totalDamages = Object.fromEntries(
     Simulator.colorAttrs.map((targetAttr) => {
@@ -384,6 +337,7 @@ const calcSolutionResult = (
     totalWildDamage,
     allCleared,
     chancePopped,
+    prismPopped,
     chains
   };
 };

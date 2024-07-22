@@ -10,52 +10,34 @@ export enum ExplorationCategory {
   PuyotsukaiCount = 3
 }
 
-/** 全消し優先度 */
-export enum AllClearPreference {
-  /** 気にしない */
-  NotCare = 0,
-  /** 最善同値候補中にあれば選択する */
-  PreferIfBestValue = 1,
-  /** 全候補中にあれば選択する */
-  PreferIfExists = 2
+/** 好みの種類 */
+export enum PreferenceKind {
+  /** 探索対象の値が良い方(大きい方) */
+  BetterValue = 1,
+  /** チャンスぷよ消し */
+  ChancePop = 2,
+  /** プリズム消し */
+  PrismPop = 3,
+  /** 全消し */
+  AllClear = 4,
+  /** なぞり数が少ない方 */
+  SmallerTraceNum = 5
 }
 
-/** 全消し優先度と説明のマップ */
-export const allClearPreferenceDescriptionMap: ReadonlyMap<
-  AllClearPreference,
-  string
-> = new Map([
-  [AllClearPreference.NotCare, 'しない'],
-  [AllClearPreference.PreferIfBestValue, '最善値のみ'],
-  [AllClearPreference.PreferIfExists, '常に']
-]);
-
-/** チャンスぷよ消し優先度 */
-export enum ChancePopPreference {
-  /** 気にしない */
-  NotCare = 0,
-  /** 最善同値候補中にあれば選択する */
-  PreferIfBestValue = 1,
-  /** 全候補中にあれば選択する */
-  PreferIfExists = 2
-}
-
-/** チャンスぷよ消し優先度と説明のマップ */
-export const chancePopPreferenceDescriptionMap: ReadonlyMap<
-  ChancePopPreference,
-  string
-> = new Map([
-  [ChancePopPreference.NotCare, 'しない'],
-  [ChancePopPreference.PreferIfBestValue, '最善値のみ'],
-  [ChancePopPreference.PreferIfExists, '常に']
-]);
+/** 好みの種類とその説明のマップ */
+export const preferenceKindDescriptionMap: ReadonlyMap<PreferenceKind, string> =
+  new Map([
+    [PreferenceKind.BetterValue, '探索対象の値が大きい'],
+    [PreferenceKind.ChancePop, 'チャンスぷよを含む'],
+    [PreferenceKind.PrismPop, 'プリズムを含む'],
+    [PreferenceKind.AllClear, '全消し達成'],
+    [PreferenceKind.SmallerTraceNum, 'なぞり数が少ない']
+  ]);
 
 /** 探索共通設定 */
 export interface ExplorationTargetCommon {
-  /** 全消し優先度 */
-  allClearPreference: AllClearPreference;
-  /** チャンプぷよ消し優先度 */
-  chancePopPreference: ChancePopPreference;
+  /** 各好みの優先度リスト。インデックスの小さい要素の方を優先する。 */
+  preferencePriorities: PreferenceKind[];
 }
 
 /** ワイルド属性 */

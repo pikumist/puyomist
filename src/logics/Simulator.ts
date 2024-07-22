@@ -163,6 +163,15 @@ export class Simulator {
   }
 
   /**
+   * プリズムが弾けたかどうか
+   * @param chains
+   * @returns
+   */
+  static isPrismPopped(chains: Chain[]): boolean {
+    return chains.some((chain) => chain.is_prism_popped);
+  }
+
+  /**
    * 総プリズムダメージを計算する。
    * @param chains
    * @returns
@@ -564,8 +573,12 @@ export class Simulator {
           };
         }
       } else {
+        if (block.attr === PuyoAttribute.Prism) {
+          result.is_prism_popped = true;
+        }
         for (const [c] of block.coordIdMap) {
-          if (isChancePuyo(this.field[c.y][c.x]!.type)) {
+          const type = this.field[c.y][c.x]!.type;
+          if (isChancePuyo(type)) {
             result.is_chance_popped = true;
           }
           this.field[c.y][c.x] = undefined;

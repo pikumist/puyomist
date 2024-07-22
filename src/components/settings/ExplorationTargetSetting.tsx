@@ -11,19 +11,17 @@ import {
   Text
 } from '@chakra-ui/react';
 import type React from 'react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-  type AllClearPreference,
-  type ChancePopPreference,
   CountingBonusType,
   ExplorationCategory,
   type ExplorationTarget,
   type ExplorationTargetDamage,
   type ExplorationTargetSkillPuyoCount,
-  allClearPreferenceDescriptionMap,
-  chancePopPreferenceDescriptionMap,
+  type PreferenceKind,
   explorationCategoryDescriptionMap,
+  preferenceKindDescriptionMap,
   wildAttribute
 } from '../../logics/ExplorationTarget';
 import {
@@ -33,9 +31,7 @@ import {
   getPuyoAttributeName
 } from '../../logics/PuyoAttribute';
 import {
-  explorationAllClearPreferenceSelected,
   explorationCategorySelected,
-  explorationChancePopPreferenceSelected,
   explorationCountingBonusCountChanged,
   explorationCountingBonusStepHeightChanged,
   explorationCountingBonusStepRepeatCheckChanged,
@@ -44,9 +40,11 @@ import {
   explorationDamageMainAttrSelected,
   explorationDamageMainSubRatioSelected,
   explorationDamageSubAttrSelected,
+  explorationPreferencePrioritiesChanged,
   explorationPuyoCountMainAttrSelected
 } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
+import SortableList from '../sortable-list/SortableList';
 
 /** 探索対象の設定 */
 const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
@@ -58,8 +56,9 @@ const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
     <Stack my={2} spacing={0}>
       <CategorySelector category={target.category} />
       <DetailSetting target={target} />
-      <AllClearPreferenceSelector preference={target.allClearPreference} />
-      <ChancePopPreferenceSelector preference={target.chancePopPreference} />
+      <PreferencePrioritySetting
+        preferencePriorities={target.preferencePriorities}
+      />
     </Stack>
   );
 };
@@ -100,71 +99,48 @@ const CategorySelector: React.FC<{
   );
 };
 
-const AllClearPreferenceSelector: React.FC<{
-  preference: AllClearPreference;
+const PreferencePrioritySetting: React.FC<{
+  preferencePriorities: PreferenceKind[];
 }> = (props) => {
-  const { preference } = props;
+  const { preferencePriorities } = props;
   const dispatch = useDispatch<AppDispatch>();
 
-  const onChanged = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    dispatch(
-      explorationAllClearPreferenceSelected(
-        Number.parseInt(e.target.value) as AllClearPreference
-      )
-    );
+  const items = useMemo(() => {
+    return preferencePriorities.map((pref, i) => ({
+      id: pref,
+      index: i + 1,
+      description: preferenceKindDescriptionMap.get(pref)
+    }));
+  }, [preferencePriorities]);
+
+  const onChanged = (
+    items: {
+      id: PreferenceKind;
+      index: number;
+      description: string | undefined;
+    }[]
+  ) => {
+    dispatch(explorationPreferencePrioritiesChanged(items.map(({ id }) => id)));
+  };
 
   return (
-    <HStack>
-      <Text>全消し優先:</Text>
-      <Select
-        aria-label="全消し優先の選択"
-        w="9em"
-        value={preference}
+    <Stack>
+      <Text>優先度:</Text>
+      <SortableList
+        items={items}
         onChange={onChanged}
-      >
-        {[...allClearPreferenceDescriptionMap].map(([pref, description]) => {
-          return (
-            <option value={pref} key={pref}>
-              {description}
-            </option>
-          );
-        })}
-      </Select>
-    </HStack>
-  );
-};
-
-const ChancePopPreferenceSelector: React.FC<{
-  preference: ChancePopPreference;
-}> = (props) => {
-  const { preference } = props;
-  const dispatch = useDispatch<AppDispatch>();
-
-  const onChanged = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    dispatch(
-      explorationChancePopPreferenceSelected(
-        Number.parseInt(e.target.value) as ChancePopPreference
-      )
-    );
-
-  return (
-    <HStack>
-      <Text>チャンスぷよ優先:</Text>
-      <Select
-        aria-label="チャンスぷよ優先の選択"
-        w="9em"
-        value={preference}
-        onChange={onChanged}
-      >
-        {[...chancePopPreferenceDescriptionMap].map(([pref, description]) => {
-          return (
-            <option value={pref} key={pref}>
-              {description}
-            </option>
-          );
-        })}
-      </Select>
-    </HStack>
+        renderItem={(item) => (
+          <SortableList.Item id={item.id}>
+            <HStack background="gray.700">
+              <Text ml="2">
+                {item.index}. {item.description}
+              </Text>
+              <SortableList.DragHandle ml="auto" />
+            </HStack>
+          </SortableList.Item>
+        )}
+      />
+    </Stack>
   );
 };
 
