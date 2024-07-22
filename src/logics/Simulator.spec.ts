@@ -12,7 +12,7 @@ import { B, E, G, H, P, R, W, Y } from './boards/alias';
 
 const Rp = PuyoType.RedPlus;
 const Bp = PuyoType.BluePlus;
-const Gp = PuyoType.GreenPlus;
+const Gcp = PuyoType.GreenChancePlus;
 const Yp = PuyoType.YellowPlus;
 const Pp = PuyoType.PurplePlus;
 
@@ -764,7 +764,7 @@ describe('Simulator', () => {
           field: [
             [H, R, R, G, P, B, H, B],
             [H, P, B, B, G, R, P, G],
-            [G, P, R, Gp, H, Y, B, G],
+            [G, P, R, Gcp, H, Y, B, G],
             [G, P, R, R, P, B, B, Y],
             [B, P, R, G, R, Y, Y, P],
             [P, B, P, G, P, G, P, R]
@@ -801,7 +801,8 @@ describe('Simulator', () => {
                 popped_count: 2,
                 separated_blocks_num: 0
               }
-            }
+            },
+            is_chance_popped: true
           },
           {
             chain_num: 2,
