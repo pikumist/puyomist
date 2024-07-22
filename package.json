@@ -6,10 +6,14 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run build:wasm && npm run build:vite",
+    "build:wasm": "wasm-pack build packages/solver-wasm --target web",
+    "build:vite": "tsc && vite build",
     "lint": "biome lint .",
     "preview": "vite preview",
     "test": "vitest",
+    "test-wasm": "cd packages/solver-wasm; cargo test",
+    "bench-wasm": "cd packages/solver-wasm; cargo bench",
     "coverage": "vitest run --coverage",
     "server": "tsx server/cli.ts"
   },
@@ -40,5 +44,8 @@
     "vite": "^5.2.0",
     "vitest": "^1.6.0",
     "ws": "^8.17.1"
+  },
+  "volta": {
+    "node": "22.4.1"
   }
 }

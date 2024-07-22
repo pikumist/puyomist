@@ -23,7 +23,7 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
     }
   ],
   [
-    'aruru',
+    'arle',
     {
       name: 'アルル',
       coordSet: new Set(

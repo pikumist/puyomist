@@ -1,0 +1,33 @@
+[package]
+name = "solver-wasm"
+version = "0.1.0"
+authors = ["pikumist <174439048+pikumist@users.noreply.github.com>"]
+description = "A puyoque chain simulator with wasm-pack"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/pikumist/puyomist/packages/solver-wasm"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "solver"
+path = "src/lib.rs"
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+approx = "0.5.1"
+num-traits = "0.2"
+num-derive = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_repr = "0.1"
+serde-wasm-bindgen = "0.6"
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "benchmark"
+harness = false

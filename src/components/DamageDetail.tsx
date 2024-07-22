@@ -26,9 +26,9 @@ const DamageDetail: React.FC<IProps> = (props) => {
     })
     .map((chain) => {
       return {
-        chainNum: chain.chainNum,
-        poppedPuyoNum: chain.poppedPuyoNum,
-        attributeChain: chain.attributes[attr]
+        chain_num: chain.chain_num,
+        simultaneous_num: chain.simultaneous_num,
+        attribute_chain: chain.attributes[attr]!
       };
     });
 
@@ -38,13 +38,13 @@ const DamageDetail: React.FC<IProps> = (props) => {
   ).toFixed(2);
 
   const totalAttrPoppedNum = chainsByAttr.reduce(
-    (m, chain) => m + chain.attributeChain.poppedNum,
+    (m, chain) => m + chain.attribute_chain.popped_count,
     0
   );
 
   // (連鎖目-分離数-同時消し数) リスト
   const cspList = chainsByAttr.map((chain) => {
-    return `${chain.chainNum}-${chain.attributeChain.separatedBlocksNum}-${chain.poppedPuyoNum}`;
+    return `${chain.chain_num}-${chain.attribute_chain.separated_blocks_num}-${chain.simultaneous_num}`;
   });
 
   return (

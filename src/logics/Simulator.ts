@@ -150,7 +150,7 @@ export class Simulator {
    * @returns
    */
   static isAllCleared(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.allCleared);
+    return chains.some((chain) => chain.is_all_cleared);
   }
 
   /**
@@ -159,7 +159,7 @@ export class Simulator {
    * @returns
    */
   static isChancePopped(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.chancePopped);
+    return chains.some((chain) => chain.is_chance_popped);
   }
 
   /**
@@ -201,13 +201,16 @@ export class Simulator {
    * @returns
    */
   static calcTotalWildDamage(chains: Chain[]): number {
-    const totalWildDamage = chains.reduce((m, chain) => {
-      return m + chain.wild.strength;
+    const totalWildDamageIncludingPrism = chains.reduce((acc, chain) => {
+      return Object.entries(chain.attributes).reduce(
+        (m, [_attrStr, attrChain]) => {
+          return m + attrChain.strength || 0;
+        },
+        acc
+      );
     }, 0);
     const boostRatio = Simulator.calcBoostRatio(chains);
-    return (
-      boostRatio * (totalWildDamage + Simulator.calcTotalPrismDamage(chains))
-    );
+    return boostRatio * totalWildDamageIncludingPrism;
   }
 
   /**
@@ -221,7 +224,7 @@ export class Simulator {
     targetAttr: PuyoAttribute
   ): number {
     const totalCount = chains.reduce((m, chain) => {
-      return m + (chain.attributes[targetAttr]?.poppedNum ?? 0);
+      return m + (chain.attributes[targetAttr]?.popped_count ?? 0);
     }, 0);
     return totalCount;
   }
@@ -233,7 +236,7 @@ export class Simulator {
    */
   static calcTotalBoostCount(chains: Chain[]): number {
     return chains.reduce((m, chain) => {
-      return m + chain.boostCount;
+      return m + chain.boost_count;
     }, 0);
   }
 
@@ -254,7 +257,7 @@ export class Simulator {
    */
   static calcTotalPuyoTsukaiCount(chains: Chain[]): number {
     return chains.reduce((m, chain) => {
-      return m + chain.puyoTsukaiCount;
+      return m + chain.puyo_tsukai_count;
     }, 0);
   }
 
@@ -488,15 +491,11 @@ export class Simulator {
     const puyoTsukaiCount = this.calcPuyoTsukaiCount(blocks);
 
     const result: Chain = {
-      chainNum,
-      poppedPuyoNum,
-      boostCount,
-      puyoTsukaiCount,
-      attributes: {} as Record<PuyoAttribute, AttributeChain>,
-      wild: {
-        strength: 0,
-        separatedBlocksNum: 0
-      }
+      chain_num: chainNum,
+      simultaneous_num: poppedPuyoNum,
+      boost_count: boostCount,
+      puyo_tsukai_count: puyoTsukaiCount,
+      attributes: {} as Record<PuyoAttribute, AttributeChain>
     };
 
     for (const attr of [
@@ -521,22 +520,23 @@ export class Simulator {
         const poppedNum = block.coordIdMap.size;
         result.attributes![attr] = {
           strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
-          poppedNum,
-          separatedBlocksNum: 1
+          popped_count: poppedNum,
+          separated_blocks_num: 0
         };
       } else {
         const sameColorBlocks = blocks.filter((block) => block.attr === attr);
         const separatedBlocksNum = sameColorBlocks.length;
+
+        if (separatedBlocksNum === 0) {
+          continue;
+        }
+
         const sameColorPoppedNum = sameColorBlocks.reduce((m, block) => {
           const puyoNumInBlock = [...block.coordIdMap]
             .map(([c]) => (isPlusPuyo(this.field[c.y][c.x]!.type) ? 2 : 1))
             .reduce((m, n) => m + n, 0);
           return m + puyoNumInBlock;
         }, 0);
-
-        if (separatedBlocksNum === 0) {
-          continue;
-        }
 
         const strength = calcDamageTerm(
           1,
@@ -549,8 +549,8 @@ export class Simulator {
 
         result.attributes![attr] = {
           strength,
-          poppedNum: sameColorPoppedNum,
-          separatedBlocksNum
+          popped_count: sameColorPoppedNum,
+          separated_blocks_num: separatedBlocksNum
         };
       }
     }
@@ -566,7 +566,7 @@ export class Simulator {
       } else {
         for (const [c] of block.coordIdMap) {
           if (isChancePuyo(this.field[c.y][c.x]!.type)) {
-            result.chancePopped = true;
+            result.is_chance_popped = true;
           }
           this.field[c.y][c.x] = undefined;
         }
@@ -575,21 +575,8 @@ export class Simulator {
 
     const allCleared = this.field.every((row) => row.every((puyo) => !puyo));
     if (allCleared) {
-      result.allCleared = allCleared;
+      result.is_all_cleared = allCleared;
     }
-
-    result.wild.separatedBlocksNum = Simulator.colorAttrs.reduce(
-      (m, attr) => m + (result.attributes![attr]?.separatedBlocksNum ?? 0),
-      0
-    );
-    result.wild.strength = calcDamageTerm(
-      1,
-      calcPoppingFactor(poppedPuyoNum, result.wild.separatedBlocksNum, {
-        minimumPuyoNumForPopping: this.minimumPuyoNumForPopping,
-        poppingLeverage: this.poppingLeverage
-      }),
-      calcChainFactor(chainNum, this.chainLeverage)
-    );
 
     this.chains.push(result);
 
