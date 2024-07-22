@@ -986,4 +986,588 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    #[allow(warnings)]
+    fn test_do_chains_for_special_rule_2_1() {
+        // Arrange
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let h = PuyoType::Heart;
+        let w: PuyoType = PuyoType::Prism;
+
+        let environment = SimulationEnvironment {
+            boost_area_coord_set: HashSet::new(),
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::ToBlue,
+            popping_leverage: 1.0,
+            chain_leverage: 10.0,
+        };
+        let mut id_counter = 0;
+        let mut field = [
+            [y, p, r, g, y, g, b, g],
+            [p, g, p, h, w, y, r, g],
+            [p, p, b, b, y, b, g, r],
+            [y, y, y, g, p, y, g, r],
+            [g, g, p, r, g, p, b, r],
+            [p, g, p, r, r, p, p, b],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo {
+                    id: id_counter,
+                    puyo_type,
+                })
+            })
+        });
+        let mut next_puyos = [b, b, b, b, b, b, b, b].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo {
+                id: id_counter,
+                puyo_type,
+            })
+        });
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 3, y: 0 },
+            PuyoCoord { x: 5, y: 0 },
+            PuyoCoord { x: 4, y: 1 },
+            PuyoCoord { x: 4, y: 2 },
+            PuyoCoord { x: 3, y: 3 },
+        ];
+        let simulator = Simulator {
+            environment: &environment,
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
+
+        // Assert
+        assert_eq!(actual.len(), 10);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 6,
+                boost_count: 0,
+                puyo_tsukai_count: 7,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 1.3,
+                            popped_count: 6,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Heart,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 5.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Yellow,
+                    AttributeChain {
+                        strength: 8.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[3],
+            Chain {
+                chain_num: 4,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 11.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[4],
+            Chain {
+                chain_num: 5,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 13.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[5],
+            Chain {
+                chain_num: 6,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 15.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[6],
+            Chain {
+                chain_num: 7,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 17.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[7],
+            Chain {
+                chain_num: 8,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 19.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[8],
+            Chain {
+                chain_num: 9,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 21.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[9],
+            Chain {
+                chain_num: 10,
+                simultaneous_num: 13,
+                boost_count: 0,
+                puyo_tsukai_count: 13,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 108.09999999999998,
+                        popped_count: 13,
+                        separated_blocks_num: 2
+                    }
+                )]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+    }
+
+    #[test]
+    #[allow(warnings)]
+    fn test_do_chains_for_chance_mode() {
+        // Arrange
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let h = PuyoType::Heart;
+        let e = PuyoType::Padding;
+
+        let environment = SimulationEnvironment {
+            boost_area_coord_set: HashSet::new(),
+            is_chance_mode: true,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        let mut id_counter = 0;
+        let mut field = [
+            [p, b, e, g, g, g, e, e],
+            [p, g, p, p, r, r, r, y],
+            [g, p, g, b, p, b, y, b],
+            [b, g, b, p, b, r, b, r],
+            [y, b, y, b, r, p, r, r],
+            [y, y, g, r, b, b, y, y],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                if puyo_type == e {
+                    return None;
+                } else {
+                    id_counter += 1;
+                    return Some(Puyo {
+                        id: id_counter,
+                        puyo_type,
+                    });
+                }
+            })
+        });
+        let mut next_puyos: [Option<Puyo>; 8] = [None, None, None, None, None, None, None, None];
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 3, y: 2 },
+            PuyoCoord { x: 4, y: 3 },
+            PuyoCoord { x: 5, y: 4 },
+            PuyoCoord { x: 3, y: 4 },
+            PuyoCoord { x: 2, y: 5 },
+        ];
+        let simulator = Simulator {
+            environment: &environment,
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
+
+        // Assert
+        assert_eq!(actual.len(), 4);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 9,
+                boost_count: 0,
+                puyo_tsukai_count: 9,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Red,
+                        AttributeChain {
+                            strength: 1.75,
+                            popped_count: 5,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 1.75,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 12,
+                boost_count: 0,
+                puyo_tsukai_count: 12,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 3.08,
+                            popped_count: 5,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 3.08,
+                            popped_count: 7,
+                            separated_blocks_num: 1
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 11,
+                boost_count: 0,
+                puyo_tsukai_count: 11,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Green,
+                        AttributeChain {
+                            strength: 3.4849999999999994,
+                            popped_count: 7,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 3.4849999999999994,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+        assert_eq!(
+            actual[3],
+            Chain {
+                chain_num: 4,
+                simultaneous_num: 8,
+                boost_count: 0,
+                puyo_tsukai_count: 8,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Red,
+                        AttributeChain {
+                            strength: 3.2,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 3.2,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    )
+                ]),
+                is_all_cleared: true,
+                is_chance_popped: false
+            }
+        );
+    }
+
+    #[test]
+    #[allow(warnings)]
+    fn test_do_chains_for_arle_boost_area() {
+        // Arrange
+        let r = PuyoType::Red;
+        let rp = PuyoType::RedPlus;
+        let b = PuyoType::Blue;
+        let bp = PuyoType::BluePlus;
+        let g = PuyoType::Green;
+        let gcp = PuyoType::GreenChancePlus;
+        let y = PuyoType::Yellow;
+        let yp = PuyoType::YellowPlus;
+        let p = PuyoType::Purple;
+        let pp = PuyoType::PurplePlus;
+        let h = PuyoType::Heart;
+
+        let environment = SimulationEnvironment {
+            boost_area_coord_set: HashSet::from([
+                PuyoCoord { x: 4, y: 1 },
+                PuyoCoord { x: 3, y: 2 },
+                PuyoCoord { x: 4, y: 2 },
+                PuyoCoord { x: 3, y: 3 },
+                PuyoCoord { x: 4, y: 3 },
+                PuyoCoord { x: 3, y: 4 },
+                PuyoCoord { x: 4, y: 5 },
+            ]),
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        let mut id_counter = 0;
+        let mut field = [
+            [h, r, r, g, p, b, h, b],
+            [h, p, b, b, g, r, p, g],
+            [g, p, r, gcp, h, y, b, g],
+            [g, p, r, r, p, b, b, y],
+            [b, p, r, g, r, y, y, p],
+            [p, b, p, g, p, g, p, r],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo {
+                    id: id_counter,
+                    puyo_type,
+                })
+            })
+        });
+        let mut next_puyos = [pp, pp, pp, rp, yp, yp, pp, bp].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo {
+                id: id_counter,
+                puyo_type,
+            })
+        });
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 2, y: 2 },
+            PuyoCoord { x: 3, y: 3 },
+            PuyoCoord { x: 4, y: 3 },
+            PuyoCoord { x: 4, y: 4 },
+            PuyoCoord { x: 5, y: 3 },
+        ];
+        let simulator = Simulator {
+            environment: &environment,
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
+
+        // Assert
+        assert_eq!(actual.len(), 2);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 9,
+                boost_count: 4,
+                puyo_tsukai_count: 19,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Green,
+                        AttributeChain {
+                            strength: 1.75,
+                            popped_count: 5,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 1.75,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Heart,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 2,
+                            separated_blocks_num: 0
+                        }
+                    ),
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: true
+            }
+        );
+        assert_eq!(
+            actual[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 10,
+                boost_count: 4,
+                puyo_tsukai_count: 18,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Red,
+                        AttributeChain {
+                            strength: 2.6599999999999997,
+                            popped_count: 5,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 2.6599999999999997,
+                            popped_count: 5,
+                            separated_blocks_num: 1
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false
+            }
+        );
+    }
 }
