@@ -74,7 +74,7 @@ impl<'a> Simulator<'a> {
     }
 
     /// フィールド内で繋がって消えるぷよを判定する。
-    pub fn detect_pop_blocks(&self, field: &Field) -> Vec<BlockWithAttr> {
+    fn detect_pop_blocks(&self, field: &Field) -> Vec<BlockWithAttr> {
         let mut rbgyp_blocks: [Vec<Block>; 5] =
             [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()];
         let red_attr_value = PuyoAttr::Red.to_usize().unwrap();

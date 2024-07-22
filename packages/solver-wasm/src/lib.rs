@@ -40,19 +40,6 @@ where
 }
 
 #[wasm_bindgen]
-pub fn detect_pop_blocks(js_environment: JsValue, js_field: JsValue) -> JsValue {
-    console_error_panic_hook::set_once();
-    let environment: SimulationEnvironment = from_value(js_environment);
-    let field: Field = from_value(js_field);
-    let simulator = Simulator {
-        environment: &environment,
-    };
-    let blocks = simulator.detect_pop_blocks(&field);
-    let result = to_value(&blocks);
-    return result;
-}
-
-#[wasm_bindgen]
 pub fn do_chains(
     js_environment: JsValue,
     js_field: JsValue,
@@ -62,15 +49,14 @@ pub fn do_chains(
     // フックをつかうことによる wasm へのサイズ影響は 1k バイト程度。
     console_error_panic_hook::set_once();
 
-    let environment: SimulationEnvironment =
-        serde_wasm_bindgen::from_value(js_environment).unwrap();
-    let mut field: Field = serde_wasm_bindgen::from_value(js_field).unwrap();
-    let mut next_puyos: NextPuyos = serde_wasm_bindgen::from_value(js_next_puyos).unwrap();
-    let trace_coords: Vec<PuyoCoord> = serde_wasm_bindgen::from_value(js_trace_coords).unwrap();
+    let environment: SimulationEnvironment = from_value(js_environment);
+    let mut field: Field = from_value(js_field);
+    let mut next_puyos: NextPuyos = from_value(js_next_puyos);
+    let trace_coords: Vec<PuyoCoord> = from_value(js_trace_coords);
     let simulator = Simulator {
         environment: &environment,
     };
     let chains = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
-    let result = serde_wasm_bindgen::to_value(&chains).unwrap();
+    let result = to_value(&chains);
     return result;
 }
