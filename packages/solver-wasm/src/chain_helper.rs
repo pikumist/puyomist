@@ -70,11 +70,9 @@ pub fn sum_wild_damage(chains: &Vec<Chain>) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use crate::chain::AttributeChain;
-
     use super::*;
+    use crate::chain::AttributeChain;
+    use std::collections::HashMap;
 
     #[test]
     fn test_sum_attr_popped_count() {
