@@ -1,12 +1,16 @@
 // ベンチマークから参照するため pub を付けている。
 // pub をつけることによる wasm へのサイズ影響は 100 バイト程度。
 pub mod chain;
+pub mod chain_helper;
 pub mod damage;
+pub mod exploration_target;
 pub mod puyo;
 pub mod puyo_attr;
 pub mod puyo_coord;
 pub mod puyo_type;
 pub mod simulator;
+pub mod solution;
+pub mod solution_explorer;
 pub mod trace_mode;
 
 #[cfg_attr(test, macro_use)]
