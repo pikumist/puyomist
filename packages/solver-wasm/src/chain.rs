@@ -30,4 +30,6 @@ pub struct Chain {
     pub is_all_cleared: bool,
     /// この連鎖チャンスぷよを消したかどうか
     pub is_chance_popped: bool,
+    /// プリズムを消したかどうか
+    pub is_prism_popped: bool,
 }
