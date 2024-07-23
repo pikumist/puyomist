@@ -1283,13 +1283,13 @@ mod tests {
     #[allow(warnings)]
     fn test_do_chains_for_chance_mode() {
         // Arrange
-        let r = PuyoType::Red;
-        let b = PuyoType::Blue;
-        let g = PuyoType::Green;
-        let y = PuyoType::Yellow;
-        let p = PuyoType::Purple;
-        let h = PuyoType::Heart;
-        let e = PuyoType::Padding;
+        let r = Some(PuyoType::Red);
+        let b = Some(PuyoType::Blue);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let h = Some(PuyoType::Heart);
+        let e: Option<PuyoType> = None;
 
         let environment = SimulationEnvironment {
             boost_area_coord_set: HashSet::new(),
@@ -1310,15 +1310,15 @@ mod tests {
             [y, y, g, r, b, b, y, y],
         ]
         .map(|row| {
-            row.map(|puyo_type| {
-                if puyo_type == e {
-                    return None;
-                } else {
+            row.map(|option| {
+                if let Some(puyo_type) = option {
                     id_counter += 1;
                     return Some(Puyo {
                         id: id_counter,
                         puyo_type,
                     });
+                } else {
+                    return None;
                 }
             })
         });
@@ -1597,6 +1597,183 @@ mod tests {
                             separated_blocks_num: 1
                         }
                     )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false,
+                is_prism_popped: false
+            }
+        );
+    }
+
+    #[test]
+    #[allow(warnings)]
+    fn test_do_chains_for_prism_and_ojama() {
+        // Arrange
+        let r = Some(PuyoType::Red);
+        let b = Some(PuyoType::Blue);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let h = Some(PuyoType::Heart);
+        let w = Some(PuyoType::Prism);
+        let o = Some(PuyoType::Ojama);
+        let k = Some(PuyoType::Kata);
+        let e: Option<PuyoType> = None;
+
+        let environment = SimulationEnvironment {
+            boost_area_coord_set: HashSet::new(),
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        let mut id_counter = 0;
+        let mut field = [
+            [e, e, e, y, e, e, e, e],
+            [e, e, e, p, k, e, e, e],
+            [y, y, y, w, b, e, e, e],
+            [p, p, p, b, g, k, k, k],
+            [r, w, r, b, g, h, h, h],
+            [r, r, h, b, g, o, h, h],
+        ]
+        .map(|row| {
+            row.map(|option| {
+                if let Some(puyo_type) = option {
+                    id_counter += 1;
+                    return Some(Puyo {
+                        id: id_counter,
+                        puyo_type,
+                    });
+                } else {
+                    return None;
+                }
+            })
+        });
+        let mut next_puyos: [Option<Puyo>; 8] = [None, None, None, None, None, None, None, None];
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 4, y: 3 },
+            PuyoCoord { x: 4, y: 4 },
+            PuyoCoord { x: 4, y: 5 },
+        ];
+        let simulator = Simulator {
+            environment: &environment,
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
+
+        // Assert
+        assert_eq!(actual.len(), 3);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 6,
+                boost_count: 0,
+                puyo_tsukai_count: 7,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 1.3,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Heart,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    ),
+                    (
+                        PuyoAttr::Prism,
+                        AttributeChain {
+                            strength: 3.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false,
+                is_prism_popped: true
+            }
+        );
+        assert_eq!(
+            actual[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 5,
+                boost_count: 0,
+                puyo_tsukai_count: 5,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Red,
+                        AttributeChain {
+                            strength: 1.6099999999999999,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Prism,
+                        AttributeChain {
+                            strength: 3.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    )
+                ]),
+                is_all_cleared: false,
+                is_chance_popped: false,
+                is_prism_popped: true
+            }
+        );
+        assert_eq!(
+            actual[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 9,
+                boost_count: 0,
+                puyo_tsukai_count: 9,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 2.975,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 2.975,
+                            popped_count: 4,
+                            separated_blocks_num: 1
+                        }
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
+                    ),
                 ]),
                 is_all_cleared: false,
                 is_chance_popped: false,
