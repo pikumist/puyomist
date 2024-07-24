@@ -129,7 +129,7 @@ const updateCarry = (
   }
 
   carry.optimalSolution = betterSolution(
-    explorationTarget.preferencePriorities,
+    explorationTarget.preference_priorities,
     carry.optimalSolution,
     solutionResult
   );
@@ -256,18 +256,18 @@ const calcSolutionResult = (
 
   switch (explorationTarget.category) {
     case ExplorationCategory.Damage: {
-      if (!explorationTarget.mainAttr) {
+      if (!explorationTarget.main_attr) {
         value = Simulator.calcTotalWildDamage(chains);
       } else {
         const mainValue = Simulator.calcTotalDamageOfTargetAttr(
           chains,
-          explorationTarget.mainAttr
+          explorationTarget.main_attr
         );
-        const subValue = explorationTarget.subAttr
+        const subValue = explorationTarget.sub_attr
           ? Simulator.calcTotalDamageOfTargetAttr(
               chains,
-              explorationTarget.subAttr
-            ) * (explorationTarget.mainSubRatio ?? 0)
+              explorationTarget.sub_attr
+            ) * (explorationTarget.main_sub_ratio ?? 0)
           : 0;
         value = mainValue + subValue;
       }
@@ -276,23 +276,23 @@ const calcSolutionResult = (
     case ExplorationCategory.SkillPuyoCount: {
       const mainValue = Simulator.calcTotalCountOfTargetAttr(
         chains,
-        explorationTarget.mainAttr
+        explorationTarget.main_attr
       );
       let bonusValue = 0;
-      if (explorationTarget.countingBonus) {
-        const countingBonus = explorationTarget.countingBonus;
-        switch (countingBonus.type) {
+      if (explorationTarget.counting_bonus) {
+        const countingBonus = explorationTarget.counting_bonus;
+        switch (countingBonus.bonus_type) {
           case CountingBonusType.Step: {
-            const totalHeight = countingBonus.targetAttrs.reduce(
+            const totalHeight = countingBonus.target_attrs.reduce(
               (m, attr) =>
                 m + Simulator.calcTotalCountOfTargetAttr(chains, attr),
               0
             );
-            let steps = Math.floor(totalHeight / countingBonus.stepHeight);
+            let steps = Math.floor(totalHeight / countingBonus.step_height);
             if (!countingBonus.repeat) {
               steps = Math.min(1, steps);
             }
-            bonusValue = countingBonus.bonusCount * steps;
+            bonusValue = countingBonus.bonus_count * steps;
           }
         }
       }

@@ -22,14 +22,15 @@ export class Session {
   private static readonly boardEditModeKey = 'boardEidtMode';
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
-    preferencePriorities: [
+    category: ExplorationCategory.PuyotsukaiCount,
+    preference_priorities: [
       PreferenceKind.BiggerValue,
       PreferenceKind.ChancePop,
       PreferenceKind.PrismPop,
       PreferenceKind.AllClear,
       PreferenceKind.SmallerTraceNum
     ],
-    category: ExplorationCategory.PuyotsukaiCount
+    optimal_solution_count: 1
   };
 
   storage: Storage;
@@ -105,7 +106,7 @@ export class Session {
     const targetStr = this.storage.getItem(Session.explorationTargetKey);
     try {
       const parsed = JSON.parse(targetStr!) as ExplorationTarget;
-      return parsed?.preferencePriorities && parsed?.category
+      return parsed?.preference_priorities && parsed?.category
         ? parsed
         : Session.defaultExplorationTarget;
     } catch (_) {

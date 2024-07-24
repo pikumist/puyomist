@@ -56,7 +56,7 @@ const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
       <CategorySelector category={target.category} />
       <DetailSetting target={target} />
       <PreferencePrioritySetting
-        preferencePriorities={target.preferencePriorities}
+        preferencePriorities={target.preference_priorities}
       />
     </Stack>
   );
@@ -205,7 +205,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
         <Select
           aria-label="主属性の選択"
           w="7em"
-          value={target.mainAttr || wildAttr}
+          value={target.main_attr || wildAttr}
           onChange={onDamageMainAttrSelected}
         >
           {[wildAttr, ...coloredPuyoAttrList].map((attr) => {
@@ -223,13 +223,17 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
         <Select
           aria-label="副属性の選択"
           w="5em"
-          value={target.subAttr ?? notAvailable}
-          isDisabled={!target.mainAttr}
+          value={target.sub_attr ?? notAvailable}
+          isDisabled={!target.main_attr}
           onChange={onDamageSubAttrSelected}
         >
           {[notAvailable, ...coloredPuyoAttrList].map((attr) => {
             return (
-              <option hidden={attr === target.mainAttr} value={attr} key={attr}>
+              <option
+                hidden={attr === target.main_attr}
+                value={attr}
+                key={attr}
+              >
                 {attr === notAvailable ? notAvailable : getPuyoAttrName(attr)}
               </option>
             );
@@ -237,13 +241,13 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
         </Select>
       </HStack>
 
-      {target.subAttr ? (
+      {target.sub_attr ? (
         <HStack>
           <Text>副属性のダメージ率:</Text>
           <Select
             aria-label="副属性のダメージ率の選択"
             w="5em"
-            value={target.mainSubRatio}
+            value={target.main_sub_ratio}
             onChange={onDamageMainSubRatioSelected}
           >
             {['1/3', '1'].map((ratioStr) => {
@@ -304,7 +308,7 @@ const SkilPuyoCountSetting: React.FC<{
         <Select
           aria-label="主属性の選択"
           w="6em"
-          value={target.mainAttr}
+          value={target.main_attr}
           onChange={onCountMainAttrSelected}
         >
           {coloredPuyoAttrList.map((attr) => (
@@ -317,13 +321,13 @@ const SkilPuyoCountSetting: React.FC<{
 
       <Checkbox
         w="8em"
-        checked={target.countingBonus?.type === CountingBonusType.Step}
+        checked={target.counting_bonus?.bonus_type === CountingBonusType.Step}
         onChange={onCountBonusCheckChanged}
       >
         加速ボーナス
       </Checkbox>
 
-      {target.countingBonus?.type === CountingBonusType.Step ? (
+      {target.counting_bonus?.bonus_type === CountingBonusType.Step ? (
         <Stack spacing="0">
           {/* TODO: 項目の追加・削除に対応する */}
           <HStack>
@@ -331,7 +335,7 @@ const SkilPuyoCountSetting: React.FC<{
             <Select
               aria-label="ボーナス属性の選択"
               w="7em"
-              value={target.countingBonus?.targetAttrs?.[0]}
+              value={target.counting_bonus?.target_attrs?.[0]}
               onChange={onCountStepTargetAttrSelected}
             >
               {stepPuyoAtrributeList.map((attr) => (
@@ -346,7 +350,7 @@ const SkilPuyoCountSetting: React.FC<{
             <Text>段高:</Text>
             <NumberInput
               width="5em"
-              value={target.countingBonus?.stepHeight}
+              value={target.counting_bonus?.step_height}
               step={1}
               min={1}
               max={19}
@@ -365,7 +369,7 @@ const SkilPuyoCountSetting: React.FC<{
             <NumberInput
               width="4em"
               size="sm"
-              value={target.countingBonus?.bonusCount}
+              value={target.counting_bonus?.bonus_count}
               step={1}
               min={1}
               max={9}
@@ -381,7 +385,7 @@ const SkilPuyoCountSetting: React.FC<{
 
           <Checkbox
             w="8em"
-            checked={target.countingBonus?.repeat}
+            checked={target.counting_bonus?.repeat}
             onChange={onBonusStepRepeatCheckChanged}
           >
             段の繰り返し

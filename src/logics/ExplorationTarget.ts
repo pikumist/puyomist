@@ -37,7 +37,9 @@ export const preferenceKindDescriptionMap: ReadonlyMap<PreferenceKind, string> =
 /** 探索共通設定 */
 export interface ExplorationTargetCommon {
   /** 各好みの優先度リスト。インデックスの小さい要素の方を優先する。 */
-  preferencePriorities: PreferenceKind[];
+  preference_priorities: PreferenceKind[];
+  /** 求める解の数 */
+  optimal_solution_count: number;
 }
 
 /** 探索対象がダメージの場合の詳細情報 */
@@ -45,11 +47,11 @@ export interface ExplorationTargetDamage extends ExplorationTargetCommon {
   /** 探索カテゴリー */
   category: ExplorationCategory.Damage;
   /** 主属性 (undefined のときワイルド扱い) */
-  mainAttr: ColoredPuyoAttr | undefined;
+  main_attr: ColoredPuyoAttr | undefined;
   /** 副属性 */
-  subAttr?: ColoredPuyoAttr | undefined;
+  sub_attr?: ColoredPuyoAttr | undefined;
   /** 副属性 / 主属性 のダメージ率 (1/3か1)  */
-  mainSubRatio?: number;
+  main_sub_ratio?: number;
 }
 
 /** カウントボーナスのタイプ */
@@ -61,13 +63,13 @@ export enum CountingBonusType {
 /** 階段状に発生するカウントボーナス */
 export interface StepCountingBonus {
   /** カウントボーナスのタイプ */
-  type: CountingBonusType.Step;
+  bonus_type: CountingBonusType.Step;
   /** ボーナスの発生する対象属性リスト。段はリスト内の属性ごとのカウント数トータルで登る。 */
-  targetAttrs: PuyoAttr[];
+  target_attrs: PuyoAttr[];
   /** 段の高さ */
-  stepHeight: number;
+  step_height: number;
   /** ボーナスカウント */
-  bonusCount: number;
+  bonus_count: number;
   /** 同一ターン内で、一度のみ (false) か、各ステップを超えると何度も繰り返し発生するか (true) */
   repeat: boolean;
 }
@@ -80,9 +82,9 @@ export interface ExplorationTargetSkillPuyoCount
   /** 探索カテゴリー */
   category: ExplorationCategory.SkillPuyoCount;
   /** 主属性 */
-  mainAttr: PuyoAttr;
+  main_attr: PuyoAttr;
   /** カウントボーナス */
-  countingBonus?: CountingBonus;
+  counting_bonus?: CountingBonus;
 }
 
 /** 探索対象がぷよ使いカウントの場合の詳細情報 */

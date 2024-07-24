@@ -29,25 +29,26 @@ const toWasmExplorationTarget = (
 ): WasmExplorationTarget => {
   const exploration_target: WasmExplorationTarget = {
     category: explorationTarget.category,
-    preference_priorities: explorationTarget.preferencePriorities,
-    optimal_solution_count: 1,
-    main_attr: (explorationTarget as ExplorationTargetDamage).mainAttr
+    preference_priorities: explorationTarget.preference_priorities,
+    optimal_solution_count: explorationTarget.optimal_solution_count || 1,
+    main_attr: (explorationTarget as ExplorationTargetDamage).main_attr
       ? ((explorationTarget as ExplorationTargetDamage)
-          .mainAttr as ColoredPuyoAttr)
+          .main_attr as ColoredPuyoAttr)
       : undefined,
-    sub_attr: (explorationTarget as ExplorationTargetDamage).subAttr,
-    main_sub_ratio: (explorationTarget as ExplorationTargetDamage).mainSubRatio,
+    sub_attr: (explorationTarget as ExplorationTargetDamage).sub_attr,
+    main_sub_ratio: (explorationTarget as ExplorationTargetDamage)
+      .main_sub_ratio,
     counting_bonus: (explorationTarget as ExplorationTargetSkillPuyoCount)
-      .countingBonus
+      .counting_bonus
       ? ((b: StepCountingBonus) =>
           ({
-            bonus_type: b.type,
-            target_attrs: b.targetAttrs,
-            step_height: b.stepHeight,
-            bonus_count: b.bonusCount,
+            bonus_type: b.bonus_type,
+            target_attrs: b.target_attrs,
+            step_height: b.step_height,
+            bonus_count: b.bonus_count,
             repeat: b.repeat
           }) satisfies WasmStepCountingBonus)(
-          (explorationTarget as ExplorationTargetSkillPuyoCount).countingBonus!
+          (explorationTarget as ExplorationTargetSkillPuyoCount).counting_bonus!
         )
       : undefined
   };

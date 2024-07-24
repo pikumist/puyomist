@@ -347,27 +347,29 @@ const puyoAppSlice = createSlice({
       action: PayloadAction<ExplorationCategory>
     ) => {
       const common = {
-        preferencePriorities: state.explorationTarget.preferencePriorities
+        preference_priorities: state.explorationTarget.preference_priorities,
+        optimal_solution_count:
+          state.explorationTarget.optimal_solution_count || 1
       };
       switch (action.payload) {
         case ExplorationCategory.Damage:
           state.explorationTarget = {
-            ...common,
             category: ExplorationCategory.Damage,
-            mainAttr: PuyoAttr.Red
+            ...common,
+            main_attr: PuyoAttr.Red
           };
           break;
         case ExplorationCategory.SkillPuyoCount:
           state.explorationTarget = {
-            ...common,
             category: ExplorationCategory.SkillPuyoCount,
-            mainAttr: PuyoAttr.Red
+            ...common,
+            main_attr: PuyoAttr.Red
           };
           break;
         case ExplorationCategory.PuyotsukaiCount:
           state.explorationTarget = {
-            ...common,
-            category: ExplorationCategory.PuyotsukaiCount
+            category: ExplorationCategory.PuyotsukaiCount,
+            ...common
           };
       }
     },
@@ -377,7 +379,7 @@ const puyoAppSlice = createSlice({
       state,
       action: PayloadAction<PreferenceKind[]>
     ) => {
-      state.explorationTarget.preferencePriorities = action.payload;
+      state.explorationTarget.preference_priorities = action.payload;
     },
 
     /** ダメージの主属性項目が選択されたとき */
@@ -388,10 +390,10 @@ const puyoAppSlice = createSlice({
       const mainAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetDamage;
 
-      if (mainAttr === undefined || target.subAttr === mainAttr) {
-        target.subAttr = undefined;
+      if (mainAttr === undefined || target.sub_attr === mainAttr) {
+        target.sub_attr = undefined;
       }
-      target.mainAttr = mainAttr;
+      target.main_attr = mainAttr;
     },
 
     /** ダメージの副属性項目が選択されたとき */
@@ -402,7 +404,7 @@ const puyoAppSlice = createSlice({
       const subAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetDamage;
 
-      target.subAttr = target.mainAttr === subAttr ? undefined : subAttr;
+      target.sub_attr = target.main_attr === subAttr ? undefined : subAttr;
     },
 
     /** ダメージの副属性ダメージ率項目が選択されたとき */
@@ -411,7 +413,7 @@ const puyoAppSlice = createSlice({
       action: PayloadAction<number>
     ) => {
       const target = state.explorationTarget as ExplorationTargetDamage;
-      target.mainSubRatio = action.payload;
+      target.main_sub_ratio = action.payload;
     },
 
     /** ぷよ数の主属性項目が選択されたとき */
@@ -422,7 +424,7 @@ const puyoAppSlice = createSlice({
       const mainAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
-      target.mainAttr = mainAttr;
+      target.main_attr = mainAttr;
     },
 
     /** ぷよ数のボーナスタイプ項目が選択されたとき */
@@ -434,15 +436,15 @@ const puyoAppSlice = createSlice({
       const bonusType = action.payload;
 
       if (bonusType === CountingBonusType.Step) {
-        target.countingBonus = {
-          type: bonusType,
-          targetAttrs: [PuyoAttr.Red],
-          stepHeight: 4,
-          bonusCount: 4,
+        target.counting_bonus = {
+          bonus_type: bonusType,
+          target_attrs: [PuyoAttr.Red],
+          step_height: 4,
+          bonus_count: 4,
           repeat: true
         };
       } else {
-        target.countingBonus = undefined;
+        target.counting_bonus = undefined;
       }
     },
 
@@ -453,9 +455,9 @@ const puyoAppSlice = createSlice({
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
       const attr = action.payload;
 
-      if (target.countingBonus?.type === CountingBonusType.Step) {
+      if (target.counting_bonus?.bonus_type === CountingBonusType.Step) {
         // TODO: リストなので追加削除できるようにする
-        target.countingBonus.targetAttrs = [attr];
+        target.counting_bonus.target_attrs = [attr];
       }
     },
 
@@ -465,8 +467,8 @@ const puyoAppSlice = createSlice({
     ) => {
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
-      if (target.countingBonus?.type === CountingBonusType.Step) {
-        target.countingBonus.stepHeight = action.payload;
+      if (target.counting_bonus?.bonus_type === CountingBonusType.Step) {
+        target.counting_bonus.step_height = action.payload;
       }
     },
 
@@ -476,8 +478,8 @@ const puyoAppSlice = createSlice({
     ) => {
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
-      if (target.countingBonus?.type === CountingBonusType.Step) {
-        target.countingBonus.bonusCount = action.payload;
+      if (target.counting_bonus?.bonus_type === CountingBonusType.Step) {
+        target.counting_bonus.bonus_count = action.payload;
       }
     },
 
@@ -487,8 +489,8 @@ const puyoAppSlice = createSlice({
     ) => {
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
 
-      if (target.countingBonus?.type === CountingBonusType.Step) {
-        target.countingBonus.repeat = action.payload;
+      if (target.counting_bonus?.bonus_type === CountingBonusType.Step) {
+        target.counting_bonus.repeat = action.payload;
       }
     },
 

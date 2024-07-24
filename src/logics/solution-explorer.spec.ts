@@ -263,15 +263,16 @@ describe('solution-explorer', () => {
         {
           attr: PuyoAttr.Green,
           explorationTarget: {
-            preferencePriorities: [
+            category: ExplorationCategory.Damage as const,
+            preference_priorities: [
               PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
               PreferenceKind.SmallerTraceNum
             ],
-            category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttr.Green as const
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -287,15 +288,16 @@ describe('solution-explorer', () => {
         {
           attr: PuyoAttr.Blue,
           explorationTarget: {
-            preferencePriorities: [
+            category: ExplorationCategory.Damage as const,
+            preference_priorities: [
               PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
               PreferenceKind.SmallerTraceNum
             ],
-            category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttr.Blue as const
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Blue as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -356,15 +358,16 @@ describe('solution-explorer', () => {
         {
           attr: PuyoAttr.Green,
           explorationTarget: {
-            preferencePriorities: [
+            category: ExplorationCategory.Damage as const,
+            preference_priorities: [
               PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
               PreferenceKind.SmallerTraceNum
             ],
-            category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttr.Green as const
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -434,15 +437,16 @@ describe('solution-explorer', () => {
           traceIndex: 21,
           attr: PuyoAttr.Green,
           explorationTarget: {
-            preferencePriorities: [
+            category: ExplorationCategory.Damage as const,
+            preference_priorities: [
               PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
               PreferenceKind.SmallerTraceNum
             ],
-            category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttr.Green as const
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -459,15 +463,16 @@ describe('solution-explorer', () => {
           traceIndex: 3,
           attr: PuyoAttr.Blue,
           explorationTarget: {
-            preferencePriorities: [
+            category: ExplorationCategory.Damage as const,
+            preference_priorities: [
               PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
               PreferenceKind.SmallerTraceNum
             ],
-            category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttr.Blue as const
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Blue as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,

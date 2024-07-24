@@ -57,14 +57,15 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   boardId: customBoardId,
   nextSelection: 'random',
   explorationTarget: {
-    preferencePriorities: [
+    category: ExplorationCategory.PuyotsukaiCount,
+    preference_priorities: [
       PreferenceKind.BiggerValue,
       PreferenceKind.ChancePop,
       PreferenceKind.PrismPop,
       PreferenceKind.AllClear,
       PreferenceKind.SmallerTraceNum
     ],
-    category: ExplorationCategory.PuyotsukaiCount
+    optimal_solution_count: 1
   },
   solutionMethod: SolutionMethod.solveAllInParallel,
   lastScreenshotBoard: undefined,

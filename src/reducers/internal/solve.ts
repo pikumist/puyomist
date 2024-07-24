@@ -195,7 +195,7 @@ const _createSolveAllInParallel =
           return m;
         }
         return betterSolution(
-          explorationTarget.preferencePriorities,
+          explorationTarget.preference_priorities,
           m,
           s.optimalSolution
         );
