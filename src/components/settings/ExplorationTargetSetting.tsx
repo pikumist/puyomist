@@ -25,11 +25,11 @@ import {
   wildAttribute
 } from '../../logics/ExplorationTarget';
 import {
-  type ColoredPuyoAttribute,
-  PuyoAttribute,
-  coloredPuyoAttributeList,
-  getPuyoAttributeName
-} from '../../logics/PuyoAttribute';
+  type ColoredPuyoAttr,
+  PuyoAttr,
+  coloredPuyoAttrList,
+  getPuyoAttrName
+} from '../../logics/PuyoAttr';
 import {
   explorationCategorySelected,
   explorationCountingBonusCountChanged,
@@ -146,11 +146,11 @@ const PreferencePrioritySetting: React.FC<{
 
 const notAvailable = '--' as const;
 
-const stepPuyoAtrributeList: ReadonlyArray<PuyoAttribute> = [
-  ...coloredPuyoAttributeList,
-  PuyoAttribute.Heart,
-  PuyoAttribute.Prism,
-  PuyoAttribute.Ojama
+const stepPuyoAtrributeList: ReadonlyArray<PuyoAttr> = [
+  ...coloredPuyoAttrList,
+  PuyoAttr.Heart,
+  PuyoAttr.Prism,
+  PuyoAttr.Ojama
 ];
 
 const DetailSetting: React.FC<{
@@ -178,7 +178,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
     dispatch(
       explorationDamageMainAttrSelected(
         Number.parseInt(e.target.value) as
-          | ColoredPuyoAttribute
+          | ColoredPuyoAttr
           | typeof wildAttribute
       )
     );
@@ -187,7 +187,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
     const value =
       e.target.value === notAvailable
         ? undefined
-        : (Number.parseInt(e.target.value) as ColoredPuyoAttribute);
+        : (Number.parseInt(e.target.value) as ColoredPuyoAttr);
     dispatch(explorationDamageSubAttrSelected(value));
   };
 
@@ -208,12 +208,10 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
           value={target.mainAttr}
           onChange={onDamageMainAttrSelected}
         >
-          {[wildAttribute, ...coloredPuyoAttributeList].map((attr) => {
+          {[wildAttribute, ...coloredPuyoAttrList].map((attr) => {
             return (
               <option value={attr} key={attr}>
-                {attr === wildAttribute
-                  ? 'ワイルド'
-                  : getPuyoAttributeName(attr)}
+                {attr === wildAttribute ? 'ワイルド' : getPuyoAttrName(attr)}
               </option>
             );
           })}
@@ -229,12 +227,10 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
           isDisabled={target.mainAttr === wildAttribute}
           onChange={onDamageSubAttrSelected}
         >
-          {[notAvailable, ...coloredPuyoAttributeList].map((attr) => {
+          {[notAvailable, ...coloredPuyoAttrList].map((attr) => {
             return (
               <option hidden={attr === target.mainAttr} value={attr} key={attr}>
-                {attr === notAvailable
-                  ? notAvailable
-                  : getPuyoAttributeName(attr)}
+                {attr === notAvailable ? notAvailable : getPuyoAttrName(attr)}
               </option>
             );
           })}
@@ -273,7 +269,7 @@ const SkilPuyoCountSetting: React.FC<{
   const onCountMainAttrSelected = (e: React.ChangeEvent<HTMLSelectElement>) =>
     dispatch(
       explorationPuyoCountMainAttrSelected(
-        Number.parseInt(e.target.value) as ColoredPuyoAttribute
+        Number.parseInt(e.target.value) as ColoredPuyoAttr
       )
     );
 
@@ -284,7 +280,7 @@ const SkilPuyoCountSetting: React.FC<{
 
   const onCountStepTargetAttrSelected = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const attr = Number.parseInt(e.target.value) as PuyoAttribute;
+      const attr = Number.parseInt(e.target.value) as PuyoAttr;
       dispatch(explorationCountingBonusStepTargetAttrSelected(attr));
     },
     [dispatch]
@@ -311,9 +307,9 @@ const SkilPuyoCountSetting: React.FC<{
           value={target.mainAttr}
           onChange={onCountMainAttrSelected}
         >
-          {coloredPuyoAttributeList.map((attr) => (
+          {coloredPuyoAttrList.map((attr) => (
             <option value={attr} key={attr}>
-              {getPuyoAttributeName(attr)}
+              {getPuyoAttrName(attr)}
             </option>
           ))}
         </Select>
@@ -340,7 +336,7 @@ const SkilPuyoCountSetting: React.FC<{
             >
               {stepPuyoAtrributeList.map((attr) => (
                 <option value={attr} key={attr}>
-                  {getPuyoAttributeName(attr)}
+                  {getPuyoAttrName(attr)}
                 </option>
               ))}
             </Select>

@@ -1,21 +1,21 @@
 import type { Chain } from './Chain';
 import type { ExplorationTarget } from './ExplorationTarget';
-import { PuyoAttribute } from './PuyoAttribute';
+import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { bitFieldAddIndex, bitFieldHasIndex } from './bit-field';
 
 /** 各属性における総ダメージ */
 export interface TotalDamages {
   /** 赤属性における総ダメージ */
-  [PuyoAttribute.Red]: number;
+  [PuyoAttr.Red]: number;
   /** 青属性における総ダメージ */
-  [PuyoAttribute.Blue]: number;
+  [PuyoAttr.Blue]: number;
   /** 緑属性における総ダメージ */
-  [PuyoAttribute.Green]: number;
+  [PuyoAttr.Green]: number;
   /** 黄属性における総ダメージ */
-  [PuyoAttribute.Yellow]: number;
+  [PuyoAttr.Yellow]: number;
   /** 紫属性における総ダメージ */
-  [PuyoAttribute.Purple]: number;
+  [PuyoAttr.Purple]: number;
 }
 
 /** なぞり消し(塗り)しで発生した連鎖等の情報 */

@@ -11,16 +11,12 @@
 import { type AnimationStep, cloneFieldAndNext } from './AnimationStep';
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
-import {
-  PuyoAttribute,
-  coloredPuyoAttributeList,
-  isColoredPuyoAttribute
-} from './PuyoAttribute';
+import { PuyoAttr, coloredPuyoAttrList, isColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import {
   PuyoType,
   convertPuyoType,
-  getPuyoAttribute,
+  getPuyoAttr,
   isChancePuyo,
   isColoredPuyoType,
   isPlusPuyo
@@ -31,13 +27,12 @@ import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
 
 /** 連鎖シミュレーター */
 export class Simulator {
-  static readonly colorAttrs: ReadonlyArray<PuyoAttribute> =
-    coloredPuyoAttributeList;
-  static readonly specialAttrs: ReadonlyArray<PuyoAttribute> = [
-    PuyoAttribute.Heart,
-    PuyoAttribute.Prism,
-    PuyoAttribute.Ojama,
-    PuyoAttribute.Kata
+  static readonly colorAttrs: ReadonlyArray<PuyoAttr> = coloredPuyoAttrList;
+  static readonly specialAttrs: ReadonlyArray<PuyoAttr> = [
+    PuyoAttr.Heart,
+    PuyoAttr.Prism,
+    PuyoAttr.Ojama,
+    PuyoAttr.Kata
   ];
 
   static readonly defaultMinimumPuyoNumForPopping = 4;
@@ -178,7 +173,7 @@ export class Simulator {
    */
   static calcTotalPrismDamage(chains: Chain[]): number {
     const prismDamage = chains.reduce((m, chain) => {
-      return m + (chain.attributes[PuyoAttribute.Prism]?.strength || 0);
+      return m + (chain.attributes[PuyoAttr.Prism]?.strength || 0);
     }, 0);
 
     return prismDamage;
@@ -192,7 +187,7 @@ export class Simulator {
    */
   static calcTotalDamageOfTargetAttr(
     chains: Chain[],
-    targetAttr: PuyoAttribute
+    targetAttr: PuyoAttr
   ): number {
     const totalAttrDamage = chains.reduce((m, chain) => {
       return m + (chain.attributes[targetAttr]?.strength || 0);
@@ -230,7 +225,7 @@ export class Simulator {
    */
   static calcTotalCountOfTargetAttr(
     chains: Chain[],
-    targetAttr: PuyoAttribute
+    targetAttr: PuyoAttr
   ): number {
     const totalCount = chains.reduce((m, chain) => {
       return m + (chain.attributes[targetAttr]?.popped_count ?? 0);
@@ -344,7 +339,7 @@ export class Simulator {
    * @returns 消えるぷよブロックの配列。消えるブロックがなければ長さ０の配列。
    */
   private detectPopBlocks(): {
-    attr: PuyoAttribute;
+    attr: PuyoAttr;
     coordIdMap: Map<PuyoCoord, number>;
   }[] {
     const blocksByColor: Map<PuyoCoord, number>[][] = [[], [], [], [], []];
@@ -358,14 +353,14 @@ export class Simulator {
 
         const id = puyo.id;
         const coord = PuyoCoord.xyToCoord(x, y)!;
-        const puyoAttr = getPuyoAttribute(puyo.type)! as
-          | PuyoAttribute.Red
-          | PuyoAttribute.Blue
-          | PuyoAttribute.Green
-          | PuyoAttribute.Yellow
-          | PuyoAttribute.Purple;
+        const puyoAttr = getPuyoAttr(puyo.type)! as
+          | PuyoAttr.Red
+          | PuyoAttr.Blue
+          | PuyoAttr.Green
+          | PuyoAttr.Yellow
+          | PuyoAttr.Purple;
 
-        const sameColorBlocks = blocksByColor[puyoAttr - PuyoAttribute.Red];
+        const sameColorBlocks = blocksByColor[puyoAttr - PuyoAttr.Red];
         const blockIndex = sameColorBlocks.findIndex((b) => b.has(coord));
 
         let block: Map<PuyoCoord, number> | undefined;
@@ -383,7 +378,7 @@ export class Simulator {
               return false;
             }
             const neighborPuyo = this.field[neighborCoord.y][neighborCoord.x];
-            const neighborAttr = getPuyoAttribute(neighborPuyo?.type);
+            const neighborAttr = getPuyoAttr(neighborPuyo?.type);
             return neighborAttr === puyoAttr;
           }
         ) as PuyoCoord[];
@@ -417,7 +412,7 @@ export class Simulator {
     }
 
     const coloredBlocksToBePopped = blocksByColor.flatMap((blocks, i) => {
-      const attr = PuyoAttribute.Red + i;
+      const attr = PuyoAttr.Red + i;
       return blocks
         .filter((block) => block.size >= this.minimumPuyoNumForPopping)
         .map((block) => {
@@ -429,7 +424,7 @@ export class Simulator {
     });
 
     const specialBlocksToBePopped: {
-      attr: PuyoAttribute;
+      attr: PuyoAttr;
       coordIdMap: Map<PuyoCoord, number>;
     }[] = [];
 
@@ -441,7 +436,7 @@ export class Simulator {
           continue;
         }
 
-        const puyoAttr = getPuyoAttribute(puyo.type);
+        const puyoAttr = getPuyoAttr(puyo.type);
 
         if (!puyoAttr || !Simulator.specialAttrs.includes(puyoAttr)) {
           continue;
@@ -504,23 +499,23 @@ export class Simulator {
       simultaneous_num: poppedPuyoNum,
       boost_count: boostCount,
       puyo_tsukai_count: puyoTsukaiCount,
-      attributes: {} as Record<PuyoAttribute, AttributeChain>
+      attributes: {} as Record<PuyoAttr, AttributeChain>
     };
 
     for (const attr of [
-      PuyoAttribute.Red,
-      PuyoAttribute.Blue,
-      PuyoAttribute.Green,
-      PuyoAttribute.Yellow,
-      PuyoAttribute.Purple,
-      PuyoAttribute.Heart,
-      PuyoAttribute.Prism,
-      PuyoAttribute.Ojama
+      PuyoAttr.Red,
+      PuyoAttr.Blue,
+      PuyoAttr.Green,
+      PuyoAttr.Yellow,
+      PuyoAttr.Purple,
+      PuyoAttr.Heart,
+      PuyoAttr.Prism,
+      PuyoAttr.Ojama
     ]) {
       if (
-        attr === PuyoAttribute.Heart ||
-        attr === PuyoAttribute.Prism ||
-        attr === PuyoAttribute.Ojama
+        attr === PuyoAttr.Heart ||
+        attr === PuyoAttr.Prism ||
+        attr === PuyoAttr.Ojama
       ) {
         const block = blocks.find((block) => block.attr === attr);
         if (!block) {
@@ -528,7 +523,7 @@ export class Simulator {
         }
         const poppedNum = block.coordIdMap.size;
         result.attributes![attr] = {
-          strength: attr === PuyoAttribute.Prism ? 3 * poppedNum : 0,
+          strength: attr === PuyoAttr.Prism ? 3 * poppedNum : 0,
           popped_count: poppedNum,
           separated_blocks_num: 0
         };
@@ -565,7 +560,7 @@ export class Simulator {
     }
 
     for (const block of blocks) {
-      if (block.attr === PuyoAttribute.Kata) {
+      if (block.attr === PuyoAttr.Kata) {
         for (const [c] of block.coordIdMap) {
           this.field[c.y][c.x] = {
             id: this.field[c.y][c.x]!.id,
@@ -573,7 +568,7 @@ export class Simulator {
           };
         }
       } else {
-        if (block.attr === PuyoAttribute.Prism) {
+        if (block.attr === PuyoAttr.Prism) {
           result.is_prism_popped = true;
         }
         for (const [c] of block.coordIdMap) {
@@ -597,11 +592,11 @@ export class Simulator {
   }
 
   private calcPoppedPuyoNum(
-    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
+    blocks: { attr: PuyoAttr; coordIdMap: Map<PuyoCoord, number> }[]
   ) {
     return blocks.reduce((m, block) => {
       // 色ぷよのブロックの場合
-      if (isColoredPuyoAttribute(block.attr)) {
+      if (isColoredPuyoAttr(block.attr)) {
         let num = 0;
         for (const [coord] of block.coordIdMap) {
           const puyo = this.field[coord.y][coord.x]!;
@@ -628,11 +623,11 @@ export class Simulator {
   }
 
   private calcBoostCount(
-    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
+    blocks: { attr: PuyoAttr; coordIdMap: Map<PuyoCoord, number> }[]
   ) {
     return blocks.reduce((m, block) => {
       // 色ぷよのブロックの場合
-      if (isColoredPuyoAttribute(block.attr)) {
+      if (isColoredPuyoAttr(block.attr)) {
         let num = 0;
         for (const [coord] of block.coordIdMap) {
           if (!this.coordIsInBoostArea(coord)) {
@@ -645,10 +640,7 @@ export class Simulator {
       }
 
       // 固ぷよブロックの場合
-      if (
-        block.attr === PuyoAttribute.Kata ||
-        block.attr === PuyoAttribute.Padding
-      ) {
+      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Padding) {
         // カウントしない
         return m;
       }
@@ -666,11 +658,11 @@ export class Simulator {
   }
 
   private calcPuyoTsukaiCount(
-    blocks: { attr: PuyoAttribute; coordIdMap: Map<PuyoCoord, number> }[]
+    blocks: { attr: PuyoAttr; coordIdMap: Map<PuyoCoord, number> }[]
   ) {
     return blocks.reduce((m, block) => {
       // 色ぷよのブロックの場合
-      if (isColoredPuyoAttribute(block.attr)) {
+      if (isColoredPuyoAttr(block.attr)) {
         let num = 0;
         for (const [coord] of block.coordIdMap) {
           const puyo = this.field[coord.y][coord.x]!;
@@ -682,10 +674,7 @@ export class Simulator {
       }
 
       // 固ぷよブロックの場合
-      if (
-        block.attr === PuyoAttribute.Kata ||
-        block.attr === PuyoAttribute.Padding
-      ) {
+      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Padding) {
         // カウントしない
         return m;
       }
@@ -713,8 +702,8 @@ export class Simulator {
         popped = true;
       }
     } else {
-      const puyoAttr = this.traceMode as number as PuyoAttribute;
-      if (!isColoredPuyoAttribute(puyoAttr)) {
+      const puyoAttr = this.traceMode as number as PuyoAttr;
+      if (!isColoredPuyoAttr(puyoAttr)) {
         throw new Error('traceMode is invalid.');
       }
       for (const c of this.traceCoords) {

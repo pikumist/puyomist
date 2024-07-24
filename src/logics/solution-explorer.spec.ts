@@ -7,7 +7,7 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
-import { PuyoAttribute } from './PuyoAttribute';
+import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -226,7 +226,7 @@ describe('solution-explorer', () => {
   });
 
   describe('solve', () => {
-    const calcCsp = (chain: Chain, attr: PuyoAttribute) => {
+    const calcCsp = (chain: Chain, attr: PuyoAttr) => {
       const c = chain.chain_num;
       const s = chain.attributes[attr]?.separated_blocks_num;
       const p = chain.simultaneous_num;
@@ -237,7 +237,7 @@ describe('solution-explorer', () => {
 
     const findMostDamageChain = (
       chains: Chain[],
-      attr: PuyoAttribute
+      attr: PuyoAttr
     ): Chain | undefined => {
       const effectiveChainDamages = chains.filter((chainDamage) => {
         return chainDamage.attributes[attr]?.strength;
@@ -261,7 +261,7 @@ describe('solution-explorer', () => {
     describe('solveAllTraces()', () => {
       it.each([
         {
-          attr: PuyoAttribute.Green,
+          attr: PuyoAttr.Green,
           explorationTarget: {
             preferencePriorities: [
               PreferenceKind.BiggerValue,
@@ -271,7 +271,7 @@ describe('solution-explorer', () => {
               PreferenceKind.SmallerTraceNum
             ],
             category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttribute.Green as const
+            mainAttr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -285,7 +285,7 @@ describe('solution-explorer', () => {
           }
         },
         {
-          attr: PuyoAttribute.Blue,
+          attr: PuyoAttr.Blue,
           explorationTarget: {
             preferencePriorities: [
               PreferenceKind.BiggerValue,
@@ -295,7 +295,7 @@ describe('solution-explorer', () => {
               PreferenceKind.SmallerTraceNum
             ],
             category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttribute.Blue as const
+            mainAttr: PuyoAttr.Blue as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -354,7 +354,7 @@ describe('solution-explorer', () => {
 
       it.each([
         {
-          attr: PuyoAttribute.Green,
+          attr: PuyoAttr.Green,
           explorationTarget: {
             preferencePriorities: [
               PreferenceKind.BiggerValue,
@@ -364,7 +364,7 @@ describe('solution-explorer', () => {
               PreferenceKind.SmallerTraceNum
             ],
             category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttribute.Green as const
+            mainAttr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -432,7 +432,7 @@ describe('solution-explorer', () => {
       it.each([
         {
           traceIndex: 21,
-          attr: PuyoAttribute.Green,
+          attr: PuyoAttr.Green,
           explorationTarget: {
             preferencePriorities: [
               PreferenceKind.BiggerValue,
@@ -442,7 +442,7 @@ describe('solution-explorer', () => {
               PreferenceKind.SmallerTraceNum
             ],
             category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttribute.Green as const
+            mainAttr: PuyoAttr.Green as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,
@@ -457,7 +457,7 @@ describe('solution-explorer', () => {
         },
         {
           traceIndex: 3,
-          attr: PuyoAttribute.Blue,
+          attr: PuyoAttr.Blue,
           explorationTarget: {
             preferencePriorities: [
               PreferenceKind.BiggerValue,
@@ -467,7 +467,7 @@ describe('solution-explorer', () => {
               PreferenceKind.SmallerTraceNum
             ],
             category: ExplorationCategory.Damage as const,
-            mainAttr: PuyoAttribute.Blue as const
+            mainAttr: PuyoAttr.Blue as const
           } satisfies ExplorationTarget,
           maxTraceNum: 5,
           poppingLeverage: 1.0,

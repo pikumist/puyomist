@@ -1,8 +1,4 @@
-import {
-  type ColoredPuyoAttribute,
-  PuyoAttribute,
-  isColoredPuyoAttribute
-} from './PuyoAttribute';
+import { type ColoredPuyoAttr, PuyoAttr, isColoredPuyoAttr } from './PuyoAttr';
 
 /** ぷよの型 */
 export enum PuyoType {
@@ -214,54 +210,54 @@ export const isTraceablePuyo = (
 };
 
 /** ぷよの属性 */
-export const getPuyoAttribute = (
+export const getPuyoAttr = (
   puyoType: PuyoType | undefined
-): PuyoAttribute | undefined => {
+): PuyoAttr | undefined => {
   switch (puyoType) {
     case PuyoType.Red:
     case PuyoType.RedPlus:
     case PuyoType.RedChance:
     case PuyoType.RedChancePlus:
-      return PuyoAttribute.Red;
+      return PuyoAttr.Red;
 
     case PuyoType.Blue:
     case PuyoType.BluePlus:
     case PuyoType.BlueChance:
     case PuyoType.BlueChancePlus:
-      return PuyoAttribute.Blue;
+      return PuyoAttr.Blue;
 
     case PuyoType.Green:
     case PuyoType.GreenPlus:
     case PuyoType.GreenChance:
     case PuyoType.GreenChancePlus:
-      return PuyoAttribute.Green;
+      return PuyoAttr.Green;
 
     case PuyoType.Yellow:
     case PuyoType.YellowPlus:
     case PuyoType.YellowChance:
     case PuyoType.YellowChancePlus:
-      return PuyoAttribute.Yellow;
+      return PuyoAttr.Yellow;
 
     case PuyoType.Purple:
     case PuyoType.PurplePlus:
     case PuyoType.PurpleChance:
     case PuyoType.PurpleChancePlus:
-      return PuyoAttribute.Purple;
+      return PuyoAttr.Purple;
 
     case PuyoType.Heart:
-      return PuyoAttribute.Heart;
+      return PuyoAttr.Heart;
 
     case PuyoType.Prism:
-      return PuyoAttribute.Prism;
+      return PuyoAttr.Prism;
 
     case PuyoType.Ojama:
-      return PuyoAttribute.Ojama;
+      return PuyoAttr.Ojama;
 
     case PuyoType.Kata:
-      return PuyoAttribute.Kata;
+      return PuyoAttr.Kata;
 
     case PuyoType.Padding:
-      return PuyoAttribute.Padding;
+      return PuyoAttr.Padding;
   }
 };
 
@@ -274,18 +270,18 @@ export const toNormalColoredType = (puyoType: PuyoType) => {
   if (!isColoredPuyoType(puyoType)) {
     return puyoType;
   }
-  const attr = getPuyoAttribute(puyoType) as ColoredPuyoAttribute;
+  const attr = getPuyoAttr(puyoType) as ColoredPuyoAttr;
 
   switch (attr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return PuyoType.Red;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return PuyoType.Blue;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return PuyoType.Green;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return PuyoType.Yellow;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return PuyoType.Purple;
   }
 };
@@ -301,18 +297,18 @@ export const toChanceColoredType = (puyoType: PuyoType) => {
   }
 
   const isPlus = isPlusPuyo(puyoType);
-  const attr = getPuyoAttribute(puyoType) as ColoredPuyoAttribute;
+  const attr = getPuyoAttr(puyoType) as ColoredPuyoAttr;
 
   switch (attr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return isPlus ? PuyoType.RedChancePlus : PuyoType.RedChance;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return isPlus ? PuyoType.BlueChancePlus : PuyoType.BlueChance;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return isPlus ? PuyoType.GreenChancePlus : PuyoType.GreenChance;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return isPlus ? PuyoType.YellowChancePlus : PuyoType.YellowChance;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return isPlus ? PuyoType.PurpleChancePlus : PuyoType.PurpleChance;
   }
 };
@@ -328,18 +324,18 @@ export const toPlusColoredType = (puyoType: PuyoType) => {
   }
 
   const isChance = isChancePuyo(puyoType);
-  const attr = getPuyoAttribute(puyoType) as ColoredPuyoAttribute;
+  const attr = getPuyoAttr(puyoType) as ColoredPuyoAttr;
 
   switch (attr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return isChance ? PuyoType.RedChancePlus : PuyoType.RedPlus;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return isChance ? PuyoType.BlueChancePlus : PuyoType.BluePlus;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return isChance ? PuyoType.GreenChancePlus : PuyoType.GreenPlus;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return isChance ? PuyoType.YellowChancePlus : PuyoType.YellowPlus;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return isChance ? PuyoType.PurpleChancePlus : PuyoType.PurplePlus;
   }
 };
@@ -352,33 +348,33 @@ export const toPlusColoredType = (puyoType: PuyoType) => {
  */
 export const convertPuyoType = (
   puyoType: PuyoType,
-  toAttr: PuyoAttribute
+  toAttr: PuyoAttr
 ): PuyoType => {
   if (puyoType === PuyoType.Padding) {
     return puyoType;
   }
 
   if (isColoredPuyoType(puyoType)) {
-    if (isColoredPuyoAttribute(toAttr)) {
+    if (isColoredPuyoAttr(toAttr)) {
       const isPlusTerm = isPlusPuyo(puyoType) ? 1 : 0;
       const isChanceTerm = isChancePuyo(puyoType) ? 2 : 0;
 
       let result!: PuyoType;
 
       switch (toAttr) {
-        case PuyoAttribute.Red:
+        case PuyoAttr.Red:
           result = PuyoType.Red;
           break;
-        case PuyoAttribute.Blue:
+        case PuyoAttr.Blue:
           result = PuyoType.Blue;
           break;
-        case PuyoAttribute.Green:
+        case PuyoAttr.Green:
           result = PuyoType.Green;
           break;
-        case PuyoAttribute.Yellow:
+        case PuyoAttr.Yellow:
           result = PuyoType.Yellow;
           break;
-        case PuyoAttribute.Purple:
+        case PuyoAttr.Purple:
           result = PuyoType.Purple;
       }
 
@@ -388,65 +384,65 @@ export const convertPuyoType = (
     }
 
     switch (toAttr) {
-      case PuyoAttribute.Heart:
+      case PuyoAttr.Heart:
         return PuyoType.Heart;
-      case PuyoAttribute.Prism:
+      case PuyoAttr.Prism:
         return PuyoType.Prism;
-      case PuyoAttribute.Ojama:
+      case PuyoAttr.Ojama:
         return PuyoType.Ojama;
-      case PuyoAttribute.Kata:
+      case PuyoAttr.Kata:
         return PuyoType.Kata;
     }
   }
 
   switch (toAttr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return PuyoType.Red;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return PuyoType.Blue;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return PuyoType.Green;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return PuyoType.Yellow;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return PuyoType.Purple;
-    case PuyoAttribute.Heart:
+    case PuyoAttr.Heart:
       return PuyoType.Heart;
-    case PuyoAttribute.Prism:
+    case PuyoAttr.Prism:
       return PuyoType.Prism;
-    case PuyoAttribute.Ojama:
+    case PuyoAttr.Ojama:
       return PuyoType.Ojama;
-    case PuyoAttribute.Kata:
+    case PuyoAttr.Kata:
       return PuyoType.Kata;
-    case PuyoAttribute.Padding:
+    case PuyoAttr.Padding:
       return PuyoType.Padding;
   }
 };
 
 /** TODO: SVG化したら削除 */
 export const getPuyoRgb = (type: PuyoType) => {
-  const attr = getPuyoAttribute(type);
+  const attr = getPuyoAttr(type);
 
   switch (attr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return '#c00';
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return '#00c';
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return '#0c0';
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return 'yellow';
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return '#808';
-    case PuyoAttribute.Heart:
+    case PuyoAttr.Heart:
       return 'pink';
-    case PuyoAttribute.Prism:
+    case PuyoAttr.Prism:
       return '#fff';
-    case PuyoAttribute.Ojama:
+    case PuyoAttr.Ojama:
       return '#666';
-    case PuyoAttribute.Kata:
+    case PuyoAttr.Kata:
       return '#333';
-    case PuyoAttribute.Padding:
+    case PuyoAttr.Padding:
       return '#000';
     default:
       throw new Error('The attr of puyo is unknown.');

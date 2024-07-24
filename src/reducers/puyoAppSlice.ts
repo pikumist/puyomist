@@ -16,10 +16,7 @@ import {
   type PreferenceKind,
   wildAttribute
 } from '../logics/ExplorationTarget';
-import {
-  type ColoredPuyoAttribute,
-  PuyoAttribute
-} from '../logics/PuyoAttribute';
+import { type ColoredPuyoAttr, PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
   type PuyoType,
@@ -358,14 +355,14 @@ const puyoAppSlice = createSlice({
           state.explorationTarget = {
             ...common,
             category: ExplorationCategory.Damage,
-            mainAttr: PuyoAttribute.Red
+            mainAttr: PuyoAttr.Red
           };
           break;
         case ExplorationCategory.SkillPuyoCount:
           state.explorationTarget = {
             ...common,
             category: ExplorationCategory.SkillPuyoCount,
-            mainAttr: PuyoAttribute.Red
+            mainAttr: PuyoAttr.Red
           };
           break;
         case ExplorationCategory.PuyotsukaiCount:
@@ -387,7 +384,7 @@ const puyoAppSlice = createSlice({
     /** ダメージの主属性項目が選択されたとき */
     explorationDamageMainAttrSelected: (
       state,
-      action: PayloadAction<ColoredPuyoAttribute | typeof wildAttribute>
+      action: PayloadAction<ColoredPuyoAttr | typeof wildAttribute>
     ) => {
       const mainAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetDamage;
@@ -401,7 +398,7 @@ const puyoAppSlice = createSlice({
     /** ダメージの副属性項目が選択されたとき */
     explorationDamageSubAttrSelected: (
       state,
-      action: PayloadAction<ColoredPuyoAttribute | undefined>
+      action: PayloadAction<ColoredPuyoAttr | undefined>
     ) => {
       const subAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetDamage;
@@ -421,7 +418,7 @@ const puyoAppSlice = createSlice({
     /** ぷよ数の主属性項目が選択されたとき */
     explorationPuyoCountMainAttrSelected: (
       state,
-      action: PayloadAction<ColoredPuyoAttribute>
+      action: PayloadAction<ColoredPuyoAttr>
     ) => {
       const mainAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
@@ -440,7 +437,7 @@ const puyoAppSlice = createSlice({
       if (bonusType === CountingBonusType.Step) {
         target.countingBonus = {
           type: bonusType,
-          targetAttrs: [PuyoAttribute.Red],
+          targetAttrs: [PuyoAttr.Red],
           stepHeight: 4,
           bonusCount: 4,
           repeat: true
@@ -452,7 +449,7 @@ const puyoAppSlice = createSlice({
 
     explorationCountingBonusStepTargetAttrSelected: (
       state,
-      action: PayloadAction<PuyoAttribute>
+      action: PayloadAction<PuyoAttr>
     ) => {
       const target = state.explorationTarget as ExplorationTargetSkillPuyoCount;
       const attr = action.payload;

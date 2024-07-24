@@ -3,7 +3,7 @@ import { createSimulationData } from '../reducers/internal/createSimulationData'
 import type { Board } from './Board';
 import type { Chain } from './Chain';
 import { __resetPuyoIdCount } from './Puyo';
-import { PuyoAttribute } from './PuyoAttribute';
+import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -57,7 +57,7 @@ describe('Simulator', () => {
         } as Board,
         expected: [
           {
-            attr: PuyoAttribute.Red,
+            attr: PuyoAttr.Red,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(0, 0), 1],
               [PuyoCoord.xyToCoord(1, 0), 2],
@@ -66,7 +66,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Blue,
+            attr: PuyoAttr.Blue,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(2, 3), 27],
               [PuyoCoord.xyToCoord(3, 2), 20],
@@ -74,7 +74,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Green,
+            attr: PuyoAttr.Green,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(0, 5), 41],
               [PuyoCoord.xyToCoord(1, 4), 34],
@@ -82,7 +82,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Green,
+            attr: PuyoAttr.Green,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(6, 4), 39],
               [PuyoCoord.xyToCoord(7, 4), 40],
@@ -90,7 +90,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Yellow,
+            attr: PuyoAttr.Yellow,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(4, 0), 5],
               [PuyoCoord.xyToCoord(5, 0), 6],
@@ -100,7 +100,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Purple,
+            attr: PuyoAttr.Purple,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(2, 4), 35],
               [PuyoCoord.xyToCoord(3, 4), 36],
@@ -108,7 +108,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Heart,
+            attr: PuyoAttr.Heart,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(2, 0), 3],
               [PuyoCoord.xyToCoord(3, 1), 12],
@@ -149,7 +149,7 @@ describe('Simulator', () => {
         } as Board,
         expected: [
           {
-            attr: PuyoAttribute.Blue,
+            attr: PuyoAttr.Blue,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(2, 2), 19],
               [PuyoCoord.xyToCoord(3, 2), 20],
@@ -158,7 +158,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Green,
+            attr: PuyoAttr.Green,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(3, 0), 4],
               [PuyoCoord.xyToCoord(4, 0), 5],
@@ -169,7 +169,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Yellow,
+            attr: PuyoAttr.Yellow,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(5, 3), 30],
               [PuyoCoord.xyToCoord(6, 3), 31],
@@ -178,7 +178,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Yellow,
+            attr: PuyoAttr.Yellow,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(0, 3), 25],
               [PuyoCoord.xyToCoord(1, 3), 26],
@@ -188,7 +188,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Purple,
+            attr: PuyoAttr.Purple,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(4, 3), 29],
               [PuyoCoord.xyToCoord(4, 4), 37],
@@ -198,11 +198,11 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Heart,
+            attr: PuyoAttr.Heart,
             coordIdMap: new Map([[PuyoCoord.xyToCoord(3, 1), 12]])
           },
           {
-            attr: PuyoAttribute.Prism,
+            attr: PuyoAttr.Prism,
             coordIdMap: new Map([[PuyoCoord.xyToCoord(4, 1), 13]])
           }
         ]
@@ -223,7 +223,7 @@ describe('Simulator', () => {
         } as Board,
         expected: [
           {
-            attr: PuyoAttribute.Blue,
+            attr: PuyoAttr.Blue,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(2, 2), 6],
               [PuyoCoord.xyToCoord(3, 2), 7],
@@ -232,7 +232,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Yellow,
+            attr: PuyoAttr.Yellow,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(0, 3), 11],
               [PuyoCoord.xyToCoord(1, 3), 12],
@@ -241,7 +241,7 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Purple,
+            attr: PuyoAttr.Purple,
             coordIdMap: new Map([
               [PuyoCoord.xyToCoord(4, 3), 14],
               [PuyoCoord.xyToCoord(4, 4), 21],
@@ -251,11 +251,11 @@ describe('Simulator', () => {
             ])
           },
           {
-            attr: PuyoAttribute.Heart,
+            attr: PuyoAttr.Heart,
             coordIdMap: new Map([[PuyoCoord.xyToCoord(3, 1), 2]])
           },
           {
-            attr: PuyoAttribute.Prism,
+            attr: PuyoAttr.Prism,
             coordIdMap: new Map([[PuyoCoord.xyToCoord(4, 1), 3]])
           }
         ]
@@ -300,7 +300,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 1,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -313,7 +313,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 3.8000000000000003,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -326,7 +326,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 5.8999999999999995,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -339,7 +339,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 8,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -352,7 +352,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 9.4,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -365,12 +365,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 10.799999999999999,
                 popped_count: 3,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Heart]: {
+              [PuyoAttr.Heart]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
@@ -383,7 +383,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 12.200000000000001,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -396,12 +396,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 13.6,
                 popped_count: 3,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Heart]: {
+              [PuyoAttr.Heart]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
@@ -414,7 +414,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 15,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -427,12 +427,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 16.400000000000002,
                 popped_count: 3,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Heart]: {
+              [PuyoAttr.Heart]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
@@ -445,7 +445,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 17.800000000000004,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -458,7 +458,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 19.2,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -471,7 +471,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 3,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 20.599999999999998,
                 popped_count: 3,
                 separated_blocks_num: 1
@@ -484,7 +484,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 10,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 90.19999999999999,
                 popped_count: 10,
                 separated_blocks_num: 2
@@ -525,12 +525,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 7,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 1.3,
                 popped_count: 6,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Heart]: {
+              [PuyoAttr.Heart]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
@@ -543,7 +543,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 5,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -556,7 +556,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 8,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -569,7 +569,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 11,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -582,7 +582,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 13,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -595,7 +595,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 15,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -608,7 +608,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 17,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -621,7 +621,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 19,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -634,7 +634,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 21,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -647,7 +647,7 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 13,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 108.09999999999998,
                 popped_count: 13,
                 separated_blocks_num: 2
@@ -684,12 +684,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 9,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 1.75,
                 popped_count: 5,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 1.75,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -702,12 +702,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 12,
             attributes: {
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 3.08,
                 popped_count: 5,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 3.08,
                 popped_count: 7,
                 separated_blocks_num: 1
@@ -720,12 +720,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 11,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 3.4849999999999994,
                 popped_count: 7,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 3.4849999999999994,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -738,12 +738,12 @@ describe('Simulator', () => {
             boost_count: 0,
             puyo_tsukai_count: 8,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 3.2,
                 popped_count: 4,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Blue]: {
+              [PuyoAttr.Blue]: {
                 strength: 3.2,
                 popped_count: 4,
                 separated_blocks_num: 1
@@ -786,17 +786,17 @@ describe('Simulator', () => {
             boost_count: 4,
             puyo_tsukai_count: 19,
             attributes: {
-              [PuyoAttribute.Green]: {
+              [PuyoAttr.Green]: {
                 strength: 1.75,
                 popped_count: 5,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Purple]: {
+              [PuyoAttr.Purple]: {
                 strength: 1.75,
                 popped_count: 4,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Heart]: {
+              [PuyoAttr.Heart]: {
                 strength: 0,
                 popped_count: 2,
                 separated_blocks_num: 0
@@ -810,12 +810,12 @@ describe('Simulator', () => {
             boost_count: 4,
             puyo_tsukai_count: 18,
             attributes: {
-              [PuyoAttribute.Red]: {
+              [PuyoAttr.Red]: {
                 strength: 2.6599999999999997,
                 popped_count: 5,
                 separated_blocks_num: 1
               },
-              [PuyoAttribute.Yellow]: {
+              [PuyoAttr.Yellow]: {
                 strength: 2.6599999999999997,
                 popped_count: 5,
                 separated_blocks_num: 1
@@ -863,17 +863,17 @@ describe('Simulator', () => {
           boost_count: 4,
           puyo_tsukai_count: 19,
           attributes: {
-            [PuyoAttribute.Green]: {
+            [PuyoAttr.Green]: {
               strength: 1.75,
               popped_count: 5,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Purple]: {
+            [PuyoAttr.Purple]: {
               strength: 1.75,
               popped_count: 4,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Heart]: {
+            [PuyoAttr.Heart]: {
               strength: 0,
               popped_count: 2,
               separated_blocks_num: 1
@@ -886,12 +886,12 @@ describe('Simulator', () => {
           boost_count: 4,
           puyo_tsukai_count: 18,
           attributes: {
-            [PuyoAttribute.Red]: {
+            [PuyoAttr.Red]: {
               strength: 2.6599999999999997,
               popped_count: 5,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Yellow]: {
+            [PuyoAttr.Yellow]: {
               strength: 2.6599999999999997,
               popped_count: 5,
               separated_blocks_num: 1
@@ -903,23 +903,23 @@ describe('Simulator', () => {
       // Act
       const actualRed = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Red
+        PuyoAttr.Red
       );
       const actualBlue = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Blue
+        PuyoAttr.Blue
       );
       const actualGreen = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Green
+        PuyoAttr.Green
       );
       const actualYellow = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Yellow
+        PuyoAttr.Yellow
       );
       const actualPurple = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Purple
+        PuyoAttr.Purple
       );
 
       // Assert
@@ -944,7 +944,7 @@ describe('Simulator', () => {
           boost_count,
           puyo_tsukai_count: 0,
           attributes: {
-            [PuyoAttribute.Red]: {
+            [PuyoAttr.Red]: {
               strength: 1,
               popped_count: 4,
               separated_blocks_num: 1
@@ -956,7 +956,7 @@ describe('Simulator', () => {
       // Actual
       const actual = Simulator.calcTotalDamageOfTargetAttr(
         chains,
-        PuyoAttribute.Red
+        PuyoAttr.Red
       );
 
       // Assert
@@ -974,22 +974,22 @@ describe('Simulator', () => {
           boost_count: 4,
           puyo_tsukai_count: 21,
           attributes: {
-            [PuyoAttribute.Green]: {
+            [PuyoAttr.Green]: {
               strength: 2.05,
               popped_count: 5,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Purple]: {
+            [PuyoAttr.Purple]: {
               strength: 2.05,
               popped_count: 4,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Heart]: {
+            [PuyoAttr.Heart]: {
               strength: 0,
               popped_count: 2,
               separated_blocks_num: 0
             },
-            [PuyoAttribute.Prism]: {
+            [PuyoAttr.Prism]: {
               strength: 6.0,
               popped_count: 2,
               separated_blocks_num: 0
@@ -1002,12 +1002,12 @@ describe('Simulator', () => {
           boost_count: 4,
           puyo_tsukai_count: 18,
           attributes: {
-            [PuyoAttribute.Red]: {
+            [PuyoAttr.Red]: {
               strength: 2.6599999999999997,
               popped_count: 5,
               separated_blocks_num: 1
             },
-            [PuyoAttribute.Yellow]: {
+            [PuyoAttr.Yellow]: {
               strength: 2.6599999999999997,
               popped_count: 5,
               separated_blocks_num: 1

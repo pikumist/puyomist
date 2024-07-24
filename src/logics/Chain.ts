@@ -1,4 +1,4 @@
-import type { PuyoAttribute } from './PuyoAttribute';
+import type { PuyoAttr } from './PuyoAttr';
 
 /** ある属性ある連鎖における情報 */
 export interface AttributeChain {
@@ -21,7 +21,7 @@ export interface Chain {
   /** ぷよ使いイベントでカウントされるぷよ数 */
   puyo_tsukai_count: number;
   /** ぷよ属性ごとの連鎖情報 */
-  attributes: Partial<Record<PuyoAttribute, AttributeChain>>;
+  attributes: Partial<Record<PuyoAttr, AttributeChain>>;
   /** 全消しされたかどうか */
   is_all_cleared?: boolean;
   /** チャンスぷよが弾けたかどうか */

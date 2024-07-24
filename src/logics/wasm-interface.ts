@@ -8,7 +8,7 @@ import type {
   ExplorationCategory,
   PreferenceKind
 } from './ExplorationTarget';
-import type { PuyoAttribute } from './PuyoAttribute';
+import type { PuyoAttr } from './PuyoAttr';
 import type { PuyoType } from './PuyoType';
 import type { TraceMode } from './TraceMode';
 
@@ -35,7 +35,7 @@ export interface WasmSimulationEnvironment {
 export type WasmBlock = Map<WasmPuyoCoord, WasmPuyo>;
 
 export interface WasmBlockWithAttr {
-  attr: PuyoAttribute;
+  attr: PuyoAttr;
   block: WasmBlock;
 }
 
@@ -47,14 +47,14 @@ export interface WasmChain {
   boost_count: number;
   puyo_tsukai_count: number;
   // JS側のChainだとここはPartial<Record>
-  attributes: Map<PuyoAttribute, WasmAttributeChain>;
+  attributes: Map<PuyoAttr, WasmAttributeChain>;
   is_all_cleared: boolean;
   is_chance_popped: boolean;
 }
 
 export interface WasmStepCountingBonus {
   bonus_type: CountingBonusType;
-  target_attrs: PuyoAttribute[];
+  target_attrs: PuyoAttr[];
   step_height: number;
   bonus_count: number;
   repeat: boolean;
@@ -68,9 +68,9 @@ export interface WasmExplorationTarget {
   /** 最適解のベスト何個までを結果に返すか */
   optimal_solution_count: number;
   /** 主属性 */
-  main_attr: PuyoAttribute | undefined;
+  main_attr: PuyoAttr | undefined;
   /** 副属性 */
-  sub_attr: PuyoAttribute | undefined;
+  sub_attr: PuyoAttr | undefined;
   /** 副属性 / 主属性 のダメージ率 (1/3か1)  */
   main_sub_ratio: number | undefined;
   /** 加速ボーナス */

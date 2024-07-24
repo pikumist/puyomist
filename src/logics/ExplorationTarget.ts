@@ -1,4 +1,4 @@
-import type { ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
+import type { ColoredPuyoAttr, PuyoAttr } from './PuyoAttr';
 
 /** 探索カテゴリー */
 export enum ExplorationCategory {
@@ -48,9 +48,9 @@ export interface ExplorationTargetDamage extends ExplorationTargetCommon {
   /** 探索カテゴリー */
   category: ExplorationCategory.Damage;
   /** 主属性 */
-  mainAttr: ColoredPuyoAttribute | typeof wildAttribute;
+  mainAttr: ColoredPuyoAttr | typeof wildAttribute;
   /** 副属性 */
-  subAttr?: ColoredPuyoAttribute | undefined;
+  subAttr?: ColoredPuyoAttr | undefined;
   /** 副属性 / 主属性 のダメージ率 (1/3か1)  */
   mainSubRatio?: number;
 }
@@ -66,7 +66,7 @@ export interface StepCountingBonus {
   /** カウントボーナスのタイプ */
   type: CountingBonusType.Step;
   /** ボーナスの発生する対象属性リスト。段はリスト内の属性ごとのカウント数トータルで登る。 */
-  targetAttrs: PuyoAttribute[];
+  targetAttrs: PuyoAttr[];
   /** 段の高さ */
   stepHeight: number;
   /** ボーナスカウント */
@@ -83,7 +83,7 @@ export interface ExplorationTargetSkillPuyoCount
   /** 探索カテゴリー */
   category: ExplorationCategory.SkillPuyoCount;
   /** 主属性 */
-  mainAttr: PuyoAttribute;
+  mainAttr: PuyoAttr;
   /** カウントボーナス */
   countingBonus?: CountingBonus;
 }

@@ -1,8 +1,8 @@
 import React from 'react';
-import { isColoredPuyoAttribute } from '../../logics/PuyoAttribute';
+import { isColoredPuyoAttr } from '../../logics/PuyoAttr';
 import {
   type PuyoType,
-  getPuyoAttribute,
+  getPuyoAttr,
   isChancePuyo,
   isPlusPuyo
 } from '../../logics/PuyoType';
@@ -31,11 +31,11 @@ const HybridPuyo: React.FC<PuyoProps> = React.memo((props) => {
 
   // ネクストの場合
   if (y === -1) {
-    const attr = getPuyoAttribute(type)!;
+    const attr = getPuyoAttr(type)!;
     const outerTransform = `translate(${x * (cw + gw)} 0)`;
     const innerTransform = 'translate(12)';
 
-    if (isColoredPuyoAttribute(attr)) {
+    if (isColoredPuyoAttr(attr)) {
       const isChance = isChancePuyo(type);
       const isPlus = isPlusPuyo(type);
 
@@ -86,9 +86,9 @@ const HybridPuyo: React.FC<PuyoProps> = React.memo((props) => {
   const outerTransform = `translate(${x * (cw + gw)} ${
     nch + gw + y * (ch + gw)
   })`;
-  const attr = getPuyoAttribute(type)!;
+  const attr = getPuyoAttr(type)!;
 
-  if (isColoredPuyoAttribute(attr)) {
+  if (isColoredPuyoAttr(attr)) {
     const isChance = isChancePuyo(type);
     const isPlus = isPlusPuyo(type);
 

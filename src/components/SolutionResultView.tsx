@@ -5,10 +5,10 @@ import {
   explorationCategoryDescriptionMap
 } from '../logics/ExplorationTarget';
 import {
-  type ColoredPuyoAttribute,
-  coloredPuyoAttributeList,
-  getPuyoAttributeName
-} from '../logics/PuyoAttribute';
+  type ColoredPuyoAttr,
+  coloredPuyoAttrList,
+  getPuyoAttrName
+} from '../logics/PuyoAttr';
 import { Simulator } from '../logics/Simulator';
 import type { SolveResult } from '../logics/solution';
 import PuyoIcon from './PuyoIcon';
@@ -29,7 +29,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
         return undefined;
       }
       return new Map(
-        coloredPuyoAttributeList.map((attr) => [
+        coloredPuyoAttrList.map((attr) => [
           attr,
           Simulator.calcTotalDamageOfTargetAttr(solution.chains, attr)
         ])
@@ -59,7 +59,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 category={result?.explorationTarget?.category}
                 optimalValue={result?.optimalSolution?.value}
               />
-              {coloredPuyoAttributeList.map((attr) => (
+              {coloredPuyoAttrList.map((attr) => (
                 <HStack key={attr} spacing="1">
                   <PuyoIcon
                     position="relative"
@@ -68,10 +68,8 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                     attr={attr}
                   />
                   <Text>
-                    {getPuyoAttributeName(attr)}:{' '}
-                    {totalDamageMap
-                      ?.get(attr as ColoredPuyoAttribute)
-                      ?.toFixed(2)}
+                    {getPuyoAttrName(attr)}:{' '}
+                    {totalDamageMap?.get(attr as ColoredPuyoAttr)?.toFixed(2)}
                   </Text>
                 </HStack>
               ))}

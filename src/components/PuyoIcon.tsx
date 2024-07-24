@@ -1,9 +1,9 @@
 import { Box, type BoxProps } from '@chakra-ui/react';
 import React from 'react';
-import { PuyoAttribute } from '../logics/PuyoAttribute';
+import { PuyoAttr } from '../logics/PuyoAttr';
 import {
   type PuyoType,
-  getPuyoAttribute,
+  getPuyoAttr,
   isChancePuyo,
   isPlusPuyo
 } from '../logics/PuyoType';
@@ -15,7 +15,7 @@ import {
 
 interface IProps extends BoxProps {
   type?: PuyoType;
-  attr?: PuyoAttribute;
+  attr?: PuyoAttr;
   size?: number;
 }
 
@@ -28,7 +28,7 @@ const PuyoIcon: React.FC<IProps> = React.memo((props) => {
     width: `${size}px`,
     height: `${size}px`
   };
-  const attr = getPuyoAttribute(type) || _attr || PuyoAttribute.Padding;
+  const attr = getPuyoAttr(type) || _attr || PuyoAttr.Padding;
   const isChance = type ? isChancePuyo(type) : false;
   const isPlus = type ? isPlusPuyo(type) : false;
 

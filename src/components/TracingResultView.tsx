@@ -2,7 +2,7 @@ import { Box, type BoxProps, Text } from '@chakra-ui/react';
 import React from 'react';
 import type { AnimationStep } from '../logics/AnimationStep';
 import type { Chain } from '../logics/Chain';
-import { PuyoAttribute } from '../logics/PuyoAttribute';
+import { PuyoAttr } from '../logics/PuyoAttr';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import { Simulator } from '../logics/Simulator';
 import DamageDetail from './DamageDetail';
@@ -57,11 +57,11 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
       <Text hidden={!hasBoostArea}>ぷよ使いカウント: {puyoTsukaiCount}</Text>
       <Box mt="1">
         {[
-          PuyoAttribute.Red,
-          PuyoAttribute.Blue,
-          PuyoAttribute.Green,
-          PuyoAttribute.Yellow,
-          PuyoAttribute.Purple
+          PuyoAttr.Red,
+          PuyoAttr.Blue,
+          PuyoAttr.Green,
+          PuyoAttr.Yellow,
+          PuyoAttr.Purple
         ].map((attr) => (
           <DamageDetail
             key={attr}

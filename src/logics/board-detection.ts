@@ -1,5 +1,5 @@
 import type { Board } from './Board';
-import { PuyoAttribute, isColoredPuyoAttribute } from './PuyoAttribute';
+import { PuyoAttr, isColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { rgbToHsv } from './generics/rgbToHsv';
@@ -208,42 +208,42 @@ const detectPuyoAttr = (rgb: number[]) => {
   const { h, s, v } = rgbToHsv(r, g, b);
 
   if (h > 320 && h < 340 && v > 98 && s > 12 && s < 16) {
-    return PuyoAttribute.Heart;
+    return PuyoAttr.Heart;
   }
 
   // チャンスが光りきっていると h=300 ぐらいになる…
   if (h > 340 || h < 10) {
-    return PuyoAttribute.Red;
+    return PuyoAttr.Red;
   }
 
   if (h > 30 && h < 65) {
-    return PuyoAttribute.Yellow;
+    return PuyoAttr.Yellow;
   }
 
   if (h > 95 && h < 160) {
-    return PuyoAttribute.Green;
+    return PuyoAttr.Green;
   }
 
   if (h > 210 && h < 250) {
-    return PuyoAttribute.Blue;
+    return PuyoAttr.Blue;
   }
 
   if (h > 250 && h < 300) {
-    return PuyoAttribute.Purple;
+    return PuyoAttr.Purple;
   }
 
-  return PuyoAttribute.Padding;
+  return PuyoAttr.Padding;
 };
 
 const detectPrism = (rgbList: number[][]) => {
-  const attrSet = new Set<PuyoAttribute>();
+  const attrSet = new Set<PuyoAttr>();
   rgbList.map((rgb) => {
     attrSet.add(detectPuyoAttr(rgb));
   });
   if (attrSet.size >= 3) {
-    return PuyoAttribute.Prism;
+    return PuyoAttr.Prism;
   }
-  return PuyoAttribute.Padding;
+  return PuyoAttr.Padding;
 };
 
 /**
@@ -257,17 +257,17 @@ const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
 
   let puyoAttr = detectPuyoAttr(rgb1);
 
-  if (puyoAttr === PuyoAttribute.Padding) {
+  if (puyoAttr === PuyoAttr.Padding) {
     puyoAttr = detectPrism([rgb3, rgb4, rgb5, rgb6, rgb7]);
   }
 
-  if (!isColoredPuyoAttribute(puyoAttr)) {
+  if (!isColoredPuyoAttr(puyoAttr)) {
     switch (puyoAttr) {
-      case PuyoAttribute.Heart:
+      case PuyoAttr.Heart:
         return PuyoType.Heart;
-      case PuyoAttribute.Prism:
+      case PuyoAttr.Prism:
         return PuyoType.Prism;
-      case PuyoAttribute.Padding:
+      case PuyoAttr.Padding:
         return isChanceMode ? undefined : PuyoType.Padding;
       // TODO: ojama, ojama
     }
@@ -278,15 +278,15 @@ const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
   const isPlus = h >= 50 && h <= 54 && s >= 60 && s <= 85 && v >= 95;
 
   switch (puyoAttr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return isPlus ? PuyoType.RedPlus : PuyoType.Red;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return isPlus ? PuyoType.BluePlus : PuyoType.Blue;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return isPlus ? PuyoType.GreenPlus : PuyoType.Green;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return isPlus ? PuyoType.YellowPlus : PuyoType.Yellow;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return isPlus ? PuyoType.PurplePlus : PuyoType.Purple;
   }
 };
@@ -299,10 +299,10 @@ const detectNextPuyoType = (rgbList: number[][]) => {
   const [rgb1, rgb2] = rgbList;
 
   const puyoAttr = detectPuyoAttr(rgb1);
-  if (puyoAttr === PuyoAttribute.Padding) {
+  if (puyoAttr === PuyoAttr.Padding) {
     return PuyoType.Padding;
   }
-  if (puyoAttr === PuyoAttribute.Heart) {
+  if (puyoAttr === PuyoAttr.Heart) {
     return PuyoType.Heart;
   }
 
@@ -315,15 +315,15 @@ const detectNextPuyoType = (rgbList: number[][]) => {
     !(h > 140 && h < 200 && s >= 45 && s <= 60 && v >= 80);
 
   switch (puyoAttr) {
-    case PuyoAttribute.Red:
+    case PuyoAttr.Red:
       return isPlus ? PuyoType.RedPlus : PuyoType.Red;
-    case PuyoAttribute.Blue:
+    case PuyoAttr.Blue:
       return isPlus ? PuyoType.BluePlus : PuyoType.Blue;
-    case PuyoAttribute.Green:
+    case PuyoAttr.Green:
       return isPlus ? PuyoType.GreenPlus : PuyoType.Green;
-    case PuyoAttribute.Yellow:
+    case PuyoAttr.Yellow:
       return isPlus ? PuyoType.YellowPlus : PuyoType.Yellow;
-    case PuyoAttribute.Purple:
+    case PuyoAttr.Purple:
       return isPlus ? PuyoType.PurplePlus : PuyoType.Purple;
   }
 };

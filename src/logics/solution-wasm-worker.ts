@@ -9,7 +9,7 @@ import type {
   ExplorationTargetSkillPuyoCount,
   StepCountingBonus
 } from './ExplorationTarget';
-import type { ColoredPuyoAttribute } from './PuyoAttribute';
+import type { ColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import type { SimulationData } from './SimulationData';
 import type { ExplorationResult, SolutionResult } from './solution';
@@ -33,7 +33,7 @@ const toWasmExplorationTarget = (
     optimal_solution_count: 1,
     main_attr: (explorationTarget as ExplorationTargetDamage).mainAttr
       ? ((explorationTarget as ExplorationTargetDamage)
-          .mainAttr as ColoredPuyoAttribute)
+          .mainAttr as ColoredPuyoAttr)
       : undefined,
     sub_attr: (explorationTarget as ExplorationTargetDamage).subAttr,
     main_sub_ratio: (explorationTarget as ExplorationTargetDamage).mainSubRatio,

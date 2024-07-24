@@ -1,13 +1,13 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import type React from 'react';
 import type { Chain } from '../logics/Chain';
-import type { PuyoAttribute } from '../logics/PuyoAttribute';
+import type { PuyoAttr } from '../logics/PuyoAttr';
 import { Simulator } from '../logics/Simulator';
 import PuyoIcon from './PuyoIcon';
 
 interface IProps {
   /** ダメージ表示するぷよの属性 */
-  attr: PuyoAttribute;
+  attr: PuyoAttr;
 
   /** 全連鎖情報 */
   chains: Chain[];
