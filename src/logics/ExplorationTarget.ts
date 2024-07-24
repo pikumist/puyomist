@@ -12,8 +12,8 @@ export enum ExplorationCategory {
 
 /** 好みの種類 */
 export enum PreferenceKind {
-  /** 探索対象の値が良い方(大きい方) */
-  BetterValue = 1,
+  /** 探索対象の値が大きい方 */
+  BiggerValue = 1,
   /** チャンスぷよ消し */
   ChancePop = 2,
   /** プリズム消し */
@@ -27,7 +27,7 @@ export enum PreferenceKind {
 /** 好みの種類とその説明のマップ */
 export const preferenceKindDescriptionMap: ReadonlyMap<PreferenceKind, string> =
   new Map([
-    [PreferenceKind.BetterValue, '探索対象の値が大きい'],
+    [PreferenceKind.BiggerValue, '探索対象の値が大きい'],
     [PreferenceKind.ChancePop, 'チャンスぷよを含む'],
     [PreferenceKind.PrismPop, 'プリズムを含む'],
     [PreferenceKind.AllClear, '全消し達成'],

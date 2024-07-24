@@ -91,7 +91,7 @@ fn better_solution<'a>(
     let table = BETTER_METHOD_MAP.get_or_init(|| {
         return HashMap::from([
             (
-                PreferenceKind::BetterValue,
+                PreferenceKind::BiggerValue,
                 better_solution_by_bigger_value as BetterFn,
             ),
             (
@@ -338,7 +338,7 @@ mod tests {
         let exploration_target = ExplorationTarget {
             category: ExplorationCategory::Damage,
             preference_priorities: [
-                PreferenceKind::BetterValue,
+                PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::PrismPop,
                 PreferenceKind::AllClear,
@@ -977,7 +977,7 @@ mod tests {
             preference_priorities: [
                 PreferenceKind::PrismPop,
                 PreferenceKind::AllClear,
-                PreferenceKind::BetterValue,
+                PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::SmallerTraceNum,
             ],
@@ -1285,7 +1285,7 @@ mod tests {
             category: ExplorationCategory::Damage,
             preference_priorities: [
                 PreferenceKind::AllClear,
-                PreferenceKind::BetterValue,
+                PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::PrismPop,
                 PreferenceKind::SmallerTraceNum,

@@ -23,7 +23,7 @@ export class Session {
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
     preferencePriorities: [
-      PreferenceKind.BetterValue,
+      PreferenceKind.BiggerValue,
       PreferenceKind.ChancePop,
       PreferenceKind.PrismPop,
       PreferenceKind.AllClear,

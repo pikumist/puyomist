@@ -65,7 +65,7 @@ fn setup_input() -> (
     let exploration_target = ExplorationTarget {
         category: ExplorationCategory::Damage,
         preference_priorities: [
-            PreferenceKind::BetterValue,
+            PreferenceKind::BiggerValue,
             PreferenceKind::ChancePop,
             PreferenceKind::PrismPop,
             PreferenceKind::AllClear,

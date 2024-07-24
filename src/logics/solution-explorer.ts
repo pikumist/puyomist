@@ -222,7 +222,7 @@ const betterSolutionByTraceCoords = <S extends PartialSolutionResult>(
 };
 
 const betterMethodMap = new Map([
-  [PreferenceKind.BetterValue, betterSolutionByValue],
+  [PreferenceKind.BiggerValue, betterSolutionByValue],
   [PreferenceKind.ChancePop, betterSolutionByChancePopped],
   [PreferenceKind.PrismPop, betterSolutionByPrismPopped],
   [PreferenceKind.AllClear, betterSolutionByAllCleared],

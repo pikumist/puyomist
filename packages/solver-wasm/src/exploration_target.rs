@@ -42,8 +42,8 @@ pub enum ExplorationCategory {
 )]
 #[repr(u8)]
 pub enum PreferenceKind {
-    /** 探索対象の値が良い方(大きい方) */
-    BetterValue = 1,
+    /** 探索対象の値が大きい方 */
+    BiggerValue = 1,
     /** チャンスぷよ消し */
     ChancePop = 2,
     /** プリズム消し */

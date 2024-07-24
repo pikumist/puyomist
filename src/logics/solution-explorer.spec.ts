@@ -29,7 +29,7 @@ describe('solution-explorer', () => {
 
     describe('BCPAS', () => {
       const priorities = [
-        PreferenceKind.BetterValue,
+        PreferenceKind.BiggerValue,
         PreferenceKind.ChancePop,
         PreferenceKind.PrismPop,
         PreferenceKind.AllClear,
@@ -264,7 +264,7 @@ describe('solution-explorer', () => {
           attr: PuyoAttribute.Green,
           explorationTarget: {
             preferencePriorities: [
-              PreferenceKind.BetterValue,
+              PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
@@ -288,7 +288,7 @@ describe('solution-explorer', () => {
           attr: PuyoAttribute.Blue,
           explorationTarget: {
             preferencePriorities: [
-              PreferenceKind.BetterValue,
+              PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
@@ -363,7 +363,7 @@ describe('solution-explorer', () => {
           attr: PuyoAttribute.Green,
           explorationTarget: {
             preferencePriorities: [
-              PreferenceKind.BetterValue,
+              PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
@@ -447,7 +447,7 @@ describe('solution-explorer', () => {
           attr: PuyoAttribute.Green,
           explorationTarget: {
             preferencePriorities: [
-              PreferenceKind.BetterValue,
+              PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,
@@ -472,7 +472,7 @@ describe('solution-explorer', () => {
           attr: PuyoAttribute.Blue,
           explorationTarget: {
             preferencePriorities: [
-              PreferenceKind.BetterValue,
+              PreferenceKind.BiggerValue,
               PreferenceKind.ChancePop,
               PreferenceKind.PrismPop,
               PreferenceKind.AllClear,

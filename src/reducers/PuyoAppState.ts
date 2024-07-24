@@ -58,7 +58,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   nextSelection: 'random',
   explorationTarget: {
     preferencePriorities: [
-      PreferenceKind.BetterValue,
+      PreferenceKind.BiggerValue,
       PreferenceKind.ChancePop,
       PreferenceKind.PrismPop,
       PreferenceKind.AllClear,
