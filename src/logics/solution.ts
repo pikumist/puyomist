@@ -21,7 +21,7 @@ export interface TotalDamages {
 /** なぞり消し(塗り)しで発生した連鎖等の情報 */
 export interface SolutionResult {
   /** なぞったぷよ */
-  traceCoords: PuyoCoord[];
+  trace_coords: PuyoCoord[];
   /**
    * 最適化対象によって異なる値。
    * ダメージの量であったり、スキル溜め数だったり、ぷよ使いカウントだったりする。
@@ -33,11 +33,11 @@ export interface SolutionResult {
   /** ワイルドにおける総ダメージ */
   totalWildDamage: number;
   /** 全消しされたかどうか */
-  allCleared: boolean;
+  is_all_cleared: boolean;
   /** チャンスぷよが弾けたかどうか */
-  chancePopped: boolean;
+  is_chance_popped: boolean;
   /** プリズムが弾けたかどうか */
-  prismPopped: boolean;
+  is_prism_popped: boolean;
   /** 全連鎖情報 */
   chains: Chain[];
 }
@@ -212,11 +212,17 @@ export enum SolutionMethod {
   /** 全探索(シングルスレッド) */
   solveAllInSerial = 'solveAllInSerial',
   /** 全探索(マルチスレッド) */
-  solveAllInParallel = 'solveAllInParallel'
+  solveAllInParallel = 'solveAllInParallel',
+  /** 全探索(シングルスレッド) WASM版 */
+  solveAllInSerialByWasm = 'solveAllInSerialByWasm',
+  /** 全探索(マルチスレッド) WASM版 */
+  solveAllInParallelByWasm = 'solveAllInParallelByWasm'
 }
 
 /** 探索法と説明のマップ */
 export const solutionMethodDescriptionMap = new Map<SolutionMethod, string>([
-  [SolutionMethod.solveAllInSerial, '全探索シングルスレッド'],
-  [SolutionMethod.solveAllInParallel, '全探索マルチスレッド']
+  [SolutionMethod.solveAllInSerial, '全探索シングルJS'],
+  [SolutionMethod.solveAllInParallel, '全探索マルチJS'],
+  [SolutionMethod.solveAllInSerialByWasm, '全探索シングルWASM'],
+  [SolutionMethod.solveAllInParallelByWasm, '全探索マルチWASM']
 ]);

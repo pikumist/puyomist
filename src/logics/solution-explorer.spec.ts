@@ -39,125 +39,125 @@ describe('solution-explorer', () => {
       it.each([
         {
           s1: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: true,
-            chancePopped: true,
-            prismPopped: true
+            is_all_cleared: true,
+            is_chance_popped: true,
+            is_prism_popped: true
           },
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 200,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           result: 's2'
         } as Input,
         {
           s1: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 200,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           s2: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: true,
-            chancePopped: true,
-            prismPopped: true
+            is_all_cleared: true,
+            is_chance_popped: true,
+            is_prism_popped: true
           },
           result: 's1'
         } as Input,
         {
           s1: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: true,
-            chancePopped: false,
-            prismPopped: true
+            is_all_cleared: true,
+            is_chance_popped: false,
+            is_prism_popped: true
           },
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: true,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: true,
+            is_prism_popped: false
           },
           result: 's2'
         } as Input,
         {
           s1: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: true,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: true,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: true
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: true
           },
           result: 's2'
         } as Input,
         {
           s1: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            allCleared: true,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: true,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           result: 's2'
         } as Input,
         {
           s1: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!,
               PuyoCoord.cellAddrToCoord('D5')!
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           },
           result: 's2'
         } as Input
@@ -176,40 +176,40 @@ describe('solution-explorer', () => {
       it.each([
         {
           s1: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('B3')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            allCleared: true,
-            chancePopped: true,
-            prismPopped: true
+            is_all_cleared: true,
+            is_chance_popped: true,
+            is_prism_popped: true
           } as PartialSolutionResult,
           s2: {
-            traceCoords: [PuyoCoord.cellAddrToCoord('D4')!],
+            trace_coords: [PuyoCoord.cellAddrToCoord('D4')!],
             value: 100,
-            allCleared: true,
-            chancePopped: true,
-            prismPopped: true
+            is_all_cleared: true,
+            is_chance_popped: true,
+            is_prism_popped: true
           } as PartialSolutionResult
         },
         {
           s1: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('B3')!,
               PuyoCoord.cellAddrToCoord('C4')
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           } as PartialSolutionResult,
           s2: {
-            traceCoords: [
+            trace_coords: [
               PuyoCoord.cellAddrToCoord('D4')!,
               PuyoCoord.cellAddrToCoord('E5')
             ],
             value: 100,
-            allCleared: false,
-            chancePopped: false,
-            prismPopped: false
+            is_all_cleared: false,
+            is_chance_popped: false,
+            is_prism_popped: false
           } as PartialSolutionResult
         }
       ])('should return s1 when everything is a tie', (params) => {
@@ -341,7 +341,7 @@ describe('solution-explorer', () => {
           // Assert
           expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.traceCoords).toEqual(
+          expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
           expect(
@@ -422,7 +422,7 @@ describe('solution-explorer', () => {
           // Assert
           expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.traceCoords).toEqual(
+          expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
           expect(
@@ -530,7 +530,7 @@ describe('solution-explorer', () => {
           // Assert
           expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.traceCoords).toEqual(
+          expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
           expect(

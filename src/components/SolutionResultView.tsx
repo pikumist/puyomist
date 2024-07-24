@@ -1,5 +1,5 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ExplorationCategory,
   explorationCategoryDescriptionMap
@@ -9,6 +9,7 @@ import {
   coloredPuyoAttributeList,
   getPuyoAttributeName
 } from '../logics/PuyoAttribute';
+import { Simulator } from '../logics/Simulator';
 import type { ExplorationResult } from '../logics/solution';
 import PuyoIcon from './PuyoIcon';
 
@@ -21,6 +22,19 @@ interface SolutionResultViewProps {
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
   (props) => {
     const { result } = props;
+
+    const totalDamageMap = useMemo(() => {
+      const solution = result?.optimalSolution;
+      if (!solution) {
+        return undefined;
+      }
+      return new Map(
+        coloredPuyoAttributeList.map((attr) => [
+          attr,
+          Simulator.calcTotalDamageOfTargetAttr(solution.chains, attr)
+        ])
+      );
+    }, [result?.optimalSolution]);
 
     return (
       <>
@@ -36,7 +50,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
             <Text>候補数: {result?.candidatesNum}</Text>
             <Text>
               最適なぞり:{' '}
-              {result?.optimalSolution?.traceCoords
+              {result?.optimalSolution?.trace_coords
                 .map((c) => c.toCellAddr())
                 .join(',')}
             </Text>
@@ -55,9 +69,9 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                   />
                   <Text>
                     {getPuyoAttributeName(attr)}:{' '}
-                    {result?.optimalSolution?.totalDamages[
-                      attr as ColoredPuyoAttribute
-                    ]?.toFixed(2)}
+                    {totalDamageMap
+                      ?.get(attr as ColoredPuyoAttribute)
+                      ?.toFixed(2)}
                   </Text>
                 </HStack>
               ))}

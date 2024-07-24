@@ -40,7 +40,9 @@ import { createNextPuyos } from './internal/createNextPuyos';
 import { createSimulationData } from './internal/createSimulationData';
 import {
   createSolveAllInParallel,
-  createSolveAllInSerial
+  createSolveAllInParallelByWasm,
+  createSolveAllInSerial,
+  createSolveAllInSerialByWasm
 } from './internal/solve';
 import type { AppDispatch, RootState } from './store';
 
@@ -555,8 +557,8 @@ const puyoAppSlice = createSlice({
 
       if (result?.optimalSolution) {
         // ワーカー経由で壊れてしまう座標を修正する。
-        result.optimalSolution.traceCoords =
-          result.optimalSolution.traceCoords.map(
+        result.optimalSolution.trace_coords =
+          result.optimalSolution.trace_coords.map(
             (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
           );
       }
@@ -586,7 +588,7 @@ const puyoAppSlice = createSlice({
     /** 解でなぞりボタンが押されたときの準備アクション */
     preparePlaySolutionButtonClicked: (state) => {
       state.simulationData.traceCoords =
-        state.explorationResult?.optimalSolution?.traceCoords ?? [];
+        state.explorationResult?.optimalSolution?.trace_coords ?? [];
     },
 
     ///
@@ -736,12 +738,25 @@ export const solveButtonClicked =
           state.explorationTarget
         );
         break;
+      case SolutionMethod.solveAllInSerialByWasm:
+        solve = createSolveAllInSerialByWasm(
+          state.simulationData,
+          state.explorationTarget
+        );
+        break;
+      case SolutionMethod.solveAllInParallelByWasm:
+        solve = createSolveAllInParallelByWasm(
+          state.simulationData,
+          state.explorationTarget
+        );
+        break;
     }
 
     (async () => {
       try {
         const signal = getState().puyoApp.abortControllerForSolving!.signal;
         const result = await solve(signal);
+
         dispatch(puyoAppSlice.actions.solved(result));
       } catch (_) {
         dispatch(puyoAppSlice.actions.solveFailed());

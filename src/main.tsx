@@ -8,7 +8,6 @@ import { loadPuyoAppState } from './reducers/internal/loadPuyoAppState';
 import { hydrate } from './reducers/puyoAppSlice';
 import { store } from './reducers/store';
 import theme from './theme';
-import './logics/wasm-test';
 
 store.dispatch(hydrate(loadPuyoAppState()));
 
