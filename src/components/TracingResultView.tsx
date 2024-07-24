@@ -1,4 +1,4 @@
-import { Box, type BoxProps, HStack, Text } from '@chakra-ui/react';
+import { Box, type BoxProps, Text } from '@chakra-ui/react';
 import React from 'react';
 import type { AnimationStep } from '../logics/AnimationStep';
 import type { Chain } from '../logics/Chain';
