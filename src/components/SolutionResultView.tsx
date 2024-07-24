@@ -10,12 +10,12 @@ import {
   getPuyoAttributeName
 } from '../logics/PuyoAttribute';
 import { Simulator } from '../logics/Simulator';
-import type { ExplorationResult } from '../logics/solution';
+import type { SolveResult } from '../logics/solution';
 import PuyoIcon from './PuyoIcon';
 
 interface SolutionResultViewProps {
   /** 解 */
-  result: ExplorationResult | undefined;
+  result: SolveResult | undefined;
 }
 
 /** 探索結果ビュー */

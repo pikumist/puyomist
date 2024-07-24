@@ -2,7 +2,11 @@ import { releaseProxy } from 'comlink';
 import pLimit from 'p-limit';
 import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import type { SimulationData } from '../../logics/SimulationData';
-import type { ExplorationResult, SolutionResult } from '../../logics/solution';
+import type {
+  ExplorationResult,
+  SolutionResult,
+  SolveResult
+} from '../../logics/solution';
 import { betterSolution } from '../../logics/solution-explorer';
 import { createWorker as createWasmWorker } from '../../logics/solution-wasm-worker-shim';
 import { createWorker } from '../../logics/solution-worker-shim';
@@ -20,20 +24,18 @@ const createSolveAllAbortPromises = (
     workerInstance.terminate();
   };
 
-  const solvePromise = new Promise<ExplorationResult | undefined>(
-    (resolve, reject) => {
-      workerProxy
-        .solveAllTraces(simulationData, explorationTarget)
-        .then((result) => {
-          exitWorker();
-          resolve(result);
-        })
-        .catch((ex) => {
-          exitWorker();
-          reject(ex);
-        });
-    }
-  );
+  const solvePromise = new Promise<ExplorationResult>((resolve, reject) => {
+    workerProxy
+      .solveAllTraces(simulationData, explorationTarget)
+      .then((explorationResult) => {
+        exitWorker();
+        resolve(explorationResult);
+      })
+      .catch((ex) => {
+        exitWorker();
+        reject(ex);
+      });
+  });
 
   const abortPromise = new Promise((_, reject) => {
     const onAborted = () => {
@@ -71,10 +73,15 @@ const createSolveIncludingTraceIndexAbortPromises = (
 
   const solvePromise = new Promise<ExplorationResult | undefined>(
     (resolve, reject) => {
+      const startTime = Date.now();
       workerProxy
         .solveIncludingTraceIndex(simulationData, explorationTarget, index)
         .then((result) => {
-          console.log(index, result?.candidatesNum, `${result?.elapsedTime}ms`);
+          console.log(
+            index,
+            result?.candidatesNum,
+            `${Date.now() - startTime}ms`
+          );
           exitWorker();
           resolve(result);
         })
@@ -108,14 +115,16 @@ export const createSolveAllInSerialByWasm = (
 ) =>
   _createSolveAllInSerial(createWasmWorker, simulationData, explorationTarget);
 
-export const _createSolveAllInSerial =
+const _createSolveAllInSerial =
   (
     factory: typeof createWorker | typeof createWasmWorker,
     simulationData: SimulationData,
     explorationTarget: ExplorationTarget
   ) =>
-  async (signal: AbortSignal): Promise<ExplorationResult> => {
-    return (await Promise.race(
+  async (signal: AbortSignal): Promise<SolveResult> => {
+    const startTime = Date.now();
+
+    const explorationResult = (await Promise.race(
       createSolveAllAbortPromises(
         factory,
         simulationData,
@@ -123,6 +132,12 @@ export const _createSolveAllInSerial =
         signal
       )
     )) as ExplorationResult;
+
+    return {
+      explorationTarget,
+      elapsedTime: Date.now() - startTime,
+      ...explorationResult
+    };
   };
 
 export const createSolveAllInParallel = (
@@ -146,7 +161,7 @@ const _createSolveAllInParallel =
     simulationData: SimulationData,
     explorationTarget: ExplorationTarget
   ) =>
-  async (signal: AbortSignal): Promise<ExplorationResult> => {
+  async (signal: AbortSignal): Promise<SolveResult> => {
     const startTime = Date.now();
 
     const limit = pLimit(window.navigator.hardwareConcurrency || 1);
@@ -188,13 +203,10 @@ const _createSolveAllInParallel =
       undefined as SolutionResult | undefined
     );
 
-    const endTime = Date.now();
-    const elapsedTime = endTime - startTime;
-
     return {
       explorationTarget,
-      elapsedTime,
+      elapsedTime: Date.now() - startTime,
       candidatesNum,
       optimalSolution
-    } satisfies ExplorationResult;
+    } satisfies SolveResult;
   };

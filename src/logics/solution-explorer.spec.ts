@@ -339,7 +339,6 @@ describe('solution-explorer', () => {
           const actual = solveAllTraces(simulator, explorationTarget)!;
 
           // Assert
-          expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
@@ -415,7 +414,6 @@ describe('solution-explorer', () => {
           const actual = solveAllTraces(simulator, explorationTarget)!;
 
           // Assert
-          expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
@@ -518,7 +516,6 @@ describe('solution-explorer', () => {
           )!;
 
           // Assert
-          expect(actual.explorationTarget).toBe(explorationTarget);
           expect(actual.candidatesNum).toBe(expected.candidatesNum);
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords

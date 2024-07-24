@@ -34,7 +34,7 @@ import { TraceMode } from '../logics/TraceMode';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { sleep } from '../logics/generics/sleep';
-import { type ExplorationResult, SolutionMethod } from '../logics/solution';
+import { SolutionMethod, type SolveResult } from '../logics/solution';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './PuyoAppState';
 import { createNextPuyos } from './internal/createNextPuyos';
 import { createSimulationData } from './internal/createSimulationData';
@@ -284,7 +284,7 @@ const puyoAppSlice = createSlice({
 
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
-      state.explorationResult = undefined;
+      state.solveResult = undefined;
     },
 
     /** ネクストの項目が選択されたとき */
@@ -552,10 +552,10 @@ const puyoAppSlice = createSlice({
     },
 
     /** 解が求まったとき */
-    solved: (state, action: PayloadAction<ExplorationResult | undefined>) => {
+    solved: (state, action: PayloadAction<SolveResult>) => {
       const result = action.payload;
 
-      if (result?.optimalSolution) {
+      if (result.optimalSolution) {
         // ワーカー経由で壊れてしまう座標を修正する。
         result.optimalSolution.trace_coords =
           result.optimalSolution.trace_coords.map(
@@ -563,14 +563,14 @@ const puyoAppSlice = createSlice({
           );
       }
 
-      state.explorationResult = result;
+      state.solveResult = result;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
 
     /** 解を求めるのが失敗したとき */
     solveFailed: (state) => {
-      state.explorationResult = undefined;
+      state.solveResult = undefined;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
@@ -582,13 +582,13 @@ const puyoAppSlice = createSlice({
 
     /** 最適解リセットボタンがクリックされたとき */
     solutionResetButtonClicked: (state) => {
-      state.explorationResult = undefined;
+      state.solveResult = undefined;
     },
 
     /** 解でなぞりボタンが押されたときの準備アクション */
     preparePlaySolutionButtonClicked: (state) => {
       state.simulationData.traceCoords =
-        state.explorationResult?.optimalSolution?.trace_coords ?? [];
+        state.solveResult?.optimalSolution?.trace_coords ?? [];
     },
 
     ///
@@ -723,7 +723,7 @@ export const solveButtonClicked =
 
     dispatch(solvingStarted());
 
-    let solve: (signal: AbortSignal) => Promise<ExplorationResult | undefined>;
+    let solve: (signal: AbortSignal) => Promise<SolveResult>;
 
     switch (state.solutionMethod) {
       case SolutionMethod.solveAllInSerial:
@@ -768,7 +768,7 @@ export const solveButtonClicked =
 export const playSolutionButtonClicked =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState().puyoApp;
-    const optimalSolution = state.explorationResult?.optimalSolution;
+    const optimalSolution = state.solveResult?.optimalSolution;
     if (!optimalSolution) {
       return;
     }

@@ -53,7 +53,7 @@ const PuyoApp: React.FC = () => {
     boostAreaKeyList,
     isBoardEditing,
     boardEditMode,
-    explorationResult,
+    solveResult,
     solving,
     simulationData,
     lastTraceCoords,
@@ -140,7 +140,10 @@ const PuyoApp: React.FC = () => {
                   activeAnimationStepIndex={activeAnimationStepIndex}
                 />
               </Show>
-              <SolutionMenu solving={solving} result={explorationResult} />
+              <SolutionMenu
+                solving={solving}
+                hasResult={Boolean(solveResult)}
+              />
               <Progress
                 w="172px"
                 mt="1"
@@ -148,7 +151,7 @@ const PuyoApp: React.FC = () => {
                 visibility={solving ? 'visible' : 'hidden'}
                 isIndeterminate={solving}
               />
-              <SolutionResultView result={explorationResult} />
+              <SolutionResultView result={solveResult} />
             </Box>
           </Stack>
         </Stack>

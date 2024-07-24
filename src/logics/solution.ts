@@ -38,16 +38,20 @@ export interface SolutionResult {
   chains: Chain[];
 }
 
-/** solve() メソッドの呼び出し結果 */
+/** 探索結果 */
 export interface ExplorationResult {
-  /** 探索対象 */
-  explorationTarget: ExplorationTarget;
-  /** 経過時間 */
-  elapsedTime: number;
   /** 候補数 */
   candidatesNum: number;
   /** 最適解 */
   optimalSolution: SolutionResult | undefined;
+}
+
+/** solve() 関数の結果 */
+export interface SolveResult extends ExplorationResult {
+  /** 探索対象 */
+  explorationTarget: ExplorationTarget;
+  /** 経過時間 */
+  elapsedTime: number;
 }
 
 export class SolutionState {

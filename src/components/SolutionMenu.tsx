@@ -3,7 +3,6 @@ import { HStack, Icon, IconButton, Tooltip } from '@chakra-ui/react';
 import React from 'react';
 import { FaPlay, FaRotateRight } from 'react-icons/fa6';
 import { useDispatch } from 'react-redux';
-import type { ExplorationResult } from '../logics/solution';
 import {
   boardResetButtonClicked,
   playSolutionButtonClicked,
@@ -15,12 +14,12 @@ import type { AppDispatch } from '../reducers/store';
 
 interface IProps {
   solving: boolean;
-  result: ExplorationResult | undefined;
+  hasResult: boolean;
 }
 
 /** 探索系のメニュー */
 const SolutionMenu: React.FC<IProps> = React.memo((props) => {
-  const { solving, result } = props;
+  const { solving, hasResult } = props;
   const dispatch = useDispatch<AppDispatch>();
 
   const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
@@ -54,7 +53,7 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
           variant="outline"
           aria-label="探索結果クリア"
           icon={<DeleteIcon />}
-          isDisabled={Boolean(!result)}
+          isDisabled={Boolean(!hasResult)}
           onClick={onSolutionResetButtonClicked}
         />
       </Tooltip>
@@ -63,7 +62,7 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
           variant="outline"
           aria-label="解でなぞり"
           icon={<Icon as={FaPlay} />}
-          isDisabled={Boolean(!result)}
+          isDisabled={Boolean(!hasResult)}
           onClick={onPlaySolutionButtonClicked}
         />
       </Tooltip>

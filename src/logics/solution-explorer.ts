@@ -35,9 +35,7 @@ import {
 export const solveAllTraces = (
   simulator: Simulator,
   explorationTarget: ExplorationTarget
-): ExplorationResult | undefined => {
-  const startTime = Date.now();
-
+): ExplorationResult => {
   const carry: SolutionCarry = {
     solutionNums: 0,
     optimalSolution: undefined
@@ -54,12 +52,7 @@ export const solveAllTraces = (
     }
   }
 
-  const endTime = Date.now();
-  const elapsedTime = endTime - startTime;
-
   return {
-    explorationTarget: explorationTarget,
-    elapsedTime,
     candidatesNum: carry.solutionNums,
     optimalSolution: carry.optimalSolution
   };
@@ -76,9 +69,7 @@ export const solveIncludingTraceIndex = (
   simulator: Simulator,
   explorationTarget: ExplorationTarget,
   index: number
-): ExplorationResult | undefined => {
-  const startTime = Date.now();
-
+): ExplorationResult => {
   const carry: SolutionCarry = {
     solutionNums: 0,
     optimalSolution: undefined
@@ -92,12 +83,7 @@ export const solveIncludingTraceIndex = (
     PuyoCoord.indexToCoord(index)!
   );
 
-  const endTime = Date.now();
-  const elapsedTime = endTime - startTime;
-
   return {
-    explorationTarget: explorationTarget,
-    elapsedTime,
     candidatesNum: carry.solutionNums,
     optimalSolution: carry.optimalSolution
   };

@@ -12,7 +12,7 @@ import type { SimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import { TraceMode } from '../logics/TraceMode';
 import { customBoardId } from '../logics/boards';
-import { type ExplorationResult, SolutionMethod } from '../logics/solution';
+import { SolutionMethod, type SolveResult } from '../logics/solution';
 
 export interface PuyoAppState {
   /** 盤面ID */
@@ -46,7 +46,7 @@ export interface PuyoAppState {
   /** 最適解探索の中断コントローラー */
   abortControllerForSolving: AbortController | undefined;
   /** 最適解探索結果 */
-  explorationResult: ExplorationResult | undefined;
+  solveResult: SolveResult | undefined;
   /** スクリーンショット情報 */
   screenshotInfo: ScreenshotInfo | undefined;
   /** スクリーンショット解析時のエラーメッセージ */
@@ -94,7 +94,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   lastTraceCoords: undefined,
   solving: false,
   abortControllerForSolving: undefined,
-  explorationResult: undefined,
+  solveResult: undefined,
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined
 };

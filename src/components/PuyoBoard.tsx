@@ -42,12 +42,11 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   const responsiveWidth =
     typeof width !== 'number' ? useBreakpointValue(width) : width;
 
-  const { isBoardEditing, boardEditMode, simulationData, explorationResult } =
-    state;
+  const { isBoardEditing, boardEditMode, simulationData, solveResult } = state;
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
-  const optimalTraceCoords = explorationResult?.optimalSolution?.trace_coords;
+  const optimalTraceCoords = solveResult?.optimalSolution?.trace_coords;
   const [touching, setTouching] = useState(false);
   const hasAnimation = state.animationSteps.length > 0;
 

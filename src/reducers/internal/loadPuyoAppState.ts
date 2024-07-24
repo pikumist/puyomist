@@ -78,7 +78,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     lastTraceCoords: undefined,
     solving: false,
     abortControllerForSolving: undefined,
-    explorationResult: undefined,
+    solveResult: undefined,
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined
   };
