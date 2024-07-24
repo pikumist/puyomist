@@ -131,7 +131,7 @@ impl SolutionState {
 }
 
 /** あるなぞり消し(塗り)しで発生した連鎖情報等の計算情報 */
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct SolutionResult {
     /** なぞり位置 */
     pub trace_coords: Vec<PuyoCoord>,
