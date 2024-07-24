@@ -1,4 +1,4 @@
-import { Box, type BoxProps, Text } from '@chakra-ui/react';
+import { Box, type BoxProps, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
 import type { AnimationStep } from '../logics/AnimationStep';
 import type { Chain } from '../logics/Chain';
@@ -9,6 +9,7 @@ import DamageDetail from './DamageDetail';
 import AnimationStepSlider from './settings/AnimationStepSlider';
 
 interface IProps extends BoxProps {
+  keepSliderArea?: boolean;
   isDamageTwoLine: boolean;
   hasBoostArea: boolean;
   tracingCoords: PuyoCoord[];
@@ -23,6 +24,7 @@ const emptyChains: Chain[] = [];
 /** なぞり消し結果ビュー */
 const TracingResultView: React.FC<IProps> = React.memo((props) => {
   const {
+    keepSliderArea,
     isDamageTwoLine,
     hasBoostArea,
     tracingCoords,
@@ -42,16 +44,17 @@ const TracingResultView: React.FC<IProps> = React.memo((props) => {
 
   return (
     <Box {...rest}>
-      <AnimationStepSlider
-        animationSteps={animationSteps}
-        index={activeAnimationStepIndex}
-      />
+      {keepSliderArea || animationSteps?.length > 0 ? (
+        <AnimationStepSlider
+          animationSteps={animationSteps}
+          index={activeAnimationStepIndex}
+        />
+      ) : null}
       <Box>
-        <Text>&nbsp;{coords || ''}</Text>
+        <Text>現在のなぞり: {coords || 'なし'}</Text>
       </Box>
       <Box>
-        <Text>最後のなぞり:</Text>
-        <Text>&nbsp;{lastCoords || 'なし'}</Text>
+        <Text>最後のなぞり: {lastCoords || 'なし'}</Text>
       </Box>
       <Text hidden={!hasBoostArea}>ブーストカウント: {boostCount}</Text>
       <Text hidden={!hasBoostArea}>ぷよ使いカウント: {puyoTsukaiCount}</Text>

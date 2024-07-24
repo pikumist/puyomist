@@ -22,7 +22,7 @@ const BoardSelector: React.FC<IProps> = (props) => {
     <HStack>
       <Text w="3em">盤面:</Text>
       <Select
-        size={{ base: 'sm', lg: 'md' }}
+        size={{ base: 'sm', xl: 'md' }}
         aria-label="盤面の選択"
         value={boardId}
         onChange={onChanged}

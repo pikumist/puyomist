@@ -97,7 +97,13 @@ const PuyoApp: React.FC = () => {
             <HStack align="top" spacing={{ base: '4', lg: '6' }}>
               <Box>
                 <HStack
-                  maxW={{ base: '360px', lg: '395px', xl: '500px' }}
+                  maxW={{
+                    base: '360px',
+                    sm: '440px',
+                    md: '440px',
+                    lg: '440px',
+                    xl: '800px'
+                  }}
                   mb="1"
                 >
                   <BoardSelector boardId={boardId} />
@@ -111,12 +117,15 @@ const PuyoApp: React.FC = () => {
                     ml={'auto'}
                   />
                 </HStack>
-                <PuyoBoard width={{ base: 360, lg: 395, xl: 500 }} />
+                <PuyoBoard
+                  width={{ base: 360, sm: 440, md: 440, lg: 440, xl: 480 }}
+                />
               </Box>
-              <Show above="sm">
+              <Show above="lg">
                 <TracingResultView
-                  w={{ base: '9em' }}
+                  w={{ base: '12em', xl: '14em' }}
                   overflowX="auto"
+                  keepSliderArea
                   isDamageTwoLine
                   hasBoostArea={hasBoostArea}
                   tracingCoords={simulationData.traceCoords}
@@ -128,7 +137,7 @@ const PuyoApp: React.FC = () => {
               </Show>
             </HStack>
             <Box>
-              <Show below="sm">
+              <Show below="lg">
                 <TracingResultView
                   mb="2"
                   isDamageTwoLine={false}
