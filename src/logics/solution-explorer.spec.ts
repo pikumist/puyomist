@@ -7,7 +7,7 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
-import { type ColoredPuyoAttribute, PuyoAttribute } from './PuyoAttribute';
+import { PuyoAttribute } from './PuyoAttribute';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -280,7 +280,7 @@ describe('solution-explorer', () => {
           expected: {
             candidatesNum: 15359,
             traceCoords: [PuyoCoord.xyToCoord(5, 2), PuyoCoord.xyToCoord(6, 2)],
-            totalAttrDamage: 109.0,
+            value: 109.0,
             csp: '14-2-10'
           }
         },
@@ -310,7 +310,7 @@ describe('solution-explorer', () => {
               PuyoCoord.xyToCoord(4, 2),
               PuyoCoord.xyToCoord(3, 3)
             ],
-            totalAttrDamage: 109.4,
+            value: 109.4,
             csp: '10-2-13'
           }
         }
@@ -344,12 +344,7 @@ describe('solution-explorer', () => {
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(
-            actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
-          ).toBeCloseTo(expected.totalAttrDamage);
-          expect(actual.optimalSolution?.value).toBeCloseTo(
-            expected.totalAttrDamage
-          );
+          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
           const csp = calcCsp(
             findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
             attr
@@ -387,7 +382,7 @@ describe('solution-explorer', () => {
               PuyoCoord.xyToCoord(6, 4),
               PuyoCoord.xyToCoord(4, 5)
             ],
-            totalAttrDamage: 113.75,
+            value: 113.75,
             csp: '9-3-12'
           }
         }
@@ -425,12 +420,7 @@ describe('solution-explorer', () => {
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(
-            actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
-          ).toBeCloseTo(expected.totalAttrDamage);
-          expect(actual.optimalSolution?.value).toBeCloseTo(
-            expected.totalAttrDamage
-          );
+          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
           const csp = calcCsp(
             findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
             attr
@@ -463,7 +453,7 @@ describe('solution-explorer', () => {
           expected: {
             candidatesNum: 539,
             traceCoords: [PuyoCoord.xyToCoord(5, 2), PuyoCoord.xyToCoord(6, 2)],
-            totalAttrDamage: 109.0,
+            value: 109.0,
             csp: '14-2-10'
           }
         },
@@ -494,7 +484,7 @@ describe('solution-explorer', () => {
               PuyoCoord.xyToCoord(4, 2),
               PuyoCoord.xyToCoord(3, 3)
             ],
-            totalAttrDamage: 109.4,
+            value: 109.4,
             csp: '10-2-13'
           }
         }
@@ -533,12 +523,7 @@ describe('solution-explorer', () => {
           expect(actual.optimalSolution?.trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(
-            actual.optimalSolution?.totalDamages[attr as ColoredPuyoAttribute]
-          ).toBeCloseTo(expected.totalAttrDamage);
-          expect(actual.optimalSolution?.value).toBeCloseTo(
-            expected.totalAttrDamage
-          );
+          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
           const csp = calcCsp(
             findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
             attr

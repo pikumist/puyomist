@@ -23,8 +23,7 @@ import {
   type ExplorationResult,
   type SolutionCarry,
   type SolutionResult,
-  SolutionState,
-  type TotalDamages
+  SolutionState
 } from './solution';
 
 /**
@@ -267,32 +266,23 @@ const calcSolutionResult = (
   sim.doChains();
 
   const chains = sim.getChains();
-  const allCleared = Simulator.isAllCleared(chains);
-  const chancePopped = Simulator.isChancePopped(chains);
-  const prismPopped = Simulator.isPrismPopped(chains);
-
-  const totalDamages = Object.fromEntries(
-    Simulator.colorAttrs.map((targetAttr) => {
-      return [
-        targetAttr,
-        Simulator.calcTotalDamageOfTargetAttr(chains, targetAttr)
-      ];
-    })
-  ) as Partial<TotalDamages> as TotalDamages;
-
-  const totalWildDamage = Simulator.calcTotalWildDamage(chains);
 
   let value: number | undefined;
 
   switch (explorationTarget.category) {
     case ExplorationCategory.Damage: {
       if (explorationTarget.mainAttr === wildAttribute) {
-        value = totalWildDamage;
+        value = Simulator.calcTotalWildDamage(chains);
       } else {
-        const mainValue = totalDamages[explorationTarget.mainAttr]!;
+        const mainValue = Simulator.calcTotalDamageOfTargetAttr(
+          chains,
+          explorationTarget.mainAttr
+        );
         const subValue = explorationTarget.subAttr
-          ? totalDamages[explorationTarget.subAttr] *
-            (explorationTarget.mainSubRatio ?? 0)
+          ? Simulator.calcTotalDamageOfTargetAttr(
+              chains,
+              explorationTarget.subAttr
+            ) * (explorationTarget.mainSubRatio ?? 0)
           : 0;
         value = mainValue + subValue;
       }
@@ -330,14 +320,16 @@ const calcSolutionResult = (
     }
   }
 
+  const is_all_cleared = Simulator.isAllCleared(chains);
+  const is_chance_popped = Simulator.isChancePopped(chains);
+  const is_prism_popped = Simulator.isPrismPopped(chains);
+
   return {
     trace_coords: traceCoords,
+    chains,
     value: value!,
-    totalDamages: totalDamages as TotalDamages,
-    totalWildDamage,
-    is_all_cleared: allCleared,
-    is_chance_popped: chancePopped,
-    is_prism_popped: prismPopped,
-    chains
+    is_all_cleared,
+    is_chance_popped,
+    is_prism_popped
   };
 };
