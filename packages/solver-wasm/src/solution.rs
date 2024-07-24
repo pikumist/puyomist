@@ -40,7 +40,7 @@ impl SolutionState {
     }
 
     /** 追加可能な座標であるかどうかを調べる */
-    pub fn check_if_addable_coord(&self, coord: &PuyoCoord, max_trace_num: u8) -> bool {
+    pub fn check_if_addable_coord(&self, coord: &PuyoCoord, max_trace_num: u32) -> bool {
         let len = self.trace_coord_map.len();
 
         if len >= max_trace_num as usize {

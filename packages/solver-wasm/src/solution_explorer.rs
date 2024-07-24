@@ -128,10 +128,23 @@ pub struct SolutionExplorer<'a> {
     environment: &'a SimulationEnvironment,
     field: &'a Field,
     next_puyos: &'a NextPuyos,
-    max_trace_num: u8,
 }
 
 impl<'a> SolutionExplorer<'a> {
+    pub fn new(
+        exploration_target: &'a ExplorationTarget,
+        environment: &'a SimulationEnvironment,
+        field: &'a Field,
+        next_puyos: &'a NextPuyos,
+    ) -> SolutionExplorer<'a> {
+        return SolutionExplorer {
+            exploration_target,
+            environment,
+            field,
+            next_puyos,
+        };
+    }
+
     pub fn solve_all_traces(&self) -> ExplorationResult {
         let mut result = ExplorationResult {
             candidates_num: 0,
@@ -172,7 +185,7 @@ impl<'a> SolutionExplorer<'a> {
             if !is_traceable_type(p.puyo_type) {
                 return;
             }
-            if !state.check_if_addable_coord(&coord, self.max_trace_num) {
+            if !state.check_if_addable_coord(&coord, self.get_actual_max_trace_num()) {
                 return;
             }
 
@@ -187,6 +200,14 @@ impl<'a> SolutionExplorer<'a> {
                     self.advance_trace(&st, *next_coord, exploration_result);
                 }
             }
+        }
+    }
+
+    fn get_actual_max_trace_num(&self) -> u32 {
+        if self.environment.is_chance_mode {
+            5
+        } else {
+            self.environment.max_trace_num
         }
     }
 
