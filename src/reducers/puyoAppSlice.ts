@@ -13,8 +13,7 @@ import {
   ExplorationCategory,
   type ExplorationTargetDamage,
   type ExplorationTargetSkillPuyoCount,
-  type PreferenceKind,
-  wildAttribute
+  type PreferenceKind
 } from '../logics/ExplorationTarget';
 import { type ColoredPuyoAttr, PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
@@ -384,12 +383,12 @@ const puyoAppSlice = createSlice({
     /** ダメージの主属性項目が選択されたとき */
     explorationDamageMainAttrSelected: (
       state,
-      action: PayloadAction<ColoredPuyoAttr | typeof wildAttribute>
+      action: PayloadAction<ColoredPuyoAttr | undefined>
     ) => {
       const mainAttr = action.payload;
       const target = state.explorationTarget as ExplorationTargetDamage;
 
-      if (mainAttr === wildAttribute || target.subAttr === mainAttr) {
+      if (mainAttr === undefined || target.subAttr === mainAttr) {
         target.subAttr = undefined;
       }
       target.mainAttr = mainAttr;

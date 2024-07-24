@@ -21,8 +21,7 @@ import {
   type ExplorationTargetSkillPuyoCount,
   type PreferenceKind,
   explorationCategoryDescriptionMap,
-  preferenceKindDescriptionMap,
-  wildAttribute
+  preferenceKindDescriptionMap
 } from '../../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttr,
@@ -168,6 +167,9 @@ const DetailSetting: React.FC<{
   }
 };
 
+// セレクターのワイルド属性に割り当てる数値
+const wildAttr = 0;
+
 const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
   props
 ) => {
@@ -177,9 +179,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
   const onDamageMainAttrSelected = (e: React.ChangeEvent<HTMLSelectElement>) =>
     dispatch(
       explorationDamageMainAttrSelected(
-        Number.parseInt(e.target.value) as
-          | ColoredPuyoAttr
-          | typeof wildAttribute
+        (Number.parseInt(e.target.value) as ColoredPuyoAttr) || undefined
       )
     );
 
@@ -205,13 +205,13 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
         <Select
           aria-label="主属性の選択"
           w="7em"
-          value={target.mainAttr}
+          value={target.mainAttr || wildAttr}
           onChange={onDamageMainAttrSelected}
         >
-          {[wildAttribute, ...coloredPuyoAttrList].map((attr) => {
+          {[wildAttr, ...coloredPuyoAttrList].map((attr) => {
             return (
               <option value={attr} key={attr}>
-                {attr === wildAttribute ? 'ワイルド' : getPuyoAttrName(attr)}
+                {attr === wildAttr ? 'ワイルド' : getPuyoAttrName(attr)}
               </option>
             );
           })}
@@ -224,7 +224,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
           aria-label="副属性の選択"
           w="5em"
           value={target.subAttr ?? notAvailable}
-          isDisabled={target.mainAttr === wildAttribute}
+          isDisabled={!target.mainAttr}
           onChange={onDamageSubAttrSelected}
         >
           {[notAvailable, ...coloredPuyoAttrList].map((attr) => {

@@ -40,15 +40,12 @@ export interface ExplorationTargetCommon {
   preferencePriorities: PreferenceKind[];
 }
 
-/** ワイルド属性 */
-export const wildAttribute = 0 as const;
-
 /** 探索対象がダメージの場合の詳細情報 */
 export interface ExplorationTargetDamage extends ExplorationTargetCommon {
   /** 探索カテゴリー */
   category: ExplorationCategory.Damage;
-  /** 主属性 */
-  mainAttr: ColoredPuyoAttr | typeof wildAttribute;
+  /** 主属性 (undefined のときワイルド扱い) */
+  mainAttr: ColoredPuyoAttr | undefined;
   /** 副属性 */
   subAttr?: ColoredPuyoAttr | undefined;
   /** 副属性 / 主属性 のダメージ率 (1/3か1)  */

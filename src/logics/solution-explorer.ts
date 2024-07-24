@@ -12,8 +12,7 @@ import {
   CountingBonusType,
   ExplorationCategory,
   type ExplorationTarget,
-  PreferenceKind,
-  wildAttribute
+  PreferenceKind
 } from './ExplorationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
@@ -257,7 +256,7 @@ const calcSolutionResult = (
 
   switch (explorationTarget.category) {
     case ExplorationCategory.Damage: {
-      if (explorationTarget.mainAttr === wildAttribute) {
+      if (!explorationTarget.mainAttr) {
         value = Simulator.calcTotalWildDamage(chains);
       } else {
         const mainValue = Simulator.calcTotalDamageOfTargetAttr(
