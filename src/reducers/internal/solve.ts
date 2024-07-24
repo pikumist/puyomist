@@ -4,14 +4,16 @@ import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import type { SimulationData } from '../../logics/SimulationData';
 import type { ExplorationResult, SolutionResult } from '../../logics/solution';
 import { betterSolution } from '../../logics/solution-explorer';
+import { createWorker as createWasmWorker } from '../../logics/solution-wasm-worker-shim';
 import { createWorker } from '../../logics/solution-worker-shim';
 
 const createSolveAllAbortPromises = (
+  factory: typeof createWorker | typeof createWasmWorker,
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
   signal: AbortSignal
 ) => {
-  const { workerInstance, workerProxy } = createWorker();
+  const { workerInstance, workerProxy } = factory();
 
   const exitWorker = () => {
     workerProxy[releaseProxy]();
@@ -46,6 +48,7 @@ const createSolveAllAbortPromises = (
 };
 
 const createSolveIncludingTraceIndexAbortPromises = (
+  factory: typeof createWorker | typeof createWasmWorker,
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
   index: number,
@@ -55,7 +58,7 @@ const createSolveIncludingTraceIndexAbortPromises = (
     throw new Error('aborted');
   }
 
-  const { workerInstance, workerProxy } = createWorker();
+  const { workerInstance, workerProxy } = factory();
 
   const exitWorker = () => {
     try {
@@ -94,16 +97,55 @@ const createSolveIncludingTraceIndexAbortPromises = (
   return [solvePromise, abortPromise];
 };
 
-export const createSolveAllInSerial =
-  (simulationData: SimulationData, explorationTarget: ExplorationTarget) =>
+export const createSolveAllInSerial = (
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget
+) => _createSolveAllInSerial(createWorker, simulationData, explorationTarget);
+
+export const createSolveAllInSerialByWasm = (
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget
+) =>
+  _createSolveAllInSerial(createWasmWorker, simulationData, explorationTarget);
+
+export const _createSolveAllInSerial =
+  (
+    factory: typeof createWorker | typeof createWasmWorker,
+    simulationData: SimulationData,
+    explorationTarget: ExplorationTarget
+  ) =>
   async (signal: AbortSignal): Promise<ExplorationResult> => {
     return (await Promise.race(
-      createSolveAllAbortPromises(simulationData, explorationTarget, signal)
+      createSolveAllAbortPromises(
+        factory,
+        simulationData,
+        explorationTarget,
+        signal
+      )
     )) as ExplorationResult;
   };
 
-export const createSolveAllInParallel =
-  (simulationData: SimulationData, explorationTarget: ExplorationTarget) =>
+export const createSolveAllInParallel = (
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget
+) => _createSolveAllInParallel(createWorker, simulationData, explorationTarget);
+
+export const createSolveAllInParallelByWasm = (
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget
+) =>
+  _createSolveAllInParallel(
+    createWasmWorker,
+    simulationData,
+    explorationTarget
+  );
+
+const _createSolveAllInParallel =
+  (
+    factory: typeof createWorker | typeof createWasmWorker,
+    simulationData: SimulationData,
+    explorationTarget: ExplorationTarget
+  ) =>
   async (signal: AbortSignal): Promise<ExplorationResult> => {
     const startTime = Date.now();
 
@@ -114,6 +156,7 @@ export const createSolveAllInParallel =
         return limit(async () => {
           return (await Promise.race(
             createSolveIncludingTraceIndexAbortPromises(
+              factory,
               simulationData,
               explorationTarget,
               i,

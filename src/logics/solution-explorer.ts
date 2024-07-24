@@ -173,10 +173,10 @@ const betterSolutionByChancePopped = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.chancePopped && !s1.chancePopped) {
+  if (s2.is_chance_popped && !s1.is_chance_popped) {
     return s2;
   }
-  if (!s2.chancePopped && s1.chancePopped) {
+  if (!s2.is_chance_popped && s1.is_chance_popped) {
     return s1;
   }
   return undefined;
@@ -186,10 +186,10 @@ const betterSolutionByPrismPopped = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.prismPopped && !s1.prismPopped) {
+  if (s2.is_prism_popped && !s1.is_prism_popped) {
     return s2;
   }
-  if (!s2.prismPopped && s1.prismPopped) {
+  if (!s2.is_prism_popped && s1.is_prism_popped) {
     return s1;
   }
   return undefined;
@@ -199,10 +199,10 @@ const betterSolutionByAllCleared = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.allCleared && !s1.allCleared) {
+  if (s2.is_all_cleared && !s1.is_all_cleared) {
     return s2;
   }
-  if (!s2.allCleared && s1.allCleared) {
+  if (!s2.is_all_cleared && s1.is_all_cleared) {
     return s1;
   }
   return undefined;
@@ -212,10 +212,10 @@ const betterSolutionByTraceCoords = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.traceCoords.length < s1.traceCoords.length) {
+  if (s2.trace_coords.length < s1.trace_coords.length) {
     return s2;
   }
-  if (s2.traceCoords.length > s1.traceCoords.length) {
+  if (s2.trace_coords.length > s1.trace_coords.length) {
     return s1;
   }
   return undefined;
@@ -331,13 +331,13 @@ const calcSolutionResult = (
   }
 
   return {
-    traceCoords,
+    trace_coords: traceCoords,
     value: value!,
     totalDamages: totalDamages as TotalDamages,
     totalWildDamage,
-    allCleared,
-    chancePopped,
-    prismPopped,
+    is_all_cleared: allCleared,
+    is_chance_popped: chancePopped,
+    is_prism_popped: prismPopped,
     chains
   };
 };

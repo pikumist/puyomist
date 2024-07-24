@@ -47,7 +47,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
-  const optimalTraceCoords = explorationResult?.optimalSolution?.traceCoords;
+  const optimalTraceCoords = explorationResult?.optimalSolution?.trace_coords;
   const [touching, setTouching] = useState(false);
   const hasAnimation = state.animationSteps.length > 0;
 
