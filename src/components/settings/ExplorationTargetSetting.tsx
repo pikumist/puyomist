@@ -52,7 +52,7 @@ const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
   const { target } = props;
 
   return (
-    <Stack my={2} spacing={0}>
+    <Stack my={2} spacing={1}>
       <CategorySelector category={target.category} />
       <DetailSetting target={target} />
       <PreferencePrioritySetting
@@ -77,10 +77,10 @@ const CategorySelector: React.FC<{
 
   return (
     <HStack>
-      <Text>探索対象:</Text>
+      <Text>探索対象</Text>
       <Select
         aria-label="探索対象の選択"
-        w="11em"
+        w="10em"
         value={category}
         onChange={onChanged}
       >
@@ -124,14 +124,14 @@ const PreferencePrioritySetting: React.FC<{
 
   return (
     <Stack>
-      <Text>優先度:</Text>
+      <Text>優先度</Text>
       <SortableList
         items={items}
         onChange={onChanged}
         renderItem={(item) => (
           <SortableList.Item id={item.id}>
             <HStack background="gray.700">
-              <Text ml="2">
+              <Text ml="2" fontSize="sm">
                 {item.index}. {item.description}
               </Text>
               <SortableList.DragHandle ml="auto" />
@@ -199,9 +199,9 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
   };
 
   return (
-    <Stack spacing="0">
+    <Stack spacing="1">
       <HStack>
-        <Text>主属性:</Text>
+        <Text>主属性</Text>
         <Select
           aria-label="主属性の選択"
           w="7em"
@@ -219,7 +219,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
       </HStack>
 
       <HStack>
-        <Text>副属性:</Text>
+        <Text>副属性</Text>
         <Select
           aria-label="副属性の選択"
           w="5em"
@@ -243,7 +243,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = (
 
       {target.sub_attr ? (
         <HStack>
-          <Text>副属性のダメージ率:</Text>
+          <Text>副属性のダメージ率</Text>
           <Select
             aria-label="副属性のダメージ率の選択"
             w="5em"
@@ -302,9 +302,9 @@ const SkilPuyoCountSetting: React.FC<{
     dispatch(explorationCountingBonusStepRepeatCheckChanged(e.target.checked));
 
   return (
-    <Stack spacing="0">
+    <Stack spacing="1">
       <HStack>
-        <Text>主属性:</Text>
+        <Text>主属性</Text>
         <Select
           aria-label="主属性の選択"
           w="6em"
@@ -331,7 +331,7 @@ const SkilPuyoCountSetting: React.FC<{
         <Stack spacing="0">
           {/* TODO: 項目の追加・削除に対応する */}
           <HStack>
-            <Text>ボーナス属性:</Text>
+            <Text>ボーナス属性</Text>
             <Select
               aria-label="ボーナス属性の選択"
               w="7em"
@@ -347,7 +347,7 @@ const SkilPuyoCountSetting: React.FC<{
           </HStack>
 
           <HStack>
-            <Text>段高:</Text>
+            <Text>段高</Text>
             <NumberInput
               width="5em"
               value={target.counting_bonus?.step_height}
@@ -365,7 +365,7 @@ const SkilPuyoCountSetting: React.FC<{
           </HStack>
 
           <HStack>
-            <Text>ボーナス数:</Text>
+            <Text>ボーナス数</Text>
             <NumberInput
               width="4em"
               size="sm"

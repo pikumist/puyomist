@@ -79,18 +79,14 @@ const PuyoApp: React.FC = () => {
         size="full"
       >
         <DrawerContent>
-          <SidebarContent onClose={onClose} />
+          <SidebarContent isDrawer onClose={onClose} />
         </DrawerContent>
       </Drawer>
 
       {/* For mobile */}
       <MobileNav display={{ base: 'flex', md: 'none' }} onOpen={onOpen} />
 
-      <Box
-        ml={{ base: 0, md: '290px' }}
-        p={{ base: '4', lg: '8', xl: '10' }}
-        fontSize={{ base: '1em', xl: '1.15em' }}
-      >
+      <Box ml={{ base: 0, md: '290px' }} p={{ base: '4', lg: '8', xl: '10' }}>
         {/* Content */}
         <Stack align={{ base: 'center', md: 'start', lg: 'center' }}>
           <Stack>
@@ -173,9 +169,10 @@ export default PuyoApp;
 
 interface SidebarProps extends BoxProps {
   onClose: () => void;
+  isDrawer?: boolean;
 }
 
-const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
   const state = useSelector<RootState, RootState['puyoApp']>(
     (state) => state.puyoApp
   );
@@ -213,7 +210,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         </Text>
         <CloseButton display={{ base: 'flex', md: 'none' }} onClick={onClose} />
       </Flex>
-      <Box mx={4}>
+      <Stack mx={{ base: 6, md: 4 }} spacing="1">
         <TraceModeSelector traceMode={traceMode} />
         <MinimumPuyoNumInput
           traceMode={traceMode}
@@ -232,7 +229,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
           screenshotInfo={screenshotInfo}
           errorMessage={screenshotErrorMessage}
         />
-      </Box>
+      </Stack>
     </Box>
   );
 };

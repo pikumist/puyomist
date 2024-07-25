@@ -12,7 +12,7 @@ const config: ThemeConfig = {
 const styles = {
   global: {
     body: {
-      fontSize: '14px'
+      fontSize: '16px'
     }
   }
 };
@@ -24,11 +24,6 @@ const components: ThemeComponents = {
     }
   },
   NumberInput: {
-    defaultProps: {
-      size: 'sm'
-    }
-  },
-  Checkbox: {
     defaultProps: {
       size: 'sm'
     }

@@ -29,7 +29,7 @@ const ChainLeverageInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text>連鎖倍率:</Text>
+        <Text>連鎖倍率</Text>
       </Box>
       <NumberInput
         width="5.5em"

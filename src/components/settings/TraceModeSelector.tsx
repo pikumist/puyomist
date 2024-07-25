@@ -23,10 +23,10 @@ const TraceModeSelector: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text>なぞり消し:</Text>
+        <Text>なぞり</Text>
       </Box>
       <Select
-        aria-label="なぞり消しモードの選択"
+        aria-label="なぞりモードの選択"
         w="10em"
         value={traceMode}
         onChange={onChanged}

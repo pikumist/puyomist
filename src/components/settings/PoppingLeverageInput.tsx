@@ -29,7 +29,7 @@ const PoppingLeverageInput: React.FC<IProps> = (props) => {
   return (
     <HStack>
       <Box>
-        <Text>同時消し倍率:</Text>
+        <Text>同時消し倍率</Text>
       </Box>
       <NumberInput
         width="4.5em"
