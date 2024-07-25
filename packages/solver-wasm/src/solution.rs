@@ -1,20 +1,21 @@
 use crate::{chain::Chain, puyo_coord::PuyoCoord};
-use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SolutionState {
+    ///
+    /// forbidden_field_bits と trace_coords と next_candidate_coords は互いに重ならない集合になるようにする。
+    /// trace_coords と next_candidate_coords は順番が大事なのでリスト。
+    ///
+
     /** 禁止インデックス集合 (候補から外れたなぞれないインデックスの集合)。48ビットそれぞれがフィールドの位置を表す。 */
     forbidden_field_bits: u64,
-    /**
-     * なぞっている座標をキー、
-     * そのインデックス周辺で次に候補としてなぞれるインデックス候補の集合を値、
-     * としたマッピング。
-     * キーをリストアップすることで trace_coords が求まり、
-     * 値をまとめあげることで、次の全候補が求まる。
-     * 各値の集合同士は重複がなく、全候補と forbidden_field_bits も必ず重複がない状態を維持する。
-     */
-    trace_coord_map: IndexMap<PuyoCoord, IndexSet<PuyoCoord>>,
+
+    /** なぞっている座標のリスト */
+    trace_coords: Vec<PuyoCoord>,
+
+    /** 次のなぞり候補となりうる座標のリスト。 */
+    next_candidate_coords: Vec<PuyoCoord>,
 }
 
 impl SolutionState {
@@ -22,7 +23,8 @@ impl SolutionState {
     pub fn new(forbidden_indexes_before: u8) -> SolutionState {
         SolutionState {
             forbidden_field_bits: (1 << forbidden_indexes_before) - 1,
-            trace_coord_map: IndexMap::new(),
+            trace_coords: Vec::new(),
+            next_candidate_coords: Vec::new(),
         }
     }
 
@@ -31,17 +33,18 @@ impl SolutionState {
     }
 
     /** なぞり座標リストを取得する */
-    pub fn get_trace_coords(&self) -> Vec<PuyoCoord> {
-        return self.trace_coord_map.keys().cloned().collect();
+    pub fn get_trace_coords(&self) -> &Vec<PuyoCoord> {
+        return &self.trace_coords;
     }
 
-    pub fn get_trace_coord_map(&self) -> &IndexMap<PuyoCoord, IndexSet<PuyoCoord>> {
-        return &self.trace_coord_map;
+    /** 次のなぞり候補となりうる座標のリストを取得する */
+    pub fn get_next_candidate_coords(&self) -> &Vec<PuyoCoord> {
+        return &self.next_candidate_coords;
     }
 
     /** 追加可能な座標であるかどうかを調べる */
     pub fn check_if_addable_coord(&self, coord: &PuyoCoord, max_trace_num: u32) -> bool {
-        let len = self.trace_coord_map.len();
+        let len = self.trace_coords.len();
 
         if len >= max_trace_num as usize {
             return false;
@@ -55,78 +58,43 @@ impl SolutionState {
         if len == 0 {
             return true;
         }
-        for candidate_set in self.trace_coord_map.values() {
-            if candidate_set.contains(coord) {
-                return true;
-            }
+        if self.next_candidate_coords.contains(coord) {
+            return true;
         }
         return false;
     }
 
     pub fn add_trace_coord(&mut self, coord: PuyoCoord) {
-        // 新しい座標を起点に新たに候補になる集合を作る
-        let new_candidate_set: IndexSet<PuyoCoord> =
-            IndexSet::from_iter(PuyoCoord::adjacent_coords(&coord).into_iter().filter(|c| {
+        // 新しい座標を起点に新たに候補になる座標リストを作る
+        let mut new_candidate_coords: Vec<PuyoCoord> = PuyoCoord::adjacent_coords(&coord)
+            .into_iter()
+            .filter(|c| {
                 if self.forbidden_field_bits & (1 << c.index()) != 0 {
                     return false;
                 }
-                for candidate_set in self.trace_coord_map.values() {
-                    if candidate_set.contains(c) {
-                        return false;
-                    }
+                if self.next_candidate_coords.contains(c) {
+                    return false;
                 }
                 return true;
-            }));
+            })
+            .collect();
 
         let coord_index = coord.index();
-        let trace_coords = self.get_trace_coords();
 
-        // 追加する座標が候補になっていたなぞり座標(キー座標)における候補集合、
-        // キー座標よりインデックスが小さいなぞり座標における候補集合、
-        // そして、禁止インデックス集合に関してそれぞれ更新をかける。
-        for k in 0..trace_coords.len() {
-            let key_coord = trace_coords[k];
-            if let Some(candidate_set) = self.trace_coord_map.get(&key_coord) {
-                if candidate_set.contains(&coord) {
-                    // 追加する座標が候補になっていたキー座標において、
-                    // 追加する座標よりindexが若いものは候補から外す。(既に探索済みのはずなので)
-
-                    let (filtered_candidate_set, forbidden_candidate_set): (
-                        IndexSet<PuyoCoord>,
-                        IndexSet<PuyoCoord>,
-                    ) = candidate_set
-                        .into_iter()
-                        .partition(|c| c.index() > coord_index);
-
-                    self.trace_coord_map
-                        .insert(key_coord, filtered_candidate_set);
-
-                    for forbidden_coord in forbidden_candidate_set {
-                        self.forbidden_field_bits |= 1 << forbidden_coord.index();
-                    }
-
-                    // 追加する座標が候補になっていたキー座標より、若いインデックスキー座標における
-                    // 候補集合は全て禁止集合に移動させる。(これも既に探索済みのはずなので)
-                    for kk in 0..k {
-                        let kc = trace_coords[kk];
-                        if let Some(forbidden_coord_set) = self.trace_coord_map.get(&kc) {
-                            for forbidden_coord in forbidden_coord_set {
-                                self.forbidden_field_bits |= 1 << forbidden_coord.index();
-                            }
-                            self.trace_coord_map.insert(kc, IndexSet::new());
-                        }
-                    }
-
-                    break;
-                }
+        if let Some(found_index) = self.next_candidate_coords.iter().position(|c| *c == coord) {
+            let former = &self.next_candidate_coords[0..found_index + 1];
+            let latter = &self.next_candidate_coords[found_index + 1..];
+            for c in former {
+                self.forbidden_field_bits |= 1 << c.index();
             }
+            new_candidate_coords.splice(0..0, latter.iter().cloned());
+            self.next_candidate_coords = new_candidate_coords;
+        } else {
+            self.forbidden_field_bits |= 1 << coord_index;
+            self.next_candidate_coords = new_candidate_coords;
         }
 
-        // 新しい座標の候補を追加する。
-        self.trace_coord_map.insert(coord, new_candidate_set);
-        // 追加する座標が最初のなぞりでなければ、forbidden_candidate_set 経由で既に追加されているが、
-        // 最初のなぞりの場合は追加されていないので、追加しておく。
-        self.forbidden_field_bits |= 1 << coord_index;
+        self.trace_coords.push(coord);
     }
 }
 
@@ -183,12 +151,12 @@ mod tests {
     #[test]
     fn test_get_trace_coords() {
         let mut s = SolutionState::new(0);
-        assert_eq!(s.get_trace_coords(), []);
+        assert_eq!(*s.get_trace_coords(), []);
         s.add_trace_coord(PuyoCoord { x: 0, y: 0 });
-        assert_eq!(s.get_trace_coords(), [PuyoCoord { x: 0, y: 0 }]);
+        assert_eq!(*s.get_trace_coords(), [PuyoCoord { x: 0, y: 0 }]);
         s.add_trace_coord(PuyoCoord { x: 1, y: 1 });
         assert_eq!(
-            s.get_trace_coords(),
+            *s.get_trace_coords(),
             [PuyoCoord { x: 0, y: 0 }, PuyoCoord { x: 1, y: 1 }]
         );
     }
@@ -271,20 +239,16 @@ mod tests {
             s.check_if_addable_coord(&PuyoCoord { x: 2, y: 4 }, 5),
             false
         );
-        let expected: IndexMap<PuyoCoord, IndexSet<PuyoCoord>> = IndexMap::from([
-            (PuyoCoord { x: 1, y: 1 }, IndexSet::from([])),
-            (
-                PuyoCoord { x: 2, y: 2 },
-                IndexSet::from([
-                    PuyoCoord { x: 3, y: 1 },
-                    PuyoCoord { x: 3, y: 2 },
-                    PuyoCoord { x: 1, y: 3 },
-                    PuyoCoord { x: 2, y: 3 },
-                    PuyoCoord { x: 3, y: 3 },
-                ]),
-            ),
-        ]);
-        assert_eq!(*s.get_trace_coord_map(), expected);
+        assert_eq!(
+            *s.get_next_candidate_coords(),
+            Vec::from([
+                PuyoCoord { x: 3, y: 1 },
+                PuyoCoord { x: 3, y: 2 },
+                PuyoCoord { x: 1, y: 3 },
+                PuyoCoord { x: 2, y: 3 },
+                PuyoCoord { x: 3, y: 3 },
+            ])
+        );
         assert_eq!(s.__get_forbidden_field_bits(), 460799);
     }
 }

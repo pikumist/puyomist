@@ -192,13 +192,12 @@ impl<'a> SolutionExplorer<'a> {
             let mut st = state.clone();
             st.add_trace_coord(coord);
 
-            let solution_result = self.calc_solution_result(st.get_trace_coords());
+            let solution_result = self.calc_solution_result(st.get_trace_coords().clone());
+
             self.update_exploration_result(solution_result, exploration_result);
 
-            for candidate_set in st.get_trace_coord_map().values() {
-                for next_coord in candidate_set {
-                    self.advance_trace(&st, *next_coord, exploration_result);
-                }
+            for next_coord in st.get_next_candidate_coords() {
+                self.advance_trace(&st, *next_coord, exploration_result);
             }
         }
     }
