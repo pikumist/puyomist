@@ -7,6 +7,7 @@ import {
   DrawerContent,
   Flex,
   type FlexProps,
+  Grid,
   HStack,
   IconButton,
   Progress,
@@ -210,26 +211,34 @@ const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
         </Text>
         <CloseButton display={{ base: 'flex', md: 'none' }} onClick={onClose} />
       </Flex>
-      <Stack mx={{ base: 6, md: 4 }} spacing="1">
+      <Grid
+        mx={{ base: 6, md: 4 }}
+        gap="1"
+        templateColumns={{
+          base: 'repeat(1, 1fr)',
+          sm: 'repeat(2, 1fr)',
+          md: 'repeat(1, 1fr)'
+        }}
+      >
         <TraceModeSelector traceMode={traceMode} />
         <MinimumPuyoNumInput
           traceMode={traceMode}
           num={minimumPuyoNumForPopping}
         />
         <MaxTraceNumInput maxTraceNum={maxTraceNum} />
+        <AnimationDurationInput duration={animationDuration} />
         <PoppingLeverageInput leverage={poppingLeverage} />
         <ChainLeverageInput leverage={chainLeverage} />
         <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
-        <AnimationDurationInput duration={animationDuration} />
-        <ExplorationTargetSetting target={explorationTarget} />
         <SolutionMethodSelector method={solutionMethod} />
+        <ExplorationTargetSetting target={explorationTarget} />
         <ScreenshotCanvas
-          mt="4"
+          mt="2"
           canvasMaxWidth={100}
           screenshotInfo={screenshotInfo}
           errorMessage={screenshotErrorMessage}
         />
-      </Stack>
+      </Grid>
     </Box>
   );
 };
