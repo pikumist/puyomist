@@ -106,7 +106,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
   };
 
   const onPointerUp = () => {
-    if (hasAnimation || !touching) {
+    if (hasAnimation || editing || !touching) {
       return;
     }
     dispatch(tracingFinished());
