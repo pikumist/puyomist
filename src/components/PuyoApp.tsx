@@ -22,6 +22,7 @@ import { dispatchWhenScreenshotReceivedViaWebSocket } from '../hooks/dispatchWhe
 import { selectActiveChains } from '../hooks/selectActiveChains';
 import { customBoardId } from '../logics/boards';
 import type { RootState } from '../reducers/store';
+import FieldController from './FieldController';
 import PuyoBoard from './PuyoBoard';
 import ScreenshotCanvas from './ScreenshotCanvas';
 import SolutionMenu from './SolutionMenu';
@@ -119,46 +120,69 @@ const PuyoApp: React.FC = () => {
                 />
               </Box>
               <Show above="lg">
-                <TracingResultView
-                  w={{ base: '12em', xl: '14em' }}
-                  overflowX="auto"
-                  keepSliderArea
-                  isDamageTwoLine
-                  hasBoostArea={hasBoostArea}
-                  tracingCoords={simulationData.traceCoords}
-                  lastTraceCoords={lastTraceCoords}
-                  chains={chains}
-                  animationSteps={animationSteps}
-                  activeAnimationStepIndex={activeAnimationStepIndex}
-                />
+                <Stack>
+                  <FieldController
+                    tracingCoords={simulationData.traceCoords}
+                    animationSteps={animationSteps}
+                    activeAnimationStepIndex={activeAnimationStepIndex}
+                  />
+                  <TracingResultView
+                    w={{ base: '14em' }}
+                    overflowX="auto"
+                    keepSliderArea
+                    isDamageTwoLine
+                    hasBoostArea={hasBoostArea}
+                    tracingCoords={simulationData.traceCoords}
+                    lastTraceCoords={lastTraceCoords}
+                    chains={chains}
+                    animationSteps={animationSteps}
+                    activeAnimationStepIndex={activeAnimationStepIndex}
+                  />
+                </Stack>
               </Show>
             </HStack>
-            <Box>
+            <Grid
+              gap="2"
+              templateColumns={{
+                base: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+                lg: 'repeat(1, 1fr)'
+              }}
+            >
               <Show below="lg">
-                <TracingResultView
-                  mb="2"
-                  isDamageTwoLine={false}
-                  hasBoostArea={hasBoostArea}
-                  tracingCoords={simulationData.traceCoords}
-                  lastTraceCoords={lastTraceCoords}
-                  chains={chains}
-                  animationSteps={animationSteps}
-                  activeAnimationStepIndex={activeAnimationStepIndex}
-                />
+                <Stack>
+                  <FieldController
+                    tracingCoords={simulationData.traceCoords}
+                    animationSteps={animationSteps}
+                    activeAnimationStepIndex={activeAnimationStepIndex}
+                  />
+                  <TracingResultView
+                    keepSliderArea
+                    isDamageTwoLine={false}
+                    hasBoostArea={hasBoostArea}
+                    tracingCoords={simulationData.traceCoords}
+                    lastTraceCoords={lastTraceCoords}
+                    chains={chains}
+                    animationSteps={animationSteps}
+                    activeAnimationStepIndex={activeAnimationStepIndex}
+                  />
+                </Stack>
               </Show>
-              <SolutionMenu
-                solving={solving}
-                hasResult={Boolean(solveResult)}
-              />
-              <Progress
-                w="172px"
-                mt="1"
-                size="xs"
-                visibility={solving ? 'visible' : 'hidden'}
-                isIndeterminate={solving}
-              />
-              <SolutionResultView result={solveResult} />
-            </Box>
+              <Box>
+                <SolutionMenu
+                  solving={solving}
+                  hasResult={Boolean(solveResult)}
+                />
+                <Progress
+                  w="172px"
+                  mt="1"
+                  size="xs"
+                  visibility={solving ? 'visible' : 'hidden'}
+                  isIndeterminate={solving}
+                />
+                <SolutionResultView result={solveResult} />
+              </Box>
+            </Grid>
           </Stack>
         </Stack>
       </Box>

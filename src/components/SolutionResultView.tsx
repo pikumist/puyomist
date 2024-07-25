@@ -48,8 +48,8 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
             </Text>
             <Text>探索時間: {result?.elapsedTime} ms</Text>
             <Text>候補数: {result?.candidatesNum}</Text>
+            <Text>最適なぞり:</Text>
             <Text>
-              最適なぞり:{' '}
               {result?.optimalSolution?.trace_coords
                 .map((c) => c.toCellAddr())
                 .join(',')}

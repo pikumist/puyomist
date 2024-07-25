@@ -1,10 +1,9 @@
 import { CloseIcon, DeleteIcon, SearchIcon } from '@chakra-ui/icons';
 import { HStack, Icon, IconButton, Tooltip } from '@chakra-ui/react';
 import React from 'react';
-import { FaPlay, FaRotateRight } from 'react-icons/fa6';
+import { FaPlay } from 'react-icons/fa6';
 import { useDispatch } from 'react-redux';
 import {
-  boardResetButtonClicked,
   playSolutionButtonClicked,
   solutionResetButtonClicked,
   solveButtonClicked,
@@ -21,8 +20,6 @@ interface IProps {
 const SolutionMenu: React.FC<IProps> = React.memo((props) => {
   const { solving, hasResult } = props;
   const dispatch = useDispatch<AppDispatch>();
-
-  const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
 
   const onSolutionResetButtonClicked = () =>
     dispatch(solutionResetButtonClicked());
@@ -64,14 +61,6 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
           icon={<Icon as={FaPlay} />}
           isDisabled={Boolean(!hasResult)}
           onClick={onPlaySolutionButtonClicked}
-        />
-      </Tooltip>
-      <Tooltip label="盤面リセット">
-        <IconButton
-          variant="outline"
-          aria-label="盤面リセット"
-          icon={<Icon as={FaRotateRight} />}
-          onClick={onBoardRestButtonCliecked}
         />
       </Tooltip>
     </HStack>
