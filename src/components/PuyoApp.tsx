@@ -122,6 +122,7 @@ const PuyoApp: React.FC = () => {
               <Show above="lg">
                 <Stack>
                   <FieldController
+                    hideReset={false}
                     tracingCoords={simulationData.traceCoords}
                     animationSteps={animationSteps}
                     activeAnimationStepIndex={activeAnimationStepIndex}
@@ -152,6 +153,7 @@ const PuyoApp: React.FC = () => {
               <Show below="lg">
                 <Stack>
                   <FieldController
+                    hideReset={{ base: false, sm: true, lg: false }}
                     tracingCoords={simulationData.traceCoords}
                     animationSteps={animationSteps}
                     activeAnimationStepIndex={activeAnimationStepIndex}

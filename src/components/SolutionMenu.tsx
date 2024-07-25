@@ -1,9 +1,10 @@
 import { CloseIcon, DeleteIcon, SearchIcon } from '@chakra-ui/icons';
 import { HStack, Icon, IconButton, Tooltip } from '@chakra-ui/react';
 import React from 'react';
-import { FaPlay } from 'react-icons/fa6';
+import { FaBroom, FaPlay } from 'react-icons/fa6';
 import { useDispatch } from 'react-redux';
 import {
+  boardResetButtonClicked,
   playSolutionButtonClicked,
   solutionResetButtonClicked,
   solveButtonClicked,
@@ -34,6 +35,7 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
       dispatch(solveButtonClicked());
     }
   };
+  const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
 
   return (
     <HStack spacing="1">
@@ -49,7 +51,7 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
         <IconButton
           variant="outline"
           aria-label="探索結果クリア"
-          icon={<DeleteIcon />}
+          icon={<Icon as={FaBroom} />}
           isDisabled={Boolean(!hasResult)}
           onClick={onSolutionResetButtonClicked}
         />
@@ -61,6 +63,14 @@ const SolutionMenu: React.FC<IProps> = React.memo((props) => {
           icon={<Icon as={FaPlay} />}
           isDisabled={Boolean(!hasResult)}
           onClick={onPlaySolutionButtonClicked}
+        />
+      </Tooltip>
+      <Tooltip label="盤面リセット">
+        <IconButton
+          variant="outline"
+          aria-label="盤面リセット"
+          icon={<DeleteIcon />}
+          onClick={onBoardRestButtonCliecked}
         />
       </Tooltip>
     </HStack>

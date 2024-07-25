@@ -1,5 +1,13 @@
 import { DeleteIcon } from '@chakra-ui/icons';
-import { Box, Grid, IconButton, Text, Tooltip } from '@chakra-ui/react';
+import {
+  Box,
+  Grid,
+  IconButton,
+  type ResponsiveValue,
+  Text,
+  Tooltip,
+  useBreakpointValue
+} from '@chakra-ui/react';
 import type React from 'react';
 import { useDispatch } from 'react-redux';
 import type { AnimationStep } from '../logics/AnimationStep';
@@ -15,12 +23,20 @@ interface IProps {
   animationSteps: AnimationStep[];
   /** コマ位置 */
   activeAnimationStepIndex: number;
+  /** 盤面リセットボタンを隠す */
+  hideReset: ResponsiveValue<boolean>;
 }
 
 /** フィールドコントローラー */
 const FieldController: React.FC<IProps> = (props) => {
-  const { tracingCoords, animationSteps, activeAnimationStepIndex } = props;
+  const { tracingCoords, animationSteps, activeAnimationStepIndex, hideReset } =
+    props;
   const dispatch = useDispatch<AppDispatch>();
+
+  const responsiveHideReset =
+    typeof hideReset !== 'boolean'
+      ? useBreakpointValue<boolean>(hideReset)
+      : hideReset;
 
   const coords = tracingCoords.map((c) => c.toCellAddr()).join(',');
   const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
@@ -33,15 +49,17 @@ const FieldController: React.FC<IProps> = (props) => {
             animationSteps={animationSteps}
             index={activeAnimationStepIndex}
           />
-          <Tooltip label="盤面リセット">
-            <IconButton
-              ml="auto"
-              variant="outline"
-              aria-label="盤面リセット"
-              icon={<DeleteIcon />}
-              onClick={onBoardRestButtonCliecked}
-            />
-          </Tooltip>
+          {!responsiveHideReset ? (
+            <Tooltip label="盤面リセット">
+              <IconButton
+                ml="auto"
+                variant="outline"
+                aria-label="盤面リセット"
+                icon={<DeleteIcon />}
+                onClick={onBoardRestButtonCliecked}
+              />
+            </Tooltip>
+          ) : null}
         </Grid>
       ) : (
         <Box>
