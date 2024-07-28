@@ -6,10 +6,5 @@
     "source.organizeImports.biome": "explicit"
   },
   "editor.tabSize": 2,
-  "files.trimTrailingWhitespace": true,
-  "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer",
-    "editor.tabSize": 4
-  },
-  "rust-analyzer.linkedProjects": ["packages/solver-wasm/Cargo.toml"]
+  "files.trimTrailingWhitespace": true
 }
