@@ -27,6 +27,7 @@ pub struct BlockWithAttr {
 }
 
 #[derive(Debug)]
+/// @deprecated
 pub struct Simulator<'a> {
     pub environment: &'a SimulationEnvironment,
     pub boost_area_coord_set: &'a HashSet<PuyoCoord>,
