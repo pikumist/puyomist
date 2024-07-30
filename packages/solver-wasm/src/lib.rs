@@ -9,6 +9,7 @@ pub mod puyo_attr;
 pub mod puyo_coord;
 pub mod puyo_type;
 pub mod simulator;
+pub mod simulator_bb;
 pub mod solution;
 pub mod solution_explorer;
 pub mod trace_mode;

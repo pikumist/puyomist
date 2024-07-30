@@ -1,15 +1,14 @@
-use std::collections::HashSet;
-
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
 use solver::exploration_target::{ExplorationCategory, ExplorationTarget, PreferenceKind};
 use solver::puyo::Puyo;
 use solver::puyo_attr::PuyoAttr;
 use solver::puyo_coord::PuyoCoord;
 use solver::puyo_type::*;
 use solver::simulator::{SimulationEnvironment, Simulator};
+use solver::simulator_bb::{BitBoards, SimulationBBEnvironment, SimulatorBB};
 use solver::solution_explorer::SolutionExplorer;
 use solver::trace_mode::TraceMode;
+use std::collections::HashSet;
 
 fn setup_input() -> (
     SimulationEnvironment,
@@ -87,7 +86,7 @@ fn setup_input() -> (
     );
 }
 
-fn do_chains(
+fn simulator_do_chains(
     environment: &SimulationEnvironment,
     field: &mut [[Option<Puyo>; 8]; 6],
     next_puyos: &mut [Option<Puyo>; 8],
@@ -95,6 +94,15 @@ fn do_chains(
 ) {
     let simulator = Simulator { environment };
     simulator.do_chains(field, next_puyos, trace_coords);
+}
+
+fn simulator_bb_do_chains(
+    environment: &SimulationBBEnvironment,
+    boards: &mut BitBoards,
+    trace: u64,
+) {
+    let simulator = SimulatorBB { environment };
+    simulator.do_chains(boards, trace);
 }
 
 fn solve_all_traces() {
@@ -105,15 +113,48 @@ fn solve_all_traces() {
 
 fn do_chains_benchmark(c: &mut Criterion) {
     let (environment, field, next_puyos, trace_coords, _exploration_target) = setup_input();
+    let environment_bb = SimulationBBEnvironment {
+        is_chance_mode: environment.is_chance_mode,
+        minimum_puyo_num_for_popping: environment.minimum_puyo_num_for_popping,
+        max_trace_num: environment.max_trace_num,
+        trace_mode: environment.trace_mode,
+        popping_leverage: environment.popping_leverage,
+        chain_leverage: environment.chain_leverage,
+    };
+    let boards = SimulatorBB::create_bit_boards(
+        &field.map(|row| {
+            row.map(|c| match c {
+                Some(p) => Some(p.puyo_type),
+                None => None,
+            })
+        }),
+        &next_puyos.map(|c| match c {
+            Some(p) => Some(p.puyo_type),
+            None => None,
+        }),
+        &HashSet::new(),
+    );
+    let trace = SimulatorBB::create_trace(&trace_coords);
+
     let mut group = c.benchmark_group("simulator");
 
-    group.bench_function("do_chains", |b| {
+    group.bench_function("Simulator::do_chains", |b| {
         b.iter(|| {
-            do_chains(
+            simulator_do_chains(
                 black_box(&environment),
                 black_box(&mut field.clone()),
                 black_box(&mut next_puyos.clone()),
                 black_box(&trace_coords),
+            )
+        })
+    });
+
+    group.bench_function("SimulatorBB::do_chains", |b| {
+        b.iter(|| {
+            simulator_bb_do_chains(
+                black_box(&environment_bb),
+                black_box(&mut boards.clone()),
+                black_box(trace),
             )
         })
     });
