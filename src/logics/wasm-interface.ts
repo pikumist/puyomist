@@ -23,7 +23,6 @@ export interface WasmPuyo {
 }
 
 export interface WasmSimulationEnvironment {
-  boost_area_coord_set: Set<WasmPuyoCoord>;
   is_chance_mode: boolean;
   minimum_puyo_num_for_popping: number;
   max_trace_num: number;

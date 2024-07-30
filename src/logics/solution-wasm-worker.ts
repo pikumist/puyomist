@@ -57,12 +57,6 @@ const toWasmExplorationTarget = (
 
 const toWasmEnvironmentFieldNextPuyos = (simulationData: SimulationData) => {
   const environment: WasmSimulationEnvironment = {
-    boost_area_coord_set: new Set(
-      simulationData.boostAreaCoordList.map(({ _x, _y }: any) => ({
-        x: _x,
-        y: _y
-      }))
-    ),
     is_chance_mode: simulationData.isChanceMode,
     minimum_puyo_num_for_popping: simulationData.minimumPuyoNumForPopping,
     max_trace_num: simulationData.maxTraceNum,
@@ -70,6 +64,12 @@ const toWasmEnvironmentFieldNextPuyos = (simulationData: SimulationData) => {
     popping_leverage: simulationData.poppingLeverage,
     chain_leverage: simulationData.chainLeverage
   };
+  const boost_area_coord_set = new Set(
+    simulationData.boostAreaCoordList.map(({ _x, _y }: any) => ({
+      x: _x,
+      y: _y
+    }))
+  );
   const field: (WasmPuyo | undefined)[][] = simulationData.field.map((row) =>
     row.map((p) => (p ? { id: p.id, puyo_type: p.type } : undefined))
   );
@@ -79,6 +79,7 @@ const toWasmEnvironmentFieldNextPuyos = (simulationData: SimulationData) => {
 
   return {
     environment,
+    boost_area_coord_set,
     field,
     next_puyos
   };
@@ -105,12 +106,13 @@ export async function solveAllTraces(
   const start = Date.now();
 
   const exploration_target = toWasmExplorationTarget(explorationTarget);
-  const { environment, field, next_puyos } =
+  const { environment, boost_area_coord_set, field, next_puyos } =
     toWasmEnvironmentFieldNextPuyos(simulationData);
 
   const solved = solve_all_traces(
     exploration_target,
     environment,
+    boost_area_coord_set,
     field,
     next_puyos
   ) as WasmExplorationResult;
@@ -138,12 +140,13 @@ export async function solveIncludingTraceIndex(
   const start = Date.now();
 
   const exploration_target = toWasmExplorationTarget(explorationTarget);
-  const { environment, field, next_puyos } =
+  const { environment, boost_area_coord_set, field, next_puyos } =
     toWasmEnvironmentFieldNextPuyos(simulationData);
 
   const solved = solve_traces_including_index(
     exploration_target,
     environment,
+    boost_area_coord_set,
     field,
     next_puyos,
     index

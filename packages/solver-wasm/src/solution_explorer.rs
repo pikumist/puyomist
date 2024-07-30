@@ -1,4 +1,8 @@
-use std::{cmp, collections::HashMap, sync::OnceLock};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+    sync::OnceLock,
+};
 
 use crate::{
     chain_helper::{
@@ -126,6 +130,7 @@ fn better_solution<'a>(
 pub struct SolutionExplorer<'a> {
     exploration_target: &'a ExplorationTarget,
     environment: &'a SimulationEnvironment,
+    boost_area_coord_set: &'a HashSet<PuyoCoord>,
     field: &'a Field,
     next_puyos: &'a NextPuyos,
 }
@@ -134,12 +139,14 @@ impl<'a> SolutionExplorer<'a> {
     pub fn new(
         exploration_target: &'a ExplorationTarget,
         environment: &'a SimulationEnvironment,
+        boost_area_coord_set: &'a HashSet<PuyoCoord>,
         field: &'a Field,
         next_puyos: &'a NextPuyos,
     ) -> SolutionExplorer<'a> {
         return SolutionExplorer {
             exploration_target,
             environment,
+            boost_area_coord_set,
             field,
             next_puyos,
         };
@@ -213,6 +220,7 @@ impl<'a> SolutionExplorer<'a> {
     fn calc_solution_result(&self, trace_coords: Vec<PuyoCoord>) -> SolutionResult {
         let sim = Simulator {
             environment: self.environment,
+            boost_area_coord_set: &self.boost_area_coord_set,
         };
         let chains = sim.do_chains(
             &mut self.field.clone(),
@@ -350,7 +358,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 3,
             max_trace_num: 3,
@@ -358,6 +365,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 7.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = PuyoType::Red;
         let b = PuyoType::Blue;
         let g = PuyoType::Green;
@@ -392,6 +400,7 @@ mod tests {
         let explorer = SolutionExplorer {
             exploration_target: &exploration_target,
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
             field: &field,
             next_puyos: &next_puyos,
         };
@@ -987,7 +996,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -995,6 +1003,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 10.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = PuyoType::Red;
         let b = PuyoType::Blue;
         let g = PuyoType::Green;
@@ -1030,6 +1039,7 @@ mod tests {
         let explorer = SolutionExplorer {
             exploration_target: &exploration_target,
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
             field: &field,
             next_puyos: &next_puyos,
         };
@@ -1296,7 +1306,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: true,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 48,
@@ -1304,6 +1313,7 @@ mod tests {
             popping_leverage: 5.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = Some(PuyoType::Red);
         let b = Some(PuyoType::Blue);
         let g = Some(PuyoType::Green);
@@ -1337,6 +1347,7 @@ mod tests {
         let explorer = SolutionExplorer {
             exploration_target: &exploration_target,
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
             field: &field,
             next_puyos: &next_puyos,
         };
