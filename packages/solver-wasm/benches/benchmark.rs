@@ -101,7 +101,10 @@ fn simulator_bb_do_chains(
     boards: &mut BitBoards,
     trace: u64,
 ) {
-    let simulator = SimulatorBB { environment };
+    let simulator = SimulatorBB {
+        environment,
+        boost_area: 0,
+    };
     simulator.do_chains(boards, trace);
 }
 
@@ -132,9 +135,8 @@ fn do_chains_benchmark(c: &mut Criterion) {
             Some(p) => Some(p.puyo_type),
             None => None,
         }),
-        &HashSet::new(),
     );
-    let trace = SimulatorBB::create_trace(&trace_coords);
+    let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
     let mut group = c.benchmark_group("simulator");
 

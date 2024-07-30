@@ -6,12 +6,6 @@
  * @license [pikumist](https://github.com/pikumist/puyomist/blob/main/LICENSE)
  */
 
-use std::collections::{HashMap, HashSet};
-
-use bitintr::{Pdep, Pext};
-use num_traits::{FromPrimitive, ToPrimitive};
-use serde::{Deserialize, Serialize};
-
 use crate::{
     chain::{AttributeChain, Chain},
     damage::*,
@@ -20,6 +14,10 @@ use crate::{
     puyo_type::{get_attr, is_chance_type, is_plus_type, PuyoType},
     trace_mode::*,
 };
+use bitintr::{Pdep, Pext};
+use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SimulationBBEnvironment {
@@ -67,8 +65,6 @@ pub struct BitBoards {
     plus: u64,
     /** チャンス属性のビットボード */
     chance: u64,
-    /** ブーストエリアのビートボード */
-    boost_area: u64,
 }
 
 impl BitBoards {
@@ -96,14 +92,14 @@ const COL_MASK: u64 = 0b_1111111;
 #[derive(Debug)]
 pub struct SimulatorBB<'a> {
     pub environment: &'a SimulationBBEnvironment,
+    pub boost_area: u64,
 }
 
 impl<'a> SimulatorBB<'a> {
-    /// フィールドとネクストぷよとブーストエリアからビットーボードを作成する。
+    /// フィールドとネクストぷよからビットボードを作成する。
     pub fn create_bit_boards(
         field: &[[Option<PuyoType>; 8]; 6],
         next_puyos: &[Option<PuyoType>; 8],
-        boost_area_coord_set: &HashSet<PuyoCoord>,
     ) -> BitBoards {
         let mut boards = BitBoards {
             colors: [0, 0, 0, 0, 0],
@@ -113,7 +109,6 @@ impl<'a> SimulatorBB<'a> {
             kata: 0,
             plus: 0,
             chance: 0,
-            boost_area: 0,
         };
 
         fn distribute_bit(puyo_type: PuyoType, bit: u64, boards: &mut BitBoards) {
@@ -156,27 +151,20 @@ impl<'a> SimulatorBB<'a> {
             }
         }
 
-        for c in boost_area_coord_set.iter() {
-            let x = c.x as usize;
-            let y = c.y as usize;
-            let bit: u64 = 1 << ((7 - x) * HEIGHT + (5 - y));
-            boards.boost_area |= bit;
-        }
-
         return boards;
     }
 
-    /// なぞり位置のビットボードを作成する。
-    pub fn create_trace(trace_coords: &Vec<PuyoCoord>) -> u64 {
-        let mut trace = 0;
+    /// 座標のリストからビットボードを作成する。
+    pub fn coords_to_board<'b, T: std::iter::Iterator<Item = &'b PuyoCoord>>(coord_iter: T) -> u64 {
+        let mut board = 0;
 
-        for c in trace_coords {
+        for c in coord_iter {
             let x = c.x as usize;
             let y = c.y as usize;
             let bit: u64 = 1 << ((7 - x) * HEIGHT + (5 - y));
-            trace |= bit;
+            board |= bit;
         }
-        return trace;
+        return board;
     }
 
     /// なぞり消し(あるいは塗り替え)を実施して連鎖を発生させる。
@@ -371,9 +359,9 @@ impl<'a> SimulatorBB<'a> {
 
         let poppable_connected =
             total_colored_connected | heart_connected | prism_connected | ojama_connected;
-        let boost_count = Self::calc_boost_count(boards.boost_area, poppable_connected, plus);
+        let boost_count = Self::calc_boost_count(self.boost_area, poppable_connected, plus);
         let puyo_tsukai_count =
-            Self::calc_puyotsukai_count(boards.boost_area, poppable_connected, plus);
+            Self::calc_puyotsukai_count(self.boost_area, poppable_connected, plus);
 
         let rest = !poppable_connected;
 
@@ -728,6 +716,8 @@ impl<'a> SimulatorBB<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
 
     #[test]
@@ -1296,7 +1286,7 @@ mod tests {
         let next_puyos = [g, g, g, g, g, g, g, g].map(|t| Some(t));
 
         // Actual
-        let actual = SimulatorBB::create_bit_boards(&field, &next_puyos, &HashSet::new());
+        let actual = SimulatorBB::create_bit_boards(&field, &next_puyos);
 
         // Assert
         assert_eq!(
@@ -1384,7 +1374,7 @@ mod tests {
         let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }];
 
         // Actual
-        let actual = SimulatorBB::create_trace(&trace_coords);
+        let actual = SimulatorBB::coords_to_board(trace_coords.iter());
 
         // Assert
         assert_eq!(
@@ -1428,12 +1418,13 @@ mod tests {
             [b, g, b, r, b, y, r, r],
         ];
         let next_puyos = [g, g, g, g, g, g, g, g];
-        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos, &HashSet::new());
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
         let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }];
-        let trace = SimulatorBB::create_trace(&trace_coords);
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
         let simulator = SimulatorBB {
             environment: &environment,
+            boost_area: 0,
         };
 
         // Act
@@ -1781,7 +1772,7 @@ mod tests {
             [p, g, p, r, r, p, p, b],
         ];
         let next_puyos = [b, b, b, b, b, b, b, b];
-        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos, &HashSet::new());
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
         let trace_coords: Vec<PuyoCoord> = vec![
             PuyoCoord { x: 3, y: 0 },
             PuyoCoord { x: 5, y: 0 },
@@ -1789,10 +1780,11 @@ mod tests {
             PuyoCoord { x: 4, y: 2 },
             PuyoCoord { x: 3, y: 3 },
         ];
-        let trace = SimulatorBB::create_trace(&trace_coords);
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
         let simulator = SimulatorBB {
             environment: &environment,
+            boost_area: 0,
         };
 
         // Act
@@ -2039,7 +2031,7 @@ mod tests {
             [y, y, g, r, b, b, y, y],
         ];
         let next_puyos: [Option<PuyoType>; 8] = [None, None, None, None, None, None, None, None];
-        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos, &HashSet::new());
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
         let trace_coords: Vec<PuyoCoord> = vec![
             PuyoCoord { x: 3, y: 2 },
             PuyoCoord { x: 4, y: 3 },
@@ -2047,9 +2039,10 @@ mod tests {
             PuyoCoord { x: 3, y: 4 },
             PuyoCoord { x: 2, y: 5 },
         ];
-        let trace = SimulatorBB::create_trace(&trace_coords);
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
         let simulator = SimulatorBB {
             environment: &environment,
+            boost_area: 0,
         };
 
         // Act
@@ -2202,8 +2195,18 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set = HashSet::from([
+            PuyoCoord { x: 4, y: 1 },
+            PuyoCoord { x: 3, y: 2 },
+            PuyoCoord { x: 4, y: 2 },
+            PuyoCoord { x: 3, y: 3 },
+            PuyoCoord { x: 4, y: 3 },
+            PuyoCoord { x: 3, y: 4 },
+            PuyoCoord { x: 4, y: 5 },
+        ]);
         let simulator = SimulatorBB {
             environment: &environment,
+            boost_area: SimulatorBB::coords_to_board(boost_area_coord_set.iter()),
         };
         let field = [
             [h, r, r, g, p, b, h, b],
@@ -2214,16 +2217,7 @@ mod tests {
             [p, b, p, g, p, g, p, r],
         ];
         let next_puyos = [pp, pp, pp, rp, yp, yp, pp, bp];
-        let boost_area_coord_set = HashSet::from([
-            PuyoCoord { x: 4, y: 1 },
-            PuyoCoord { x: 3, y: 2 },
-            PuyoCoord { x: 4, y: 2 },
-            PuyoCoord { x: 3, y: 3 },
-            PuyoCoord { x: 4, y: 3 },
-            PuyoCoord { x: 3, y: 4 },
-            PuyoCoord { x: 4, y: 5 },
-        ]);
-        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos, &boost_area_coord_set);
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
         let trace_coords: Vec<PuyoCoord> = vec![
             PuyoCoord { x: 2, y: 2 },
             PuyoCoord { x: 3, y: 3 },
@@ -2231,7 +2225,7 @@ mod tests {
             PuyoCoord { x: 4, y: 4 },
             PuyoCoord { x: 5, y: 3 },
         ];
-        let trace = SimulatorBB::create_trace(&trace_coords);
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
         // Act
         let actual = simulator.do_chains(&mut boards, trace);
@@ -2332,6 +2326,7 @@ mod tests {
         };
         let simulator = SimulatorBB {
             environment: &environment,
+            boost_area: 0,
         };
         let field = [
             [e, e, e, y, e, e, e, e],
@@ -2342,13 +2337,13 @@ mod tests {
             [r, r, h, b, g, o, h, h],
         ];
         let next_puyos: [Option<PuyoType>; 8] = [None, None, None, None, None, None, None, None];
-        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos, &HashSet::new());
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
         let trace_coords: Vec<PuyoCoord> = vec![
             PuyoCoord { x: 4, y: 3 },
             PuyoCoord { x: 4, y: 4 },
             PuyoCoord { x: 4, y: 5 },
         ];
-        let trace = SimulatorBB::create_trace(&trace_coords);
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
         // Act
         let actual = simulator.do_chains(&mut boards, trace);
