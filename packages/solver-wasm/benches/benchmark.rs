@@ -4,8 +4,9 @@ use solver::puyo::Puyo;
 use solver::puyo_attr::PuyoAttr;
 use solver::puyo_coord::PuyoCoord;
 use solver::puyo_type::*;
-use solver::simulator::{SimulationEnvironment, Simulator};
-use solver::simulator_bb::{BitBoards, SimulationBBEnvironment, SimulatorBB};
+use solver::simulation_environment::SimulationEnvironment;
+use solver::simulator::Simulator;
+use solver::simulator_bb::{BitBoards, SimulatorBB};
 use solver::solution_explorer::SolutionExplorer;
 use solver::trace_mode::TraceMode;
 use std::collections::HashSet;
@@ -103,7 +104,7 @@ fn simulator_do_chains(
 }
 
 fn simulator_bb_do_chains(
-    environment: &SimulationBBEnvironment,
+    environment: &SimulationEnvironment,
     boost_area: u64,
     boards: &mut BitBoards,
     trace: u64,
@@ -131,14 +132,6 @@ fn solve_all_traces() {
 fn do_chains_benchmark(c: &mut Criterion) {
     let (environment, boost_area_coord_set, field, next_puyos, trace_coords, _exploration_target) =
         setup_input();
-    let environment_bb = SimulationBBEnvironment {
-        is_chance_mode: environment.is_chance_mode,
-        minimum_puyo_num_for_popping: environment.minimum_puyo_num_for_popping,
-        max_trace_num: environment.max_trace_num,
-        trace_mode: environment.trace_mode,
-        popping_leverage: environment.popping_leverage,
-        chain_leverage: environment.chain_leverage,
-    };
     let boost_area = SimulatorBB::coords_to_board(boost_area_coord_set.iter());
     let boards = SimulatorBB::create_bit_boards(
         &field.map(|row| {
@@ -171,7 +164,7 @@ fn do_chains_benchmark(c: &mut Criterion) {
     group.bench_function("SimulatorBB::do_chains", |b| {
         b.iter(|| {
             simulator_bb_do_chains(
-                black_box(&environment_bb),
+                black_box(&environment),
                 black_box(boost_area),
                 black_box(&mut boards.clone()),
                 black_box(trace),

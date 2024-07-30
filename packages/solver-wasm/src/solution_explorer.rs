@@ -1,9 +1,3 @@
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-    sync::OnceLock,
-};
-
 use crate::{
     chain_helper::{
         sum_attr_popped_count, sum_colored_attr_damage, sum_puyo_tsukai_count, sum_wild_damage,
@@ -14,8 +8,14 @@ use crate::{
     puyo::{Field, NextPuyos},
     puyo_coord::PuyoCoord,
     puyo_type::is_traceable_type,
-    simulator::{SimulationEnvironment, Simulator},
+    simulation_environment::SimulationEnvironment,
+    simulator::Simulator,
     solution::{ExplorationResult, SolutionResult, SolutionState},
+};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+    sync::OnceLock,
 };
 
 fn better_solution_by_bigger_value<'a>(

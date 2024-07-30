@@ -12,22 +12,12 @@ use crate::{
     puyo_attr::PuyoAttr,
     puyo_coord::PuyoCoord,
     puyo_type::{get_attr, is_chance_type, is_plus_type, PuyoType},
+    simulation_environment::SimulationEnvironment,
     trace_mode::*,
 };
 use bitintr::{Pdep, Pext};
 use num_traits::{FromPrimitive, ToPrimitive};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SimulationBBEnvironment {
-    pub is_chance_mode: bool,
-    pub minimum_puyo_num_for_popping: u32,
-    pub max_trace_num: u32,
-    pub trace_mode: TraceMode,
-    pub popping_leverage: f64,
-    pub chain_leverage: f64,
-}
 
 /**
  * 盤面の状態をビットボードで表したもの。
@@ -91,7 +81,7 @@ const COL_MASK: u64 = 0b_1111111;
 
 #[derive(Debug)]
 pub struct SimulatorBB<'a> {
-    pub environment: &'a SimulationBBEnvironment,
+    pub environment: &'a SimulationEnvironment,
     pub boost_area: u64,
 }
 
@@ -1401,7 +1391,7 @@ mod tests {
         let p = Some(PuyoType::Purple);
         let h = Some(PuyoType::Heart);
 
-        let environment = SimulationBBEnvironment {
+        let environment = SimulationEnvironment {
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 3,
             max_trace_num: 5,
@@ -1755,7 +1745,7 @@ mod tests {
         let h = Some(PuyoType::Heart);
         let w = Some(PuyoType::Prism);
 
-        let environment = SimulationBBEnvironment {
+        let environment = SimulationEnvironment {
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -2014,7 +2004,7 @@ mod tests {
         let p = Some(PuyoType::Purple);
         let e: Option<PuyoType> = None;
 
-        let environment = SimulationBBEnvironment {
+        let environment = SimulationEnvironment {
             is_chance_mode: true,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -2187,7 +2177,7 @@ mod tests {
         let pp = Some(PuyoType::PurplePlus);
         let h = Some(PuyoType::Heart);
 
-        let environment = SimulationBBEnvironment {
+        let environment = SimulationEnvironment {
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -2316,7 +2306,7 @@ mod tests {
         let k = Some(PuyoType::Kata);
         let e: Option<PuyoType> = None;
 
-        let environment = SimulationBBEnvironment {
+        let environment = SimulationEnvironment {
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
