@@ -8,7 +8,9 @@ pub mod puyo;
 pub mod puyo_attr;
 pub mod puyo_coord;
 pub mod puyo_type;
+pub mod simulation_environment;
 pub mod simulator;
+pub mod simulator_bb;
 pub mod solution;
 pub mod solution_explorer;
 pub mod trace_mode;
@@ -21,8 +23,10 @@ extern crate num_derive;
 use exploration_target::ExplorationTarget;
 use puyo::{Field, NextPuyos};
 use puyo_coord::PuyoCoord;
-use simulator::{SimulationEnvironment, Simulator};
+use simulation_environment::SimulationEnvironment;
+use simulator::Simulator;
 use solution_explorer::SolutionExplorer;
+use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -48,6 +52,7 @@ where
 #[wasm_bindgen]
 pub fn do_chains(
     js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
     js_field: JsValue,
     js_next_puyos: JsValue,
     js_trace_coords: JsValue,
@@ -55,11 +60,13 @@ pub fn do_chains(
     console_error_panic_hook::set_once();
 
     let environment: SimulationEnvironment = from_value(js_environment).unwrap();
+    let boost_area_coord_set: HashSet<PuyoCoord> = from_value(js_boost_area_coord_set).unwrap();
     let mut field: Field = from_value(js_field).unwrap();
     let mut next_puyos: NextPuyos = from_value(js_next_puyos).unwrap();
     let trace_coords: Vec<PuyoCoord> = from_value(js_trace_coords).unwrap();
     let simulator = Simulator {
         environment: &environment,
+        boost_area_coord_set: &boost_area_coord_set,
     };
     let chains = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
     let result = to_value(&chains).unwrap();
@@ -70,6 +77,7 @@ pub fn do_chains(
 pub fn solve_all_traces(
     js_exploration_target: JsValue,
     js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
     js_field: JsValue,
     js_next_puyos: JsValue,
 ) -> Result<JsValue, JsError> {
@@ -83,6 +91,10 @@ pub fn solve_all_traces(
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
     };
+    let boost_area_coord_set: HashSet<PuyoCoord> = match from_value(js_boost_area_coord_set) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
     let field: Field = match from_value(js_field) {
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
@@ -91,7 +103,13 @@ pub fn solve_all_traces(
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
     };
-    let explorer = SolutionExplorer::new(&exploration_target, &environment, &field, &next_puyos);
+    let explorer = SolutionExplorer::new(
+        &exploration_target,
+        &environment,
+        &boost_area_coord_set,
+        &field,
+        &next_puyos,
+    );
     let exploration_result = explorer.solve_all_traces();
 
     match to_value(&exploration_result) {
@@ -104,6 +122,7 @@ pub fn solve_all_traces(
 pub fn solve_traces_including_index(
     js_exploration_target: JsValue,
     js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
     js_field: JsValue,
     js_next_puyos: JsValue,
     coord_index: u8,
@@ -118,6 +137,10 @@ pub fn solve_traces_including_index(
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
     };
+    let boost_area_coord_set: HashSet<PuyoCoord> = match from_value(js_boost_area_coord_set) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
     let field: Field = match from_value(js_field) {
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
@@ -126,7 +149,13 @@ pub fn solve_traces_including_index(
         Ok(v) => v,
         Err(e) => return Err(JsError::new(&e.to_string())),
     };
-    let explorer = SolutionExplorer::new(&exploration_target, &environment, &field, &next_puyos);
+    let explorer = SolutionExplorer::new(
+        &exploration_target,
+        &environment,
+        &boost_area_coord_set,
+        &field,
+        &next_puyos,
+    );
     let exploration_result = explorer.solve_traces_including_index(coord_index);
 
     match to_value(&exploration_result) {

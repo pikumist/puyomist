@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "puyomist",
+      "path": "."
+    },
+    {
+      "name": "solver-wasm",
+      "path": "packages/solver-wasm"
+    }
+  ]
+}

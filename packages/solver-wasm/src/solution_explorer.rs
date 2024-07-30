@@ -1,6 +1,5 @@
-use std::{cmp, collections::HashMap, sync::OnceLock};
-
 use crate::{
+    chain::Chain,
     chain_helper::{
         sum_attr_popped_count, sum_colored_attr_damage, sum_puyo_tsukai_count, sum_wild_damage,
     },
@@ -10,8 +9,15 @@ use crate::{
     puyo::{Field, NextPuyos},
     puyo_coord::PuyoCoord,
     puyo_type::is_traceable_type,
-    simulator::{SimulationEnvironment, Simulator},
+    simulation_environment::SimulationEnvironment,
+    simulator::Simulator,
+    simulator_bb::{BitBoards, SimulatorBB},
     solution::{ExplorationResult, SolutionResult, SolutionState},
+};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+    sync::OnceLock,
 };
 
 fn better_solution_by_bigger_value<'a>(
@@ -126,22 +132,42 @@ fn better_solution<'a>(
 pub struct SolutionExplorer<'a> {
     exploration_target: &'a ExplorationTarget,
     environment: &'a SimulationEnvironment,
+    boost_area_coord_set: &'a HashSet<PuyoCoord>,
+    boost_area: u64,
     field: &'a Field,
     next_puyos: &'a NextPuyos,
+    boards: BitBoards,
 }
 
 impl<'a> SolutionExplorer<'a> {
     pub fn new(
         exploration_target: &'a ExplorationTarget,
         environment: &'a SimulationEnvironment,
+        boost_area_coord_set: &'a HashSet<PuyoCoord>,
         field: &'a Field,
         next_puyos: &'a NextPuyos,
     ) -> SolutionExplorer<'a> {
+        let boost_area = SimulatorBB::coords_to_board(boost_area_coord_set.iter());
+        let boards = SimulatorBB::create_bit_boards(
+            &field.map(|row| {
+                row.map(|c| match c {
+                    Some(p) => Some(p.puyo_type),
+                    None => None,
+                })
+            }),
+            &next_puyos.map(|c| match c {
+                Some(p) => Some(p.puyo_type),
+                None => None,
+            }),
+        );
         return SolutionExplorer {
             exploration_target,
             environment,
+            boost_area_coord_set,
+            boost_area,
             field,
             next_puyos,
+            boards,
         };
     }
 
@@ -211,14 +237,7 @@ impl<'a> SolutionExplorer<'a> {
     }
 
     fn calc_solution_result(&self, trace_coords: Vec<PuyoCoord>) -> SolutionResult {
-        let sim = Simulator {
-            environment: self.environment,
-        };
-        let chains = sim.do_chains(
-            &mut self.field.clone(),
-            &mut self.next_puyos.clone(),
-            &trace_coords,
-        );
+        let chains = self.do_chains_bb(&trace_coords);
         let is_all_cleared = chains.iter().any(|c| c.is_all_cleared);
         let is_chance_popped = chains.iter().any(|c| c.is_chance_popped);
         let is_prism_popped = chains.iter().any(|c| c.is_prism_popped);
@@ -281,6 +300,32 @@ impl<'a> SolutionExplorer<'a> {
             is_chance_popped,
             is_prism_popped,
         };
+    }
+
+    /// @deprecated Bitboardを使わない旧シミュレーターで連鎖させる。
+    #[allow(warnings)]
+    fn do_chains(&self, trace_coords: &Vec<PuyoCoord>) -> Vec<Chain> {
+        let sim = Simulator {
+            environment: self.environment,
+            boost_area_coord_set: &self.boost_area_coord_set,
+        };
+        return sim.do_chains(
+            &mut self.field.clone(),
+            &mut self.next_puyos.clone(),
+            &trace_coords,
+        );
+    }
+
+    /// Bitboardを使ったシミュレーターで連鎖させる。
+    fn do_chains_bb(&self, trace_coords: &Vec<PuyoCoord>) -> Vec<Chain> {
+        let sim = SimulatorBB {
+            environment: self.environment,
+            boost_area: self.boost_area,
+        };
+        return sim.do_chains(
+            &mut self.boards.clone(),
+            SimulatorBB::coords_to_board(trace_coords.iter()),
+        );
     }
 
     fn update_exploration_result(
@@ -350,7 +395,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 3,
             max_trace_num: 3,
@@ -358,6 +402,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 7.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = PuyoType::Red;
         let b = PuyoType::Blue;
         let g = PuyoType::Green;
@@ -389,12 +434,13 @@ mod tests {
                 puyo_type,
             })
         });
-        let explorer = SolutionExplorer {
-            exploration_target: &exploration_target,
-            environment: &environment,
-            field: &field,
-            next_puyos: &next_puyos,
-        };
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
 
         // Act
         let actual = explorer.solve_all_traces();
@@ -987,7 +1033,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -995,6 +1040,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 10.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = PuyoType::Red;
         let b = PuyoType::Blue;
         let g = PuyoType::Green;
@@ -1027,12 +1073,13 @@ mod tests {
                 puyo_type,
             })
         });
-        let explorer = SolutionExplorer {
-            exploration_target: &exploration_target,
-            environment: &environment,
-            field: &field,
-            next_puyos: &next_puyos,
-        };
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
 
         // Act
         let actual = explorer.solve_all_traces();
@@ -1265,7 +1312,8 @@ mod tests {
                             separated_blocks_num: 1
                         }
                     ),]),
-                    is_all_cleared: false,
+                    // SimulatorBB では padding していないので true になる
+                    is_all_cleared: true,
                     is_chance_popped: false,
                     is_prism_popped: false,
                 },
@@ -1296,7 +1344,6 @@ mod tests {
             counting_bonus: None,
         };
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: true,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 48,
@@ -1304,6 +1351,7 @@ mod tests {
             popping_leverage: 5.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let r = Some(PuyoType::Red);
         let b = Some(PuyoType::Blue);
         let g = Some(PuyoType::Green);
@@ -1334,12 +1382,13 @@ mod tests {
             })
         });
         let next_puyos: [Option<Puyo>; 8] = [None, None, None, None, None, None, None, None];
-        let explorer = SolutionExplorer {
-            exploration_target: &exploration_target,
-            environment: &environment,
-            field: &field,
-            next_puyos: &next_puyos,
-        };
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
 
         // Act
         let actual = explorer.solve_all_traces();

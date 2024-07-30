@@ -13,6 +13,7 @@ use crate::{
     puyo_attr::{PuyoAttr, SPECIAL_ATTRS},
     puyo_coord::PuyoCoord,
     puyo_type::{convert_type, get_attr, is_chance_type, is_colored_type, is_plus_type, PuyoType},
+    simulation_environment::SimulationEnvironment,
     trace_mode::*,
 };
 
@@ -25,20 +26,11 @@ pub struct BlockWithAttr {
     block: Block,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SimulationEnvironment {
-    pub boost_area_coord_set: HashSet<PuyoCoord>,
-    pub is_chance_mode: bool,
-    pub minimum_puyo_num_for_popping: u32,
-    pub max_trace_num: u32,
-    pub trace_mode: TraceMode,
-    pub popping_leverage: f64,
-    pub chain_leverage: f64,
-}
-
 #[derive(Debug)]
+/// @deprecated
 pub struct Simulator<'a> {
     pub environment: &'a SimulationEnvironment,
+    pub boost_area_coord_set: &'a HashSet<PuyoCoord>,
 }
 
 impl<'a> Simulator<'a> {
@@ -431,7 +423,7 @@ impl<'a> Simulator<'a> {
             | PuyoAttr::Green
             | PuyoAttr::Yellow
             | PuyoAttr::Purple => {
-                if self.environment.boost_area_coord_set.contains(coord) {
+                if self.boost_area_coord_set.contains(coord) {
                     if is_plus_type(puyo.puyo_type) {
                         2
                     } else {
@@ -442,7 +434,7 @@ impl<'a> Simulator<'a> {
                 }
             }
             PuyoAttr::Heart | PuyoAttr::Prism | PuyoAttr::Ojama => {
-                if self.environment.boost_area_coord_set.contains(coord) {
+                if self.boost_area_coord_set.contains(coord) {
                     1
                 } else {
                     0
@@ -460,7 +452,7 @@ impl<'a> Simulator<'a> {
             | PuyoAttr::Green
             | PuyoAttr::Yellow
             | PuyoAttr::Purple => {
-                if self.environment.boost_area_coord_set.contains(coord) {
+                if self.boost_area_coord_set.contains(coord) {
                     if is_plus_type(puyo.puyo_type) {
                         6
                     } else {
@@ -471,7 +463,7 @@ impl<'a> Simulator<'a> {
                 }
             }
             PuyoAttr::Heart | PuyoAttr::Prism | PuyoAttr::Ojama => {
-                if self.environment.boost_area_coord_set.contains(coord) {
+                if self.boost_area_coord_set.contains(coord) {
                     3
                 } else {
                     1
@@ -650,7 +642,6 @@ mod tests {
         let h = PuyoType::Heart;
 
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 3,
             max_trace_num: 5,
@@ -658,6 +649,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 7.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let mut id_counter = 0;
         let mut field = [
             [r, p, h, p, y, g, y, y],
@@ -686,6 +678,7 @@ mod tests {
         let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }];
         let simulator = Simulator {
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
         };
 
         // Act
@@ -1018,7 +1011,6 @@ mod tests {
         let w: PuyoType = PuyoType::Prism;
 
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -1026,6 +1018,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 10.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let mut id_counter = 0;
         let mut field = [
             [y, p, r, g, y, g, b, g],
@@ -1060,6 +1053,7 @@ mod tests {
         ];
         let simulator = Simulator {
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
         };
 
         // Act
@@ -1292,7 +1286,6 @@ mod tests {
         let e: Option<PuyoType> = None;
 
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: true,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -1300,6 +1293,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let mut id_counter = 0;
         let mut field = [
             [p, b, e, g, g, g, e, e],
@@ -1332,6 +1326,7 @@ mod tests {
         ];
         let simulator = Simulator {
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
         };
 
         // Act
@@ -1478,15 +1473,6 @@ mod tests {
         let h = PuyoType::Heart;
 
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::from([
-                PuyoCoord { x: 4, y: 1 },
-                PuyoCoord { x: 3, y: 2 },
-                PuyoCoord { x: 4, y: 2 },
-                PuyoCoord { x: 3, y: 3 },
-                PuyoCoord { x: 4, y: 3 },
-                PuyoCoord { x: 3, y: 4 },
-                PuyoCoord { x: 4, y: 5 },
-            ]),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -1494,6 +1480,15 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set = HashSet::from([
+            PuyoCoord { x: 4, y: 1 },
+            PuyoCoord { x: 3, y: 2 },
+            PuyoCoord { x: 4, y: 2 },
+            PuyoCoord { x: 3, y: 3 },
+            PuyoCoord { x: 4, y: 3 },
+            PuyoCoord { x: 3, y: 4 },
+            PuyoCoord { x: 4, y: 5 },
+        ]);
         let mut id_counter = 0;
         let mut field = [
             [h, r, r, g, p, b, h, b],
@@ -1528,6 +1523,7 @@ mod tests {
         ];
         let simulator = Simulator {
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
         };
 
         // Act
@@ -1621,7 +1617,6 @@ mod tests {
         let e: Option<PuyoType> = None;
 
         let environment = SimulationEnvironment {
-            boost_area_coord_set: HashSet::new(),
             is_chance_mode: false,
             minimum_puyo_num_for_popping: 4,
             max_trace_num: 5,
@@ -1629,6 +1624,7 @@ mod tests {
             popping_leverage: 1.0,
             chain_leverage: 1.0,
         };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
         let mut id_counter = 0;
         let mut field = [
             [e, e, e, y, e, e, e, e],
@@ -1659,6 +1655,7 @@ mod tests {
         ];
         let simulator = Simulator {
             environment: &environment,
+            boost_area_coord_set: &boost_area_coord_set,
         };
 
         // Act
