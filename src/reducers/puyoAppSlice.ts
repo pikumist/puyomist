@@ -620,6 +620,8 @@ const puyoAppSlice = createSlice({
         {},
         state.simulationData as any
       ) as any;
+      state.animationSteps = [];
+      state.isBoardEditing = false;
     }
   }
 });
