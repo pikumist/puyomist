@@ -22,9 +22,9 @@ import { dispatchWhenScreenshotReceivedViaWebSocket } from '../hooks/dispatchWhe
 import { selectActiveChains } from '../hooks/selectActiveChains';
 import { customBoardId } from '../logics/boards';
 import type { RootState } from '../reducers/store';
+import BoardReceiver from './BoardReceiver';
 import FieldController from './FieldController';
 import PuyoBoard from './PuyoBoard';
-import ScreenshotCanvas from './ScreenshotCanvas';
 import SolutionMenu from './SolutionMenu';
 import SolutionResultView from './SolutionResultView';
 import TracingResultView from './TracingResultView';
@@ -34,6 +34,7 @@ import BoardSelector from './settings/BoardSelector';
 import BoostAreaSetting from './settings/BoostAreaSetting';
 import ChainLeverageInput from './settings/ChainLeverageInput';
 import ExplorationTargetSetting from './settings/ExplorationTargetSetting';
+import ExportMenu from './settings/ExportMenu';
 import MaxTraceNumInput from './settings/MaxTraceNumInput';
 import MinimumPuyoNumInput from './settings/MinimumPuyoNumInput';
 import NextSelector from './settings/NextSelector';
@@ -109,6 +110,7 @@ const PuyoApp: React.FC = () => {
                     disabled={boardId === customBoardId}
                     nextSelection={nextSelection}
                   />
+                  <ExportMenu simulationData={simulationData} />
                   <BoardEditPopover
                     isBoardEditing={isBoardEditing}
                     boardEditMode={boardEditMode}
@@ -258,7 +260,7 @@ const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
         <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
         <SolutionMethodSelector method={solutionMethod} />
         <ExplorationTargetSetting target={explorationTarget} />
-        <ScreenshotCanvas
+        <BoardReceiver
           mt="2"
           canvasMaxWidth={100}
           screenshotInfo={screenshotInfo}

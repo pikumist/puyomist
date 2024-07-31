@@ -4,16 +4,20 @@ import type { TraceMode } from './TraceMode';
 
 /** 連鎖の種やとくべつルール、SS取り込み時のボード情報 */
 export interface Board {
-  /** 盤面情報 */
-  field: (PuyoType | undefined)[][];
   /** ネクストぷよリスト */
   nextPuyos?: (PuyoType | undefined)[];
+  /** 盤面情報 */
+  field: (PuyoType | undefined)[][];
   /** 大連鎖チャンス中かどうか */
   isChanceMode?: boolean;
-  /** なぞりモード */
-  traceMode?: TraceMode;
   /** ぷよ消しに必要な最低数 (4 か 3) */
   minimumPuyoNumForPopping?: number;
+  /** 最大なぞり数 */
+  maxTraceNum?: number;
+  /** なぞりモード */
+  traceMode?: TraceMode;
+  /** 同時消し倍率 */
+  poppingLeverage?: number;
   /** 連鎖倍率 */
   chainLeverage?: number;
 }
