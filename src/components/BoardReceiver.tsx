@@ -4,16 +4,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Accept } from 'react-dropzone';
 import { useDispatch } from 'react-redux';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
+import { parseBoardCsv } from '../logics/board-csv';
 import { detectBoard } from '../logics/board-detection';
+import { parseBoardJson } from '../logics/board-json';
 import {
   boardDetectedAndSolve,
   screenshotReceived
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
-import styles from './ScreenshotCanvas.module.css';
+import styles from './BoardReceiver.module.css';
 import DropZone from './settings/DropZone';
 
-interface ScreenshotCanvasProps extends StackProps {
+interface BoardReceiverProps extends StackProps {
   /** キャンバスの最大幅 */
   canvasMaxWidth: number;
 
@@ -28,11 +30,17 @@ const white1x1Png =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=';
 
 const accept: Accept = {
-  'image/*': ['.png', '.gif', '.jpeg', '.jpg']
+  'image/*': ['.png', '.gif', '.jpeg', '.jpg'],
+  'text/*': ['.csv'],
+  'application/*': ['.json']
 };
 
-/** スクリーンショット画像を描画するキャンバス */
-const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
+/**
+ * ファイルからボード情報を受け取る。
+ * 受け取り可能なファイルはスクリーンショット画像かCSV。
+ * 画像であればさらにプレビュー画像を描画する。
+ */
+const BoardReceiver: React.FC<BoardReceiverProps> = (props) => {
   const { screenshotInfo, errorMessage, canvasMaxWidth, ...rest } = props;
   const dispatch = useDispatch<AppDispatch>();
 
@@ -45,27 +53,52 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const handleFile = useCallback(
-    (file: File | null) => {
-      if (!file || file.type.indexOf('image/') < 0) {
+    async (file: File | null) => {
+      if (!file) {
         return;
       }
 
-      const {
-        webkitRelativePath: filePath,
-        name: fileName,
-        type: mime,
-        size
-      } = file;
+      const fileType = file.type;
 
-      const screenshotInfo: ScreenshotInfo = {
-        filePath,
-        fileName,
-        mime,
-        size,
-        blobUrl: URL.createObjectURL(file)
-      };
+      if (fileType.startsWith('image/')) {
+        const {
+          webkitRelativePath: filePath,
+          name: fileName,
+          type: mime,
+          size
+        } = file;
 
-      dispatch(screenshotReceived(screenshotInfo));
+        const screenshotInfo: ScreenshotInfo = {
+          filePath,
+          fileName,
+          mime,
+          size,
+          blobUrl: URL.createObjectURL(file)
+        };
+
+        dispatch(screenshotReceived(screenshotInfo));
+      } else {
+        switch (fileType) {
+          case 'text/csv': {
+            const errorOrBoard = parseBoardCsv(await file.text());
+            if (typeof errorOrBoard === 'string') {
+              dispatch(boardDetectedAndSolve(errorOrBoard));
+            } else {
+              dispatch(boardDetectedAndSolve(undefined, errorOrBoard));
+            }
+            break;
+          }
+          case 'application/json': {
+            const errorOrBoard = parseBoardJson(await file.text());
+            if (typeof errorOrBoard === 'string') {
+              dispatch(boardDetectedAndSolve(errorOrBoard));
+            } else {
+              dispatch(boardDetectedAndSolve(undefined, errorOrBoard));
+            }
+            break;
+          }
+        }
+      }
     },
     [dispatch]
   );
@@ -135,4 +168,4 @@ const ScreenshotCanvas: React.FC<ScreenshotCanvasProps> = (props) => {
   );
 };
 
-export default ScreenshotCanvas;
+export default BoardReceiver;
