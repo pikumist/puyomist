@@ -26,6 +26,8 @@ import {
 } from './solution';
 
 /**
+ * @deprecated Rust版に集約する
+ *
  * シミュレーターの最大なぞり消し数を超えない範囲で全てのなぞりを試して最適解を求める。
  * @param simulator シミュレーター
  * @param explorationTarget 探索対象
@@ -58,6 +60,8 @@ export const solveAllTraces = (
 };
 
 /**
+ * @deprecated Rust版に集約する
+ *
  * なぞり開始位置を固定して最適解を求める。
  * @param simulator シミュレーター
  * @param explorationTarget 探索対象

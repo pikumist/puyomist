@@ -15,6 +15,13 @@ const fixFieldBoostAreas = (simulationData: SimulationData): void => {
   simulationData.boostAreaCoordList = boostAreaCoordList;
 };
 
+/**
+ * @deprecated Rust版に集約する
+ *
+ * @param simulationData
+ * @param explorationTarget
+ * @returns
+ */
 export async function solveAllTraces(
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget
@@ -23,6 +30,14 @@ export async function solveAllTraces(
   return _solveAllTraces(new Simulator(simulationData), explorationTarget);
 }
 
+/**
+ * @deprecated Rust版に集約する
+ *
+ * @param simulationData
+ * @param explorationTarget
+ * @param index
+ * @returns
+ */
 export async function solveIncludingTraceIndex(
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
