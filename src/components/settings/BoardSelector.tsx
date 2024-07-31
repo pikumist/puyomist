@@ -19,16 +19,13 @@ const BoardSelector: React.FC<IProps> = (props) => {
     dispatch(boardIdChanged(e.target.value));
 
   return (
-    <HStack>
-      <Text w="3em">盤面</Text>
-      <Select aria-label="盤面の選択" value={boardId} onChange={onChanged}>
-        {[...boardIdToNameMap.entries()].map((entry) => (
-          <option value={entry[0]} key={entry[0]}>
-            {entry[1]}
-          </option>
-        ))}
-      </Select>
-    </HStack>
+    <Select aria-label="盤面の選択" value={boardId} onChange={onChanged}>
+      {[...boardIdToNameMap.entries()].map((entry) => (
+        <option value={entry[0]} key={entry[0]}>
+          {entry[1]}
+        </option>
+      ))}
+    </Select>
   );
 };
 
