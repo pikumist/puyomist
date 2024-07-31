@@ -1,4 +1,4 @@
-import { HStack, Select, Text } from '@chakra-ui/react';
+import { Select } from '@chakra-ui/react';
 import type React from 'react';
 import { useDispatch } from 'react-redux';
 import { boardIdToNameMap } from '../../logics/boards';
