@@ -21,7 +21,8 @@ export const store = configureStore({
           'puyoApp.simulationData.traceCoords',
           'puyoApp.explorationResult',
           'puyoApp.lastTraceCoords',
-          'puyoApp.abortControllerForSolving'
+          'puyoApp.abortControllerForSolving',
+          'puyoApp.solveResult'
         ]
       }
     }),

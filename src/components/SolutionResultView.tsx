@@ -1,5 +1,6 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Select, Text } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   ExplorationCategory,
   explorationCategoryDescriptionMap
@@ -11,20 +12,24 @@ import {
 } from '../logics/PuyoAttr';
 import { Simulator } from '../logics/Simulator';
 import type { SolveResult } from '../logics/solution';
+import { optimalSolutionIndexChanged } from '../reducers/puyoAppSlice';
 import PuyoIcon from './PuyoIcon';
 
 interface SolutionResultViewProps {
-  /** 解 */
+  /** solve関数の結果 */
   result: SolveResult | undefined;
+  /** 解のインデックス */
+  index: number;
 }
 
 /** 探索結果ビュー */
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
   (props) => {
-    const { result } = props;
+    const { result, index } = props;
+    const dispatch = useDispatch();
 
     const totalDamageMap = useMemo(() => {
-      const solution = result?.optimal_solutions[0];
+      const solution = result?.optimal_solutions[index];
       if (!solution) {
         return undefined;
       }
@@ -34,7 +39,13 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
           Simulator.calcTotalDamageOfTargetAttr(solution.chains, attr)
         ])
       );
-    }, [result?.optimal_solutions]);
+    }, [result, index]);
+
+    const onIndexChanged = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      dispatch(
+        optimalSolutionIndexChanged(Number.parseInt(e.target.value, 10))
+      );
+    };
 
     return (
       <>
@@ -46,19 +57,36 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 result?.explorationTarget.category
               )}
             </Text>
+            <HStack>
+              <Select
+                aria-label="解の選択"
+                value={index}
+                onChange={onIndexChanged}
+              >
+                {[...result.optimal_solutions.entries()].map(
+                  ([i, solutionResult]) => {
+                    const cellAddrs = solutionResult.trace_coords
+                      .map((coord) => coord.toCellAddr())
+                      .join(',');
+                    const value = solutionResult.value.toFixed(
+                      result.explorationTarget.category ===
+                        ExplorationCategory.Damage
+                        ? 2
+                        : 0
+                    );
+                    return (
+                      <option value={i} key={cellAddrs} data-index={i}>
+                        {value}&nbsp;(
+                        {cellAddrs})
+                      </option>
+                    );
+                  }
+                )}
+              </Select>
+            </HStack>
             <Text>探索時間: {result?.elapsedTime} ms</Text>
             <Text>候補数: {result?.candidates_num}</Text>
-            <Text>最適なぞり:</Text>
-            <Text>
-              {result?.optimal_solutions[0]?.trace_coords
-                .map((c) => c.toCellAddr())
-                .join(',')}
-            </Text>
-            <Text>
-              <OptimalValue
-                category={result?.explorationTarget?.category}
-                optimalValue={result?.optimal_solutions[0]?.value}
-              />
+            <Box>
               {coloredPuyoAttrList.map((attr) => (
                 <HStack key={attr} spacing="1">
                   <PuyoIcon
@@ -73,30 +101,12 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                   </Text>
                 </HStack>
               ))}
-            </Text>
+            </Box>
           </Box>
         ) : null}
       </>
     );
   }
 );
-
-const OptimalValue: React.FC<{
-  category: ExplorationCategory | undefined;
-  optimalValue: number | undefined;
-}> = (props) => {
-  const { category, optimalValue } = props;
-
-  switch (category) {
-    case ExplorationCategory.Damage:
-      return <Text>対象のダメージ量: {optimalValue?.toFixed(2)}</Text>;
-    case ExplorationCategory.SkillPuyoCount:
-      return <Text>スキル溜めぷよ数: {optimalValue}</Text>;
-    case ExplorationCategory.PuyotsukaiCount:
-      return <Text>ぷよ使いカウント: {optimalValue}</Text>;
-    default:
-      return <Text>最適値: </Text>;
-  }
-};
 
 export default SolutionResultView;

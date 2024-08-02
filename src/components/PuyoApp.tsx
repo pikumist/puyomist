@@ -57,6 +57,7 @@ const PuyoApp: React.FC = () => {
     isBoardEditing,
     boardEditMode,
     solveResult,
+    optimalSolutionIndex,
     solving,
     simulationData,
     lastTraceCoords,
@@ -184,7 +185,10 @@ const PuyoApp: React.FC = () => {
                   visibility={solving ? 'visible' : 'hidden'}
                   isIndeterminate={solving}
                 />
-                <SolutionResultView result={solveResult} />
+                <SolutionResultView
+                  result={solveResult}
+                  index={optimalSolutionIndex}
+                />
               </Box>
             </Grid>
           </Stack>

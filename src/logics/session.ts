@@ -30,7 +30,7 @@ export class Session {
       PreferenceKind.AllClear,
       PreferenceKind.SmallerTraceNum
     ],
-    optimal_solution_count: 1
+    optimal_solution_count: 5
   };
 
   storage: Storage;

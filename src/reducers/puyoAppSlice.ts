@@ -281,6 +281,7 @@ const puyoAppSlice = createSlice({
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
     },
 
     /** ネクストの項目が選択されたとき */
@@ -372,6 +373,14 @@ const puyoAppSlice = createSlice({
             ...common
           };
       }
+    },
+
+    /** 探索対象の優先度に変更があったとき */
+    explorationOptimalSolutionNumChanged: (
+      state,
+      action: PayloadAction<number>
+    ) => {
+      state.explorationTarget.optimal_solution_count = action.payload;
     },
 
     /** 探索対象の優先度に変更があったとき */
@@ -561,6 +570,7 @@ const puyoAppSlice = createSlice({
       }
 
       state.solveResult = result;
+      state.optimalSolutionIndex = 0;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
@@ -568,6 +578,7 @@ const puyoAppSlice = createSlice({
     /** 解を求めるのが失敗したとき */
     solveFailed: (state) => {
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
@@ -580,12 +591,19 @@ const puyoAppSlice = createSlice({
     /** 最適解リセットボタンがクリックされたとき */
     solutionResetButtonClicked: (state) => {
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
     },
 
     /** 解でなぞりボタンが押されたときの準備アクション */
     preparePlaySolutionButtonClicked: (state) => {
       state.simulationData.traceCoords =
-        state.solveResult?.optimal_solutions[0].trace_coords ?? [];
+        state.solveResult?.optimal_solutions[state.optimalSolutionIndex]
+          .trace_coords ?? [];
+    },
+
+    /** 解のインデックスが変更されたとき */
+    optimalSolutionIndexChanged: (state, action: PayloadAction<number>) => {
+      state.optimalSolutionIndex = action.payload;
     },
 
     ///
@@ -647,6 +665,7 @@ export const {
   chainLeverageChanged,
   animationDurationChanged,
   explorationCategorySelected,
+  explorationOptimalSolutionNumChanged,
   explorationPreferencePrioritiesChanged,
   explorationDamageMainAttrSelected,
   explorationDamageSubAttrSelected,
@@ -667,6 +686,7 @@ export const {
   solvingStarted,
   solveCancelButtonClicked,
   solutionResetButtonClicked,
+  optimalSolutionIndexChanged,
   /// スクリーンショット系
   screenshotReceived,
   boardDetected
