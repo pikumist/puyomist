@@ -2,12 +2,8 @@ import { releaseProxy } from 'comlink';
 import pLimit from 'p-limit';
 import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import type { SimulationData } from '../../logics/SimulationData';
-import type {
-  ExplorationResult,
-  SolutionResult,
-  SolveResult
-} from '../../logics/solution';
-import { betterSolution } from '../../logics/solution-explorer';
+import type { ExplorationResult, SolveResult } from '../../logics/solution';
+import { mergeResultIfRankedIn } from '../../logics/solution-explorer';
 import { createWorker as createWasmWorker } from '../../logics/solution-wasm-worker-shim';
 import { createWorker } from '../../logics/solution-worker-shim';
 
@@ -79,7 +75,7 @@ const createSolveIncludingTraceIndexAbortPromises = (
         .then((result) => {
           console.log(
             index,
-            result?.candidatesNum,
+            result?.candidates_num,
             `${Date.now() - startTime}ms`
           );
           exitWorker();
@@ -182,31 +178,22 @@ const _createSolveAllInParallel =
       })
     );
 
-    const candidatesNum = solutionsByIndexs.reduce((m, s) => {
-      return m + (s?.candidatesNum || 0);
+    const candidates_num = solutionsByIndexs.reduce((m, s) => {
+      return m + (s?.candidates_num || 0);
     }, 0);
 
-    const optimalSolution = solutionsByIndexs.reduce(
-      (m, s) => {
-        if (!m) {
-          return s?.optimalSolution;
-        }
-        if (!s?.optimalSolution) {
-          return m;
-        }
-        return betterSolution(
-          explorationTarget.preference_priorities,
-          m,
-          s.optimalSolution
-        );
-      },
-      undefined as SolutionResult | undefined
-    );
+    const explorationResult = solutionsByIndexs.shift()!;
+
+    for (const e of solutionsByIndexs) {
+      for (const s of e.optimal_solutions) {
+        mergeResultIfRankedIn(explorationTarget, s, explorationResult);
+      }
+    }
 
     return {
       explorationTarget,
       elapsedTime: Date.now() - startTime,
-      candidatesNum,
-      optimalSolution
+      candidates_num,
+      optimal_solutions: explorationResult.optimal_solutions
     } satisfies SolveResult;
   };

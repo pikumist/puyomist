@@ -41,9 +41,9 @@ export interface SolutionResult {
 /** 探索結果 */
 export interface ExplorationResult {
   /** 候補数 */
-  candidatesNum: number;
+  candidates_num: number;
   /** 最適解 */
-  optimalSolution: SolutionResult | undefined;
+  optimal_solutions: SolutionResult[];
 }
 
 /** solve() 関数の結果 */
@@ -197,14 +197,6 @@ export class SolutionState {
 
     return false;
   }
-}
-
-/** 探索中のキャリー情報 */
-export interface SolutionCarry {
-  /** 探索数 */
-  solutionNums: number;
-  /** 最適解 */
-  optimalSolution: SolutionResult | undefined;
 }
 
 /** 探索法 */

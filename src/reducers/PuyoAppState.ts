@@ -47,6 +47,8 @@ export interface PuyoAppState {
   abortControllerForSolving: AbortController | undefined;
   /** 最適解探索結果 */
   solveResult: SolveResult | undefined;
+  /** 最適解のインデックス */
+  optimalSolutionIndex: number;
   /** スクリーンショット情報 */
   screenshotInfo: ScreenshotInfo | undefined;
   /** スクリーンショット解析時のエラーメッセージ */
@@ -96,6 +98,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   solving: false,
   abortControllerForSolving: undefined,
   solveResult: undefined,
+  optimalSolutionIndex: -1,
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined
 };

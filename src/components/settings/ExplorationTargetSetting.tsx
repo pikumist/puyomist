@@ -1,4 +1,5 @@
 import {
+  Box,
   Checkbox,
   HStack,
   NumberDecrementStepper,
@@ -39,6 +40,7 @@ import {
   explorationDamageMainAttrSelected,
   explorationDamageMainSubRatioSelected,
   explorationDamageSubAttrSelected,
+  explorationOptimalSolutionNumChanged,
   explorationPreferencePrioritiesChanged,
   explorationPuyoCountMainAttrSelected
 } from '../../reducers/puyoAppSlice';
@@ -55,6 +57,7 @@ const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
     <Stack my={2} spacing={1}>
       <CategorySelector category={target.category} />
       <DetailSetting target={target} />
+      <OptimalSolutionCountInput num={target.optimal_solution_count} />
       <PreferencePrioritySetting
         preferencePriorities={target.preference_priorities}
       />
@@ -140,6 +143,38 @@ const PreferencePrioritySetting: React.FC<{
         )}
       />
     </Stack>
+  );
+};
+
+const OptimalSolutionCountInput: React.FC<{
+  num: number;
+}> = (props) => {
+  const { num } = props;
+  const dispatch = useDispatch<AppDispatch>();
+
+  const onChanged = (_: string, valueAsNumber: number) =>
+    dispatch(explorationOptimalSolutionNumChanged(valueAsNumber));
+
+  return (
+    <HStack>
+      <Box>
+        <Text>最適解の数</Text>
+      </Box>
+      <NumberInput
+        width="4.5em"
+        value={num}
+        step={1}
+        min={1}
+        max={10}
+        onChange={onChanged}
+      >
+        <NumberInputField />
+        <NumberInputStepper>
+          <NumberIncrementStepper />
+          <NumberDecrementStepper />
+        </NumberInputStepper>
+      </NumberInput>
+    </HStack>
   );
 };
 

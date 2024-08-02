@@ -281,6 +281,7 @@ const puyoAppSlice = createSlice({
       state.animationSteps = [];
       state.activeAnimationStepIndex = -1;
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
     },
 
     /** ネクストの項目が選択されたとき */
@@ -372,6 +373,14 @@ const puyoAppSlice = createSlice({
             ...common
           };
       }
+    },
+
+    /** 探索対象の優先度に変更があったとき */
+    explorationOptimalSolutionNumChanged: (
+      state,
+      action: PayloadAction<number>
+    ) => {
+      state.explorationTarget.optimal_solution_count = action.payload;
     },
 
     /** 探索対象の優先度に変更があったとき */
@@ -553,15 +562,15 @@ const puyoAppSlice = createSlice({
     solved: (state, action: PayloadAction<SolveResult>) => {
       const result = action.payload;
 
-      if (result.optimalSolution) {
-        // ワーカー経由で壊れてしまう座標を修正する。
-        result.optimalSolution.trace_coords =
-          result.optimalSolution.trace_coords.map(
-            (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
-          );
+      // ワーカー経由で壊れてしまう座標を修正する。
+      for (const s of result.optimal_solutions) {
+        s.trace_coords = s.trace_coords.map(
+          (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
+        );
       }
 
       state.solveResult = result;
+      state.optimalSolutionIndex = 0;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
@@ -569,6 +578,7 @@ const puyoAppSlice = createSlice({
     /** 解を求めるのが失敗したとき */
     solveFailed: (state) => {
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
       state.solving = false;
       state.abortControllerForSolving = undefined;
     },
@@ -581,12 +591,19 @@ const puyoAppSlice = createSlice({
     /** 最適解リセットボタンがクリックされたとき */
     solutionResetButtonClicked: (state) => {
       state.solveResult = undefined;
+      state.optimalSolutionIndex = -1;
     },
 
     /** 解でなぞりボタンが押されたときの準備アクション */
     preparePlaySolutionButtonClicked: (state) => {
       state.simulationData.traceCoords =
-        state.solveResult?.optimalSolution?.trace_coords ?? [];
+        state.solveResult?.optimal_solutions[state.optimalSolutionIndex]
+          .trace_coords ?? [];
+    },
+
+    /** 解のインデックスが変更されたとき */
+    optimalSolutionIndexChanged: (state, action: PayloadAction<number>) => {
+      state.optimalSolutionIndex = action.payload;
     },
 
     ///
@@ -648,6 +665,7 @@ export const {
   chainLeverageChanged,
   animationDurationChanged,
   explorationCategorySelected,
+  explorationOptimalSolutionNumChanged,
   explorationPreferencePrioritiesChanged,
   explorationDamageMainAttrSelected,
   explorationDamageSubAttrSelected,
@@ -668,6 +686,7 @@ export const {
   solvingStarted,
   solveCancelButtonClicked,
   solutionResetButtonClicked,
+  optimalSolutionIndexChanged,
   /// スクリーンショット系
   screenshotReceived,
   boardDetected
@@ -768,8 +787,8 @@ export const solveButtonClicked =
 export const playSolutionButtonClicked =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState().puyoApp;
-    const optimalSolution = state.solveResult?.optimalSolution;
-    if (!optimalSolution) {
+
+    if (!state.solveResult?.optimal_solutions.length) {
       return;
     }
 
