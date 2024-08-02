@@ -5,10 +5,10 @@ import type { SimulationData } from '../../logics/SimulationData';
 import type { ExplorationResult, SolveResult } from '../../logics/solution';
 import { mergeResultIfRankedIn } from '../../logics/solution-explorer';
 import { createWorker as createWasmWorker } from '../../logics/solution-wasm-worker-shim';
-import { createWorker } from '../../logics/solution-worker-shim';
+import { createWorker as createJsWorker } from '../../logics/solution-worker-shim';
 
 const createSolveAllAbortPromises = (
-  factory: typeof createWorker | typeof createWasmWorker,
+  factory: typeof createJsWorker | typeof createWasmWorker,
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
   signal: AbortSignal
@@ -46,7 +46,7 @@ const createSolveAllAbortPromises = (
 };
 
 const createSolveIncludingTraceIndexAbortPromises = (
-  factory: typeof createWorker | typeof createWasmWorker,
+  factory: typeof createJsWorker | typeof createWasmWorker,
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget,
   index: number,
@@ -103,7 +103,7 @@ const createSolveIncludingTraceIndexAbortPromises = (
 export const createSolveAllInSerial = (
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget
-) => _createSolveAllInSerial(createWorker, simulationData, explorationTarget);
+) => _createSolveAllInSerial(createJsWorker, simulationData, explorationTarget);
 
 export const createSolveAllInSerialByWasm = (
   simulationData: SimulationData,
@@ -113,7 +113,7 @@ export const createSolveAllInSerialByWasm = (
 
 const _createSolveAllInSerial =
   (
-    factory: typeof createWorker | typeof createWasmWorker,
+    factory: typeof createJsWorker | typeof createWasmWorker,
     simulationData: SimulationData,
     explorationTarget: ExplorationTarget
   ) =>
@@ -139,7 +139,8 @@ const _createSolveAllInSerial =
 export const createSolveAllInParallel = (
   simulationData: SimulationData,
   explorationTarget: ExplorationTarget
-) => _createSolveAllInParallel(createWorker, simulationData, explorationTarget);
+) =>
+  _createSolveAllInParallel(createJsWorker, simulationData, explorationTarget);
 
 export const createSolveAllInParallelByWasm = (
   simulationData: SimulationData,
@@ -153,7 +154,7 @@ export const createSolveAllInParallelByWasm = (
 
 const _createSolveAllInParallel =
   (
-    factory: typeof createWorker | typeof createWasmWorker,
+    factory: typeof createJsWorker | typeof createWasmWorker,
     simulationData: SimulationData,
     explorationTarget: ExplorationTarget
   ) =>
@@ -182,11 +183,11 @@ const _createSolveAllInParallel =
       return m + (s?.candidates_num || 0);
     }, 0);
 
-    const explorationResult = solutionsByIndexs.shift()!;
+    const optimal_solutions = solutionsByIndexs.shift()!.optimal_solutions;
 
     for (const e of solutionsByIndexs) {
       for (const s of e.optimal_solutions) {
-        mergeResultIfRankedIn(explorationTarget, s, explorationResult);
+        mergeResultIfRankedIn(explorationTarget, s, optimal_solutions);
       }
     }
 
@@ -194,6 +195,6 @@ const _createSolveAllInParallel =
       explorationTarget,
       elapsedTime: Date.now() - startTime,
       candidates_num,
-      optimal_solutions: explorationResult.optimal_solutions
+      optimal_solutions
     } satisfies SolveResult;
   };

@@ -131,24 +131,28 @@ const updateExplorationResult = (
   explorationResult: ExplorationResult
 ): void => {
   explorationResult.candidates_num++;
-  mergeResultIfRankedIn(explorationTarget, solutionResult, explorationResult);
+  mergeResultIfRankedIn(
+    explorationTarget,
+    solutionResult,
+    explorationResult.optimal_solutions
+  );
 };
 
 export const mergeResultIfRankedIn = (
   explorationTarget: ExplorationTarget,
   solutionResult: SolutionResult,
-  explorationResult: ExplorationResult
+  optimalSolutions: SolutionResult[]
 ): void => {
   const max = explorationTarget.optimal_solution_count;
   if (max === 0) {
     return;
   }
 
-  const len = explorationResult.optimal_solutions.length;
+  const len = optimalSolutions.length;
   const preferencePriorities = explorationTarget.preference_priorities;
 
   const pos =
-    explorationResult.optimal_solutions.findLastIndex((s) => {
+    optimalSolutions.findLastIndex((s) => {
       const better = betterSolution(preferencePriorities, s, solutionResult);
       return better === s;
     }) + 1;
@@ -156,9 +160,9 @@ export const mergeResultIfRankedIn = (
     return;
   }
 
-  explorationResult.optimal_solutions.splice(pos, 0, solutionResult);
+  optimalSolutions.splice(pos, 0, solutionResult);
   if (len === max) {
-    explorationResult.optimal_solutions.pop();
+    optimalSolutions.pop();
   }
 };
 

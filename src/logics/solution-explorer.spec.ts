@@ -14,9 +14,11 @@ import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, E, G, P, R, Y } from './boards/alias';
+import { ExplorationResult, type SolutionResult } from './solution';
 import {
   type PartialSolutionResult,
   betterSolution,
+  mergeResultIfRankedIn,
   solveAllTraces,
   solveIncludingTraceIndex
 } from './solution-explorer';
@@ -224,6 +226,144 @@ describe('solution-explorer', () => {
         // Assert
         expect(actual).toBe(s1);
       });
+    });
+  });
+
+  describe('mergeResultIfRankedIn()', () => {
+    it('issues/52', () => {
+      // Arrange
+      const explorationTarget: ExplorationTarget = {
+        category: ExplorationCategory.SkillPuyoCount,
+        main_attr: PuyoAttr.Blue,
+        preference_priorities: [
+          PreferenceKind.AllClear,
+          PreferenceKind.PrismPop,
+          PreferenceKind.BiggerValue,
+          PreferenceKind.ChancePop,
+          PreferenceKind.SmallerTraceNum
+        ],
+        optimal_solution_count: 5
+      };
+      const optimalSolutions: SolutionResult[] = [];
+      const wasm_1: SolutionResult = {
+        trace_coords: ['E1', 'D2', 'F2', 'E3', 'F4'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const wasm_2: SolutionResult = {
+        trace_coords: ['A2', 'A3', 'B3', 'C2', 'D2'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const wasm_3: SolutionResult = {
+        trace_coords: ['E1', 'D2', 'F2', 'C3', 'E3', 'F4'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const wasm_4: SolutionResult = {
+        trace_coords: ['E1', 'D2', 'F2', 'D3', 'E3', 'F4'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const wasm_5: SolutionResult = {
+        trace_coords: ['E1', 'D2', 'F2', 'E3', 'G1', 'F4'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const js_2: SolutionResult = {
+        trace_coords: ['A2', 'A3', 'B3', 'C2', 'C3', 'D2'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const js_3: SolutionResult = {
+        trace_coords: ['A2', 'A3', 'B3', 'C2', 'D2', 'D3'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 19,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const js_4: SolutionResult = {
+        trace_coords: ['A2', 'A3', 'B3', 'C3', 'D2'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 18,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const js_5: SolutionResult = {
+        trace_coords: ['A2', 'A3', 'B3', 'C3', 'D2', 'D3'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        ),
+        value: 18,
+        is_all_cleared: true,
+        is_chance_popped: false,
+        is_prism_popped: true,
+        chains: []
+      };
+      const candidates = {
+        wasm_1,
+        wasm_2,
+        wasm_3,
+        wasm_4,
+        wasm_5,
+        js_2,
+        js_3,
+        js_4,
+        js_5
+      };
+
+      // Act
+      mergeResultIfRankedIn(explorationTarget, js_2, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, js_3, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, js_4, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, js_5, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, wasm_1, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, wasm_2, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, wasm_3, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, wasm_4, optimalSolutions);
+      mergeResultIfRankedIn(explorationTarget, wasm_5, optimalSolutions);
+
+      // Assert
+      expect(
+        optimalSolutions.map(
+          (s) => Object.entries(candidates).find(([_, _s]) => s === _s)![0]
+        )
+      ).toEqual(['wasm_1', 'wasm_2', 'js_2', 'js_3', 'wasm_3']);
     });
   });
 
