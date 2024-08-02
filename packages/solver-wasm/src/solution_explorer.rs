@@ -1312,8 +1312,7 @@ mod tests {
                             separated_blocks_num: 1
                         }
                     ),]),
-                    // SimulatorBB では padding していないので true になる
-                    is_all_cleared: true,
+                    is_all_cleared: false,
                     is_chance_popped: false,
                     is_prism_popped: false,
                 },

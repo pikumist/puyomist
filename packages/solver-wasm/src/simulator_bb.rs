@@ -168,16 +168,16 @@ impl<'a> SimulatorBB<'a> {
 
         if self.activate_tracing(boards, trace, &mut chains) {
             while self.drop_in_field(boards) {
-                if !self.pop_puyo_blocks(boards, &mut chains) {
+                if !self.pop_puyo_blocks(boards, false, &mut chains) {
                     break;
                 }
             }
             while self.drop_next_into_field(boards) {
-                if !self.pop_puyo_blocks(boards, &mut chains) {
+                if !self.pop_puyo_blocks(boards, true, &mut chains) {
                     break;
                 }
                 while self.drop_in_field(boards) {
-                    if !self.pop_puyo_blocks(boards, &mut chains) {
+                    if !self.pop_puyo_blocks(boards, true, &mut chains) {
                         break;
                     }
                 }
@@ -222,7 +222,7 @@ impl<'a> SimulatorBB<'a> {
                 boards.prism &= rest;
                 let c = trace_mode.to_usize().unwrap() - TraceMode::ToRed.to_usize().unwrap();
                 boards.colors[c] |= trace;
-                popped_or_cleared = self.pop_puyo_blocks(boards, chains);
+                popped_or_cleared = self.pop_puyo_blocks(boards, false, chains);
             }
         }
 
@@ -230,7 +230,12 @@ impl<'a> SimulatorBB<'a> {
     }
 
     /// 繋がったぷよを消す。
-    fn pop_puyo_blocks(&self, boards: &mut BitBoards, chains: &mut Vec<Chain>) -> bool {
+    fn pop_puyo_blocks(
+        &self,
+        boards: &mut BitBoards,
+        is_next_dropped: bool,
+        chains: &mut Vec<Chain>,
+    ) -> bool {
         let red = boards.colors[0] & FIELD_MASK;
         let blue = boards.colors[1] & FIELD_MASK;
         let green = boards.colors[2] & FIELD_MASK;
@@ -371,13 +376,19 @@ impl<'a> SimulatorBB<'a> {
         boards.ojama |= kata_connected;
         boards.kata &= !kata_connected;
 
+        let is_all_cleared = if is_next_dropped {
+            false
+        } else {
+            boards.is_field_all_cleared()
+        };
+
         let chain = Chain {
             chain_num: (chains.len() + 1) as u32,
             simultaneous_num,
             boost_count,
             puyo_tsukai_count,
             attributes,
-            is_all_cleared: boards.is_field_all_cleared(),
+            is_all_cleared,
             is_chance_popped: chance_connected != 0,
             is_prism_popped: prism_connected != 0,
         };
