@@ -14,7 +14,7 @@ import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
 import { B, E, G, P, R, Y } from './boards/alias';
-import { ExplorationResult, type SolutionResult } from './solution';
+import type { SolutionResult } from './solution';
 import {
   type PartialSolutionResult,
   betterSolution,
