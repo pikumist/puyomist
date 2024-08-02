@@ -20,7 +20,6 @@ import { Simulator } from './Simulator';
 import { createfilledOneBitFieldBeforeIndex } from './bit-field';
 import {
   type ExplorationResult,
-  type SolutionCarry,
   type SolutionResult,
   SolutionState
 } from './solution';
@@ -37,9 +36,9 @@ export const solveAllTraces = (
   simulator: Simulator,
   explorationTarget: ExplorationTarget
 ): ExplorationResult => {
-  const carry: SolutionCarry = {
-    solutionNums: 0,
-    optimalSolution: undefined
+  const explorationResult: ExplorationResult = {
+    candidates_num: 0,
+    optimal_solutions: []
   };
 
   for (let y = 0; y < PuyoCoord.YNum; y++) {
@@ -49,14 +48,17 @@ export const solveAllTraces = (
         createfilledOneBitFieldBeforeIndex(coord.index),
         new Map()
       );
-      advanceTrace(simulator, explorationTarget, state, carry, coord);
+      advanceTrace(
+        simulator,
+        explorationTarget,
+        state,
+        coord,
+        explorationResult
+      );
     }
   }
 
-  return {
-    candidatesNum: carry.solutionNums,
-    optimalSolution: carry.optimalSolution
-  };
+  return explorationResult;
 };
 
 /**
@@ -73,31 +75,28 @@ export const solveIncludingTraceIndex = (
   explorationTarget: ExplorationTarget,
   index: number
 ): ExplorationResult => {
-  const carry: SolutionCarry = {
-    solutionNums: 0,
-    optimalSolution: undefined
+  const explorationResult: ExplorationResult = {
+    candidates_num: 0,
+    optimal_solutions: []
   };
 
   advanceTrace(
     new Simulator(simulator.getSimulationData()),
     explorationTarget,
     new SolutionState(createfilledOneBitFieldBeforeIndex(index), new Map()),
-    carry,
-    PuyoCoord.indexToCoord(index)!
+    PuyoCoord.indexToCoord(index)!,
+    explorationResult
   );
 
-  return {
-    candidatesNum: carry.solutionNums,
-    optimalSolution: carry.optimalSolution
-  };
+  return explorationResult;
 };
 
 const advanceTrace = (
   simulator: Simulator,
   explorationTarget: ExplorationTarget,
   state: SolutionState,
-  carry: SolutionCarry,
-  coord: PuyoCoord
+  coord: PuyoCoord,
+  explorationResult: ExplorationResult
 ): void => {
   if (!isTraceablePuyo(simulator.getField()[coord.y][coord.x]?.type)) {
     return;
@@ -109,34 +108,58 @@ const advanceTrace = (
   const s = SolutionState.clone(state);
   s.addTraceCoord(coord);
 
-  updateCarry(
-    carry,
+  updateExplorationResult(
     explorationTarget,
-    calcSolutionResult(simulator, explorationTarget, s.getTraceCoords())
+    calcSolutionResult(simulator, explorationTarget, s.getTraceCoords()),
+    explorationResult
   );
 
   for (const nextCoord of s.enumerateCandidates()) {
-    advanceTrace(simulator, explorationTarget, s, carry, nextCoord)!;
+    advanceTrace(
+      simulator,
+      explorationTarget,
+      s,
+      nextCoord,
+      explorationResult
+    )!;
   }
 };
 
-const updateCarry = (
-  carry: SolutionCarry,
+const updateExplorationResult = (
   explorationTarget: ExplorationTarget,
-  solutionResult: SolutionResult
+  solutionResult: SolutionResult,
+  explorationResult: ExplorationResult
 ): void => {
-  carry.solutionNums++;
+  explorationResult.candidates_num++;
+  mergeResultIfRankedIn(explorationTarget, solutionResult, explorationResult);
+};
 
-  if (!carry.optimalSolution) {
-    carry.optimalSolution = solutionResult;
+export const mergeResultIfRankedIn = (
+  explorationTarget: ExplorationTarget,
+  solutionResult: SolutionResult,
+  explorationResult: ExplorationResult
+): void => {
+  const max = explorationTarget.optimal_solution_count;
+  if (max === 0) {
     return;
   }
 
-  carry.optimalSolution = betterSolution(
-    explorationTarget.preference_priorities,
-    carry.optimalSolution,
-    solutionResult
-  );
+  const len = explorationResult.optimal_solutions.length;
+  const preferencePriorities = explorationTarget.preference_priorities;
+
+  const pos =
+    explorationResult.optimal_solutions.findLastIndex((s) => {
+      const better = betterSolution(preferencePriorities, s, solutionResult);
+      return better === s;
+    }) + 1;
+  if (pos === max) {
+    return;
+  }
+
+  explorationResult.optimal_solutions.splice(pos, 0, solutionResult);
+  if (len === max) {
+    explorationResult.optimal_solutions.pop();
+  }
 };
 
 export type PartialSolutionResult = Omit<

@@ -553,12 +553,11 @@ const puyoAppSlice = createSlice({
     solved: (state, action: PayloadAction<SolveResult>) => {
       const result = action.payload;
 
-      if (result.optimalSolution) {
-        // ワーカー経由で壊れてしまう座標を修正する。
-        result.optimalSolution.trace_coords =
-          result.optimalSolution.trace_coords.map(
-            (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
-          );
+      // ワーカー経由で壊れてしまう座標を修正する。
+      for (const s of result.optimal_solutions) {
+        s.trace_coords = s.trace_coords.map(
+          (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
+        );
       }
 
       state.solveResult = result;
@@ -586,7 +585,7 @@ const puyoAppSlice = createSlice({
     /** 解でなぞりボタンが押されたときの準備アクション */
     preparePlaySolutionButtonClicked: (state) => {
       state.simulationData.traceCoords =
-        state.solveResult?.optimalSolution?.trace_coords ?? [];
+        state.solveResult?.optimal_solutions[0].trace_coords ?? [];
     },
 
     ///
@@ -768,8 +767,8 @@ export const solveButtonClicked =
 export const playSolutionButtonClicked =
   () => (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState().puyoApp;
-    const optimalSolution = state.solveResult?.optimalSolution;
-    if (!optimalSolution) {
+
+    if (!state.solveResult?.optimal_solutions.length) {
       return;
     }
 

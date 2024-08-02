@@ -45,6 +45,7 @@ export const createSimulationData = (
     Simulator.defaultMinimumPuyoNumForPopping;
   const maxTraceNum =
     strongOptions.maxTraceNum ??
+    board.maxTraceNum ??
     weakOptions.maxTraceNum ??
     Simulator.defaultMaxTraceNum;
   const traceMode =
@@ -53,7 +54,10 @@ export const createSimulationData = (
     weakOptions.traceMode ??
     TraceMode.Normal;
   const poppingLeverage =
-    strongOptions.poppingLeverage ?? weakOptions.poppingLeverage ?? 1.0;
+    strongOptions.poppingLeverage ??
+    board.poppingLeverage ??
+    weakOptions.poppingLeverage ??
+    1.0;
   const chainLeverage =
     strongOptions.chainLeverage ??
     board.chainLeverage ??

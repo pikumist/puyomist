@@ -118,13 +118,13 @@ export async function solveAllTraces(
   ) as WasmExplorationResult;
 
   const elapsedTime = Date.now() - start;
-  const optimalSolutions = solved.optimal_solutions.map(toJsOptimalSolution);
+  const optimal_solutions = solved.optimal_solutions.map(toJsOptimalSolution);
 
   const result = {
     explorationTarget,
     elapsedTime,
-    candidatesNum: solved.candidates_num,
-    optimalSolution: optimalSolutions[0]
+    candidates_num: solved.candidates_num,
+    optimal_solutions
   };
 
   return result;
@@ -153,13 +153,13 @@ export async function solveIncludingTraceIndex(
   ) as WasmExplorationResult;
 
   const elapsedTime = Date.now() - start;
-  const optimalSolutions = solved.optimal_solutions.map(toJsOptimalSolution);
+  const optimal_solutions = solved.optimal_solutions.map(toJsOptimalSolution);
 
   const result = {
     explorationTarget,
     elapsedTime,
-    candidatesNum: solved.candidates_num,
-    optimalSolution: optimalSolutions[0]
+    candidates_num: solved.candidates_num,
+    optimal_solutions
   };
 
   return result;

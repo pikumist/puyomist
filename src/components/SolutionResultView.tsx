@@ -24,7 +24,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
     const { result } = props;
 
     const totalDamageMap = useMemo(() => {
-      const solution = result?.optimalSolution;
+      const solution = result?.optimal_solutions[0];
       if (!solution) {
         return undefined;
       }
@@ -34,7 +34,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
           Simulator.calcTotalDamageOfTargetAttr(solution.chains, attr)
         ])
       );
-    }, [result?.optimalSolution]);
+    }, [result?.optimal_solutions]);
 
     return (
       <>
@@ -47,17 +47,17 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
               )}
             </Text>
             <Text>探索時間: {result?.elapsedTime} ms</Text>
-            <Text>候補数: {result?.candidatesNum}</Text>
+            <Text>候補数: {result?.candidates_num}</Text>
             <Text>最適なぞり:</Text>
             <Text>
-              {result?.optimalSolution?.trace_coords
+              {result?.optimal_solutions[0]?.trace_coords
                 .map((c) => c.toCellAddr())
                 .join(',')}
             </Text>
             <Text>
               <OptimalValue
                 category={result?.explorationTarget?.category}
-                optimalValue={result?.optimalSolution?.value}
+                optimalValue={result?.optimal_solutions[0]?.value}
               />
               {coloredPuyoAttrList.map((attr) => (
                 <HStack key={attr} spacing="1">

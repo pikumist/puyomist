@@ -11,7 +11,9 @@ import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { Simulator } from './Simulator';
+import { TraceMode } from './TraceMode';
 import { getSpecialBoard } from './boards';
+import { B, E, G, P, R, Y } from './boards/alias';
 import {
   type PartialSolutionResult,
   betterSolution,
@@ -317,7 +319,7 @@ describe('solution-explorer', () => {
           }
         }
       ])(
-        'should find an optimal solution for the optimization target',
+        'should find an optimal solution for the optimization target when optimal_solution_num is one',
         ({
           attr,
           explorationTarget,
@@ -341,13 +343,13 @@ describe('solution-explorer', () => {
           const actual = solveAllTraces(simulator, explorationTarget)!;
 
           // Assert
-          expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.trace_coords).toEqual(
+          expect(actual.candidates_num).toBe(expected.candidatesNum);
+          expect(actual.optimal_solutions[0].trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
+          expect(actual.optimal_solutions[0].value).toBeCloseTo(expected.value);
           const csp = calcCsp(
-            findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
+            findMostDamageChain(actual.optimal_solutions[0].chains!, attr)!,
             attr
           );
           expect(csp).toBe(expected.csp);
@@ -417,18 +419,293 @@ describe('solution-explorer', () => {
           const actual = solveAllTraces(simulator, explorationTarget)!;
 
           // Assert
-          expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.trace_coords).toEqual(
+          expect(actual.candidates_num).toBe(expected.candidatesNum);
+          expect(actual.optimal_solutions[0].trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
+          expect(actual.optimal_solutions[0].value).toBeCloseTo(expected.value);
           const csp = calcCsp(
-            findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
+            findMostDamageChain(actual.optimal_solutions[0].chains!, attr)!,
             attr
           );
           expect(csp).toBe(expected.csp);
         }
       );
+
+      it('chance_mode, damage wild, preferring_all_clear, optimal_solution_count=2', () => {
+        // Arrange
+        const explorationTarget: ExplorationTarget = {
+          category: ExplorationCategory.Damage,
+          preference_priorities: [
+            PreferenceKind.AllClear,
+            PreferenceKind.BiggerValue,
+            PreferenceKind.ChancePop,
+            PreferenceKind.PrismPop,
+            PreferenceKind.SmallerTraceNum
+          ],
+          optimal_solution_count: 2,
+          main_attr: undefined
+        };
+        const simulationData = createSimulationData({
+          nextPuyos: [E, E, E, E, E, E, E, E],
+          field: [
+            [P, B, E, G, G, G, E, E],
+            [P, G, P, P, R, R, R, Y],
+            [G, P, G, B, P, B, Y, B],
+            [B, G, B, P, B, R, B, R],
+            [Y, B, Y, B, R, P, R, R],
+            [Y, Y, G, R, B, B, Y, Y]
+          ],
+          isChanceMode: true,
+          minimumPuyoNumForPopping: 4,
+          maxTraceNum: 48,
+          traceMode: TraceMode.Normal,
+          poppingLeverage: 5.0,
+          chainLeverage: 1.0
+        });
+        const simulator = new Simulator(simulationData);
+
+        // Act
+        const actual = solveAllTraces(simulator, explorationTarget)!;
+
+        // Assert
+        expect(actual.candidates_num).toBe(13507);
+        expect(actual.optimal_solutions.length).toBe(2);
+        expect(actual.optimal_solutions[0]).toEqual({
+          trace_coords: [
+            PuyoCoord.xyToCoord(3, 2),
+            PuyoCoord.xyToCoord(4, 3),
+            PuyoCoord.xyToCoord(3, 4),
+            PuyoCoord.xyToCoord(5, 4),
+            PuyoCoord.xyToCoord(2, 5)
+          ],
+          chains: [
+            {
+              chain_num: 1,
+              simultaneous_num: 9,
+              boost_count: 0,
+              puyo_tsukai_count: 9,
+              attributes: {
+                [PuyoAttr.Red]: {
+                  strength: 4.75,
+                  popped_count: 5,
+                  separated_blocks_num: 1
+                },
+                [PuyoAttr.Yellow]: {
+                  strength: 4.75,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 2,
+              simultaneous_num: 12,
+              boost_count: 0,
+              puyo_tsukai_count: 12,
+              attributes: {
+                [PuyoAttr.Blue]: {
+                  strength: 9.799999999999999,
+                  popped_count: 5,
+                  separated_blocks_num: 1
+                },
+                [PuyoAttr.Purple]: {
+                  strength: 9.799999999999999,
+                  popped_count: 7,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 3,
+              simultaneous_num: 11,
+              boost_count: 0,
+              puyo_tsukai_count: 11,
+              attributes: {
+                [PuyoAttr.Green]: {
+                  strength: 10.625,
+                  popped_count: 7,
+                  separated_blocks_num: 1
+                },
+                [PuyoAttr.Yellow]: {
+                  strength: 10.625,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 4,
+              simultaneous_num: 8,
+              boost_count: 0,
+              puyo_tsukai_count: 8,
+              attributes: {
+                [PuyoAttr.Red]: {
+                  strength: 8.0,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                },
+                [PuyoAttr.Blue]: {
+                  strength: 8.0,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              },
+              is_all_cleared: true
+            }
+          ],
+          value: 66.35,
+          is_all_cleared: true,
+          is_chance_popped: false,
+          is_prism_popped: false
+        });
+        expect(actual.optimal_solutions[1]).toEqual({
+          trace_coords: [
+            PuyoCoord.xyToCoord(4, 1),
+            PuyoCoord.xyToCoord(3, 2),
+            PuyoCoord.xyToCoord(4, 3),
+            PuyoCoord.xyToCoord(3, 4),
+            PuyoCoord.xyToCoord(4, 5)
+          ],
+          chains: [
+            {
+              chain_num: 1,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Purple]: {
+                  strength: 1.0,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 2,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Red]: {
+                  strength: 1.4,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 3,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Blue]: {
+                  strength: 1.7,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 4,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Yellow]: {
+                  strength: 2.0,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 5,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Red]: {
+                  strength: 2.2,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 6,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Green]: {
+                  strength: 2.4,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 7,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Yellow]: {
+                  strength: 2.6,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 8,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Purple]: {
+                  strength: 2.8,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 9,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Green]: {
+                  strength: 3.0,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              }
+            },
+            {
+              chain_num: 10,
+              simultaneous_num: 4,
+              boost_count: 0,
+              puyo_tsukai_count: 4,
+              attributes: {
+                [PuyoAttr.Blue]: {
+                  strength: 3.2,
+                  popped_count: 4,
+                  separated_blocks_num: 1
+                }
+              },
+              is_all_cleared: true
+            }
+          ],
+          value: 22.3,
+          is_all_cleared: true,
+          is_chance_popped: false,
+          is_prism_popped: false
+        });
+      });
     });
 
     describe('solveIncludingTraceIndex()', () => {
@@ -521,13 +798,13 @@ describe('solution-explorer', () => {
           )!;
 
           // Assert
-          expect(actual.candidatesNum).toBe(expected.candidatesNum);
-          expect(actual.optimalSolution?.trace_coords).toEqual(
+          expect(actual.candidates_num).toBe(expected.candidatesNum);
+          expect(actual.optimal_solutions[0].trace_coords).toEqual(
             expected.traceCoords
           );
-          expect(actual.optimalSolution?.value).toBeCloseTo(expected.value);
+          expect(actual.optimal_solutions[0].value).toBeCloseTo(expected.value);
           const csp = calcCsp(
-            findMostDamageChain(actual.optimalSolution?.chains!, attr)!,
+            findMostDamageChain(actual.optimal_solutions[0].chains!, attr)!,
             attr
           );
           expect(csp).toBe(expected.csp);
