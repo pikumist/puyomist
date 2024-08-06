@@ -59,6 +59,7 @@ const PuyoApp: React.FC = () => {
     solveResult,
     optimalSolutionIndex,
     solving,
+    solvingProgressPercent,
     simulationData,
     lastTraceCoords,
     animationSteps,
@@ -183,11 +184,15 @@ const PuyoApp: React.FC = () => {
                   mt="1"
                   size="xs"
                   visibility={solving ? 'visible' : 'hidden'}
-                  isIndeterminate={solving}
+                  isIndeterminate={solving && solvingProgressPercent === 0.0}
+                  value={solvingProgressPercent}
                 />
                 <SolutionResultView
                   result={solveResult}
                   index={optimalSolutionIndex}
+                  isInProgress={
+                    solvingProgressPercent > 0 && solvingProgressPercent < 100
+                  }
                 />
               </Box>
             </Grid>

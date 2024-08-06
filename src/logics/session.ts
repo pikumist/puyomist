@@ -121,7 +121,7 @@ export class Session {
   getSolutionMethod(): SolutionMethod {
     const solutionMethod =
       this.storage.getItem(Session.solutionMethodKey) ||
-      SolutionMethod.solveAllInParallel;
+      SolutionMethod.solveAllInParallelByWasm;
     return solutionMethod as SolutionMethod;
   }
 

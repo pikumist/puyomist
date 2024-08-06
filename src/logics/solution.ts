@@ -213,8 +213,8 @@ export enum SolutionMethod {
 
 /** 探索法と説明のマップ */
 export const solutionMethodDescriptionMap = new Map<SolutionMethod, string>([
-  [SolutionMethod.solveAllInSerial, '全探索シングルJS'],
+  // [SolutionMethod.solveAllInSerial, '全探索シングルJS'],
   [SolutionMethod.solveAllInParallel, '全探索マルチJS'],
-  [SolutionMethod.solveAllInSerialByWasm, '全探索シングルWASM'],
+  // [SolutionMethod.solveAllInSerialByWasm, '全探索シングルWASM'],
   [SolutionMethod.solveAllInParallelByWasm, '全探索マルチWASM']
 ]);
