@@ -12,9 +12,7 @@ pub fn count_candidates_num_for_each_indexes(max_trace_num: u32) -> [u64; 48] {
         .map(|i| {
             let coord = PuyoCoord::index_to_coord(*i).unwrap();
             let state = SolutionState::new(*i);
-            let mut candidates_num = 0;
-            advance_trace_for_count_up(&state, coord, max_trace_num, &mut candidates_num);
-            return candidates_num;
+            return advance_trace_for_count_up(&state, coord, max_trace_num);
         })
         .collect::<Vec<u64>>()
         .try_into()
@@ -28,24 +26,30 @@ pub fn count_up_candidates_num(max_trace_num: u32) -> u64 {
         .sum();
 }
 
-fn advance_trace_for_count_up(
-    state: &SolutionState,
-    coord: PuyoCoord,
-    max_trace_num: u32,
-    candidates_num: &mut u64,
-) {
-    if state.get_trace_coords().len() == max_trace_num as usize {
-        return;
+fn advance_trace_for_count_up(state: &SolutionState, coord: PuyoCoord, max_trace_num: u32) -> u64 {
+    let trace_len = state.get_trace_coords().len();
+    if trace_len == max_trace_num as usize {
+        return 0;
     }
 
     let mut st = state.clone();
     st.add_trace_coord(coord);
 
-    *candidates_num += 1;
+    let mut result = 1;
 
-    for next_coord in st.get_next_candidate_coords() {
-        advance_trace_for_count_up(&st, *next_coord, max_trace_num, candidates_num);
+    if trace_len == 0 {
+        result += st
+            .get_next_candidate_coords()
+            .par_iter()
+            .map(|c| advance_trace_for_count_up(&st, *c, max_trace_num))
+            .sum::<u64>();
+    } else {
+        for next_coord in st.get_next_candidate_coords() {
+            result += advance_trace_for_count_up(&st, *next_coord, max_trace_num);
+        }
     }
+
+    return result;
 }
 
 #[cfg(test)]
