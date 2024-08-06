@@ -43,6 +43,8 @@ export interface PuyoAppState {
   lastTraceCoords: PuyoCoord[] | undefined;
   /** 最適解探索中かどうか */
   solving: boolean;
+  /** 解探索の進捗率 (%) */
+  solvingProgressPercent: number;
   /** 最適解探索の中断コントローラー */
   abortControllerForSolving: AbortController | undefined;
   /** 最適解探索結果 */
@@ -96,6 +98,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   activeAnimationStepIndex: -1,
   lastTraceCoords: undefined,
   solving: false,
+  solvingProgressPercent: 0.0,
   abortControllerForSolving: undefined,
   solveResult: undefined,
   optimalSolutionIndex: -1,

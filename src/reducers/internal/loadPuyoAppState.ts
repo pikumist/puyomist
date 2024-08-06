@@ -79,6 +79,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     solving: false,
     abortControllerForSolving: undefined,
     solveResult: undefined,
+    solvingProgressPercent: 0.0,
     optimalSolutionIndex: -1,
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined

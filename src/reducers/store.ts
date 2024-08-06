@@ -10,6 +10,7 @@ export const store = configureStore({
           'puyoApp/tracingCoordAdded',
           'puyoApp/puyoEdited',
           'puyoApp/solved',
+          'puyoApp/solvingProgress',
           'puyoApp/animationStep',
           'puyoApp/animationEnd'
         ],

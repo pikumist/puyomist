@@ -3,7 +3,7 @@
  * [なぞり制限](https://github.com/pikumist/puyomist/wiki/なぞり方#なぞりの制限)をかけた上で、
  * 何個あるか。候補数は、packages/solver-wasm/src/main.rs から計算。
  */
-const traceCandidatesNumMap: Map<number, number[]> = new Map([
+export const traceCandidatesNumMap: Map<number, number[]> = new Map([
   [
     1,
     // total: 48

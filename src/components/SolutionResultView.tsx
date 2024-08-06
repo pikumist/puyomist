@@ -11,6 +11,7 @@ import {
   getPuyoAttrName
 } from '../logics/PuyoAttr';
 import { Simulator } from '../logics/Simulator';
+import { formatDuration } from '../logics/datetime';
 import type { SolveResult } from '../logics/solution';
 import { optimalSolutionIndexChanged } from '../reducers/puyoAppSlice';
 import PuyoIcon from './PuyoIcon';
@@ -20,12 +21,14 @@ interface SolutionResultViewProps {
   result: SolveResult | undefined;
   /** 解のインデックス */
   index: number;
+  /** 計算が進捗中かどうか (マルチスレッド時のみ) */
+  isInProgress: boolean;
 }
 
 /** 探索結果ビュー */
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
   (props) => {
-    const { result, index } = props;
+    const { result, index, isInProgress } = props;
     const dispatch = useDispatch();
 
     const totalDamageMap = useMemo(() => {
@@ -46,6 +49,10 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
         optimalSolutionIndexChanged(Number.parseInt(e.target.value, 10))
       );
     };
+
+    const elapsedTime = result?.elapsedTime
+      ? formatDuration(result?.elapsedTime)
+      : '';
 
     return (
       <>
@@ -84,8 +91,21 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 )}
               </Select>
             </HStack>
-            <Text>探索時間: {result?.elapsedTime} ms</Text>
-            <Text>候補数: {result?.candidates_num}</Text>
+            <Text>
+              探索時間: {elapsedTime}
+              {isInProgress ? ' ...' : ''}
+            </Text>
+            <Text>
+              候補数
+              {isInProgress ? (
+                <Text as="span" fontSize="xs" color="blue.200">
+                  (推定)
+                </Text>
+              ) : (
+                ''
+              )}
+              : {result?.candidates_num}
+            </Text>
             <Box>
               {coloredPuyoAttrList.map((attr) => (
                 <HStack key={attr} spacing="1">

@@ -556,22 +556,28 @@ const puyoAppSlice = createSlice({
     solvingStarted: (state) => {
       state.solving = true;
       state.abortControllerForSolving = new AbortController();
+      state.solvingProgressPercent = 0;
+    },
+
+    /** 解の途中経過 */
+    solvingProgress: (
+      state,
+      action: PayloadAction<{ result: SolveResult; percent: number }>
+    ) => {
+      const { result, percent } = action.payload;
+
+      state.solveResult = result;
+      state.solvingProgressPercent = percent;
+      state.optimalSolutionIndex = 0;
     },
 
     /** 解が求まったとき */
     solved: (state, action: PayloadAction<SolveResult>) => {
       const result = action.payload;
-
-      // ワーカー経由で壊れてしまう座標を修正する。
-      for (const s of result.optimal_solutions) {
-        s.trace_coords = s.trace_coords.map(
-          (c: any) => PuyoCoord.xyToCoord(c._x, c._y)!
-        );
-      }
-
       state.solveResult = result;
       state.optimalSolutionIndex = 0;
       state.solving = false;
+      state.solvingProgressPercent = 100.0;
       state.abortControllerForSolving = undefined;
     },
 
@@ -580,6 +586,7 @@ const puyoAppSlice = createSlice({
       state.solveResult = undefined;
       state.optimalSolutionIndex = -1;
       state.solving = false;
+      state.solvingProgressPercent = 0.0;
       state.abortControllerForSolving = undefined;
     },
 
@@ -742,7 +749,10 @@ export const solveButtonClicked =
 
     dispatch(solvingStarted());
 
-    let solve: (signal: AbortSignal) => Promise<SolveResult>;
+    let solve: (
+      signal: AbortSignal,
+      onProgress?: (result: SolveResult, rate: number) => void
+    ) => Promise<SolveResult>;
 
     switch (state.solutionMethod) {
       case SolutionMethod.solveAllInSerial:
@@ -774,8 +784,11 @@ export const solveButtonClicked =
     (async () => {
       try {
         const signal = getState().puyoApp.abortControllerForSolving!.signal;
-        const result = await solve(signal);
-
+        const result = await solve(signal, (res, percent) => {
+          dispatch(
+            puyoAppSlice.actions.solvingProgress({ result: res, percent })
+          );
+        });
         dispatch(puyoAppSlice.actions.solved(result));
       } catch (_) {
         dispatch(puyoAppSlice.actions.solveFailed());
