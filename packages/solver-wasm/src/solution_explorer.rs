@@ -10,7 +10,6 @@ use crate::{
     puyo_coord::PuyoCoord,
     puyo_type::is_traceable_type,
     simulation_environment::SimulationEnvironment,
-    simulator::Simulator,
     simulator_bb::{BitBoards, SimulatorBB},
     solution::{ExplorationResult, SolutionResult, SolutionState},
 };
@@ -132,10 +131,8 @@ fn better_solution<'a>(
 pub struct SolutionExplorer<'a> {
     exploration_target: &'a ExplorationTarget,
     environment: &'a SimulationEnvironment,
-    boost_area_coord_set: &'a HashSet<PuyoCoord>,
     boost_area: u64,
     field: &'a Field,
-    next_puyos: &'a NextPuyos,
     boards: BitBoards,
 }
 
@@ -163,10 +160,8 @@ impl<'a> SolutionExplorer<'a> {
         return SolutionExplorer {
             exploration_target,
             environment,
-            boost_area_coord_set,
             boost_area,
             field,
-            next_puyos,
             boards,
         };
     }
@@ -300,20 +295,6 @@ impl<'a> SolutionExplorer<'a> {
             is_chance_popped,
             is_prism_popped,
         };
-    }
-
-    /// @deprecated Bitboardを使わない旧シミュレーターで連鎖させる。
-    #[allow(warnings)]
-    fn do_chains(&self, trace_coords: &Vec<PuyoCoord>) -> Vec<Chain> {
-        let sim = Simulator {
-            environment: self.environment,
-            boost_area_coord_set: &self.boost_area_coord_set,
-        };
-        return sim.do_chains(
-            &mut self.field.clone(),
-            &mut self.next_puyos.clone(),
-            &trace_coords,
-        );
     }
 
     /// Bitboardを使ったシミュレーターで連鎖させる。

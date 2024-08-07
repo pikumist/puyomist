@@ -5,7 +5,6 @@ use solver::puyo_attr::PuyoAttr;
 use solver::puyo_coord::PuyoCoord;
 use solver::puyo_type::*;
 use solver::simulation_environment::SimulationEnvironment;
-use solver::simulator::Simulator;
 use solver::simulator_bb::{BitBoards, SimulatorBB};
 use solver::solution_explorer::SolutionExplorer;
 use solver::trace_mode::TraceMode;
@@ -89,20 +88,6 @@ fn setup_input() -> (
     );
 }
 
-fn simulator_do_chains(
-    environment: &SimulationEnvironment,
-    boost_area_coord_set: &HashSet<PuyoCoord>,
-    field: &mut [[Option<Puyo>; 8]; 6],
-    next_puyos: &mut [Option<Puyo>; 8],
-    trace_coords: &Vec<PuyoCoord>,
-) {
-    let simulator = Simulator {
-        environment,
-        boost_area_coord_set,
-    };
-    simulator.do_chains(field, next_puyos, trace_coords);
-}
-
 fn simulator_bb_do_chains(
     environment: &SimulationEnvironment,
     boost_area: u64,
@@ -148,18 +133,6 @@ fn do_chains_benchmark(c: &mut Criterion) {
     let trace = SimulatorBB::coords_to_board(trace_coords.iter());
 
     let mut group = c.benchmark_group("simulator");
-
-    group.bench_function("Simulator::do_chains", |b| {
-        b.iter(|| {
-            simulator_do_chains(
-                black_box(&environment),
-                black_box(&boost_area_coord_set),
-                black_box(&mut field.clone()),
-                black_box(&mut next_puyos.clone()),
-                black_box(&trace_coords),
-            )
-        })
-    });
 
     group.bench_function("SimulatorBB::do_chains", |b| {
         b.iter(|| {
