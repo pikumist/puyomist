@@ -35,7 +35,7 @@ const OptimalSolutionSelector: React.FC<OptimalSolutionSelectorProps> =
           const cellAddrs = solutionResult.trace_coords
             .map((coord) => coord.toCellAddr())
             .join(',');
-          const value = getSolutionValue(
+          const value = formatSolutionValue(
             result.explorationTarget.category,
             solutionResult
           );
@@ -50,7 +50,7 @@ const OptimalSolutionSelector: React.FC<OptimalSolutionSelectorProps> =
     );
   });
 
-const getSolutionValue = (
+const formatSolutionValue = (
   category: ExplorationCategory,
   result: SolutionResult
 ): string => {
