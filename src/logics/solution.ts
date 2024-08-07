@@ -22,20 +22,30 @@ export interface TotalDamages {
 export interface SolutionResult {
   /** なぞったぷよ */
   trace_coords: PuyoCoord[];
+  /** 全連鎖情報 */
+  chains: Chain[];
+  //
+  // ここから下は chains から計算可能な冗長データ。
+  // 結果の比較を高速化するために予め計算してある。
+  //
   /**
    * 最適化対象によって異なる値。
    * ダメージの量であったり、スキル溜め数だったり、ぷよ使いカウントだったりする。
    * 大きいほど良い値。
    */
   value: number;
+  /** 弾けたチャンスぷよの数 */
+  popped_chance_num: number;
+  /** 弾けたハートの数 */
+  popped_heart_num: number;
+  /** 弾けたプリズムの数 */
+  popped_prism_num: number;
+  /** 弾けたおじゃまの数 (固ぷよからおじゃまになりそして弾けたものも含む) */
+  popped_ojama_num: number;
+  /** 弾けた固ぷよの数 (固ぷよからおじゃまになったものの数。さらにそのおじゃまが弾けたものも含む) */
+  popped_kata_num: number;
   /** 全消しされたかどうか */
   is_all_cleared: boolean;
-  /** チャンスぷよが弾けたかどうか */
-  is_chance_popped: boolean;
-  /** プリズムが弾けたかどうか */
-  is_prism_popped: boolean;
-  /** 全連鎖情報 */
-  chains: Chain[];
 }
 
 /** 探索結果 */

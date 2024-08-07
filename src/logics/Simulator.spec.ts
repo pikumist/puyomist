@@ -15,6 +15,9 @@ const Bp = PuyoType.BluePlus;
 const Gcp = PuyoType.GreenChancePlus;
 const Yp = PuyoType.YellowPlus;
 const Pp = PuyoType.PurplePlus;
+const Pc = PuyoType.PurpleChance;
+const O = PuyoType.Ojama;
+const Z = PuyoType.Kata;
 
 describe('Simulator', () => {
   beforeEach(() => {
@@ -277,13 +280,13 @@ describe('Simulator', () => {
       {
         maxTraceNum: 5,
         poppingLeverage: 1.0,
-        // specialRule1/1'
+        // specialRule1/1 modified'
         board: {
           field: [
-            [R, P, H, P, Y, G, Y, Y],
-            [R, Y, P, H, Y, G, P, G],
-            [B, Y, G, B, H, Y, G, P],
-            [B, R, B, R, P, B, R, P],
+            [R, P, Z, P, Y, G, Y, Y],
+            [R, Y, P, H, Y, G, Pc, G],
+            [B, Y, G, B, O, Y, G, Pc],
+            [B, R, B, R, P, B, R, Pc],
             [Y, G, P, P, R, B, G, G],
             [B, G, B, R, B, Y, R, R]
           ],
@@ -305,7 +308,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 3,
+            is_all_cleared: false
           },
           {
             chain_num: 2,
@@ -318,7 +323,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 3,
@@ -331,7 +338,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 4,
@@ -344,7 +353,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 5,
@@ -357,25 +368,29 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 6,
-            simultaneous_num: 3,
+            simultaneous_num: 4,
             boost_count: 0,
             puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttr.Purple]: {
-                strength: 10.799999999999999,
+                strength: 12.419999999999998,
                 popped_count: 3,
                 separated_blocks_num: 1
               },
-              [PuyoAttr.Heart]: {
+              [PuyoAttr.Ojama]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 7,
@@ -388,7 +403,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 8,
@@ -406,7 +423,9 @@ describe('Simulator', () => {
                 popped_count: 1,
                 separated_blocks_num: 0
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 9,
@@ -419,25 +438,29 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 10,
             simultaneous_num: 3,
             boost_count: 0,
-            puyo_tsukai_count: 4,
+            puyo_tsukai_count: 3,
             attributes: {
               [PuyoAttr.Yellow]: {
                 strength: 16.400000000000002,
                 popped_count: 3,
                 separated_blocks_num: 1
               },
-              [PuyoAttr.Heart]: {
+              [PuyoAttr.Kata]: {
                 strength: 0,
                 popped_count: 1,
                 separated_blocks_num: 0
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 11,
@@ -450,7 +473,9 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 12,
@@ -463,20 +488,29 @@ describe('Simulator', () => {
                 popped_count: 3,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 13,
-            simultaneous_num: 3,
+            simultaneous_num: 4,
             boost_count: 0,
-            puyo_tsukai_count: 3,
+            puyo_tsukai_count: 4,
             attributes: {
               [PuyoAttr.Purple]: {
-                strength: 20.599999999999998,
+                strength: 23.689999999999994,
                 popped_count: 3,
                 separated_blocks_num: 1
+              },
+              [PuyoAttr.Ojama]: {
+                strength: 0,
+                popped_count: 1,
+                separated_blocks_num: 0
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 14,
@@ -489,7 +523,9 @@ describe('Simulator', () => {
                 popped_count: 10,
                 separated_blocks_num: 2
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           }
         ] satisfies Chain[]
       },
@@ -535,7 +571,9 @@ describe('Simulator', () => {
                 popped_count: 1,
                 separated_blocks_num: 0
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 2,
@@ -548,7 +586,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 3,
@@ -561,7 +601,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 4,
@@ -574,7 +616,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 5,
@@ -587,7 +631,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 6,
@@ -600,7 +646,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 7,
@@ -613,7 +661,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 8,
@@ -626,7 +676,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 9,
@@ -639,7 +691,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 10,
@@ -652,7 +706,9 @@ describe('Simulator', () => {
                 popped_count: 13,
                 separated_blocks_num: 2
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           }
         ] satisfies Chain[]
       },
@@ -694,7 +750,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 2,
@@ -712,7 +770,9 @@ describe('Simulator', () => {
                 popped_count: 7,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 3,
@@ -730,7 +790,9 @@ describe('Simulator', () => {
                 popped_count: 4,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           },
           {
             chain_num: 4,
@@ -749,6 +811,7 @@ describe('Simulator', () => {
                 separated_blocks_num: 1
               }
             },
+            popped_chance_num: 0,
             is_all_cleared: true
           }
         ] satisfies Chain[]
@@ -802,7 +865,8 @@ describe('Simulator', () => {
                 separated_blocks_num: 0
               }
             },
-            is_chance_popped: true
+            popped_chance_num: 1,
+            is_all_cleared: false
           },
           {
             chain_num: 2,
@@ -820,7 +884,9 @@ describe('Simulator', () => {
                 popped_count: 5,
                 separated_blocks_num: 1
               }
-            }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
           }
         ] satisfies Chain[]
       }
@@ -878,7 +944,9 @@ describe('Simulator', () => {
               popped_count: 2,
               separated_blocks_num: 1
             }
-          }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
         },
         {
           chain_num: 2,
@@ -896,7 +964,9 @@ describe('Simulator', () => {
               popped_count: 5,
               separated_blocks_num: 1
             }
-          }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
         }
       ];
 
@@ -949,7 +1019,9 @@ describe('Simulator', () => {
               popped_count: 4,
               separated_blocks_num: 1
             }
-          }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
         }
       ];
 
@@ -994,7 +1066,9 @@ describe('Simulator', () => {
               popped_count: 2,
               separated_blocks_num: 0
             }
-          }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
         },
         {
           chain_num: 2,
@@ -1012,7 +1086,9 @@ describe('Simulator', () => {
               popped_count: 5,
               separated_blocks_num: 1
             }
-          }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
         }
       ];
 

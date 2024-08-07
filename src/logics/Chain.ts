@@ -22,10 +22,8 @@ export interface Chain {
   puyo_tsukai_count: number;
   /** ぷよ属性ごとの連鎖情報 */
   attributes: Partial<Record<PuyoAttr, AttributeChain>>;
+  /** 弾けたチャンスぷよの数 */
+  popped_chance_num: number;
   /** 全消しされたかどうか */
-  is_all_cleared?: boolean;
-  /** チャンスぷよが弾けたかどうか */
-  is_chance_popped?: boolean;
-  /** プリズムが弾けたかどうか */
-  is_prism_popped?: boolean;
+  is_all_cleared: boolean;
 }

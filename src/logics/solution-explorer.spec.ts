@@ -45,8 +45,12 @@ describe('solution-explorer', () => {
           s1: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
+            popped_chance_num: 1,
+            popped_prism_num: 1,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
             is_all_cleared: true,
-            is_chance_popped: true,
             is_prism_popped: true
           },
           s2: {
@@ -55,9 +59,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 200,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           result: 's2'
         } as Input,
@@ -68,16 +75,22 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 200,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           s2: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: true,
-            is_prism_popped: true
+            popped_chance_num: 1,
+            popped_prism_num: 1,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           },
           result: 's1'
         } as Input,
@@ -85,9 +98,12 @@ describe('solution-explorer', () => {
           s1: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: false,
-            is_prism_popped: true
+            popped_chance_num: 0,
+            popped_prism_num: 1,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           },
           s2: {
             trace_coords: [
@@ -95,9 +111,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: true,
-            is_prism_popped: false
+            popped_chance_num: 1,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           result: 's2'
         } as Input,
@@ -105,9 +124,12 @@ describe('solution-explorer', () => {
           s1: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           },
           s2: {
             trace_coords: [
@@ -115,8 +137,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
+            popped_chance_num: 0,
+            popped_prism_num: 1,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
             is_all_cleared: false,
-            is_chance_popped: false,
             is_prism_popped: true
           },
           result: 's2'
@@ -125,9 +151,12 @@ describe('solution-explorer', () => {
           s1: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           s2: {
             trace_coords: [
@@ -135,9 +164,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           },
           result: 's2'
         } as Input,
@@ -149,9 +181,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('D5')!
             ],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           s2: {
             trace_coords: [
@@ -159,9 +194,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')!
             ],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           },
           result: 's2'
         } as Input
@@ -182,16 +220,22 @@ describe('solution-explorer', () => {
           s1: {
             trace_coords: [PuyoCoord.cellAddrToCoord('B3')!],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: true,
-            is_prism_popped: true
+            popped_chance_num: 1,
+            popped_prism_num: 1,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           } as PartialSolutionResult,
           s2: {
             trace_coords: [PuyoCoord.cellAddrToCoord('D4')!],
             value: 100,
-            is_all_cleared: true,
-            is_chance_popped: true,
-            is_prism_popped: true
+            popped_chance_num: 2,
+            popped_prism_num: 2,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: true
           } as PartialSolutionResult
         },
         {
@@ -201,9 +245,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('C4')
             ],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           } as PartialSolutionResult,
           s2: {
             trace_coords: [
@@ -211,9 +258,12 @@ describe('solution-explorer', () => {
               PuyoCoord.cellAddrToCoord('E5')
             ],
             value: 100,
-            is_all_cleared: false,
-            is_chance_popped: false,
-            is_prism_popped: false
+            popped_chance_num: 0,
+            popped_prism_num: 0,
+            popped_heart_num: 0,
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            is_all_cleared: false
           } as PartialSolutionResult
         }
       ])('should return s1 when everything is a tie', (params) => {
@@ -250,9 +300,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const wasm_2: SolutionResult = {
@@ -260,9 +313,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const wasm_3: SolutionResult = {
@@ -270,9 +326,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const wasm_4: SolutionResult = {
@@ -280,9 +339,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const wasm_5: SolutionResult = {
@@ -290,9 +352,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const js_2: SolutionResult = {
@@ -300,9 +365,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const js_3: SolutionResult = {
@@ -310,9 +378,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 19,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const js_4: SolutionResult = {
@@ -320,9 +391,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 18,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const js_5: SolutionResult = {
@@ -330,9 +404,12 @@ describe('solution-explorer', () => {
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         ),
         value: 18,
+        popped_chance_num: 0,
+        popped_prism_num: 1,
+        popped_heart_num: 0,
+        popped_kata_num: 0,
+        popped_ojama_num: 0,
         is_all_cleared: true,
-        is_chance_popped: false,
-        is_prism_popped: true,
         chains: []
       };
       const candidates = {
@@ -636,7 +713,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 2,
@@ -654,7 +733,9 @@ describe('solution-explorer', () => {
                   popped_count: 7,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 3,
@@ -672,7 +753,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 4,
@@ -691,13 +774,17 @@ describe('solution-explorer', () => {
                   separated_blocks_num: 1
                 }
               },
+              popped_chance_num: 0,
               is_all_cleared: true
             }
           ],
           value: 66.35,
-          is_all_cleared: true,
-          is_chance_popped: false,
-          is_prism_popped: false
+          popped_chance_num: 0,
+          popped_heart_num: 0,
+          popped_prism_num: 0,
+          popped_ojama_num: 0,
+          popped_kata_num: 0,
+          is_all_cleared: true
         });
         expect(actual.optimal_solutions[1]).toEqual({
           trace_coords: [
@@ -719,7 +806,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 2,
@@ -732,7 +821,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 3,
@@ -745,7 +836,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 4,
@@ -758,7 +851,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 5,
@@ -771,7 +866,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 6,
@@ -784,7 +881,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 7,
@@ -797,7 +896,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 8,
@@ -810,7 +911,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 9,
@@ -823,7 +926,9 @@ describe('solution-explorer', () => {
                   popped_count: 4,
                   separated_blocks_num: 1
                 }
-              }
+              },
+              popped_chance_num: 0,
+              is_all_cleared: false
             },
             {
               chain_num: 10,
@@ -837,13 +942,17 @@ describe('solution-explorer', () => {
                   separated_blocks_num: 1
                 }
               },
+              popped_chance_num: 0,
               is_all_cleared: true
             }
           ],
           value: 22.3,
-          is_all_cleared: true,
-          is_chance_popped: false,
-          is_prism_popped: false
+          popped_chance_num: 0,
+          popped_heart_num: 0,
+          popped_prism_num: 0,
+          popped_ojama_num: 0,
+          popped_kata_num: 0,
+          is_all_cleared: true
         });
       });
     });

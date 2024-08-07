@@ -14,6 +14,7 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
+import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -188,10 +189,10 @@ const betterSolutionByChancePopped = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.is_chance_popped && !s1.is_chance_popped) {
+  if (s2.popped_chance_num > 0 && s1.popped_chance_num === 0) {
     return s2;
   }
-  if (!s2.is_chance_popped && s1.is_chance_popped) {
+  if (s2.popped_chance_num === 0 && s1.popped_chance_num > 0) {
     return s1;
   }
   return undefined;
@@ -201,10 +202,10 @@ const betterSolutionByPrismPopped = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.is_prism_popped && !s1.is_prism_popped) {
+  if (s2.popped_prism_num > 0 && s1.popped_prism_num === 0) {
     return s2;
   }
-  if (!s2.is_prism_popped && s1.is_prism_popped) {
+  if (s2.popped_prism_num === 0 && s1.popped_prism_num > 0) {
     return s1;
   }
   return undefined;
@@ -336,16 +337,27 @@ const calcSolutionResult = (
     }
   }
 
-  const is_all_cleared = Simulator.isAllCleared(chains);
-  const is_chance_popped = Simulator.isChancePopped(chains);
-  const is_prism_popped = Simulator.isPrismPopped(chains);
-
   return {
     trace_coords: traceCoords,
     chains,
     value: value!,
-    is_all_cleared,
-    is_chance_popped,
-    is_prism_popped
+    popped_chance_num: Simulator.calcPoppedChanceNum(chains),
+    popped_prism_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Prism
+    ),
+    popped_heart_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Heart
+    ),
+    popped_ojama_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Ojama
+    ),
+    popped_kata_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Kata
+    ),
+    is_all_cleared: Simulator.isAllCleared(chains)
   };
 };

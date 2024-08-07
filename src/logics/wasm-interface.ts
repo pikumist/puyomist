@@ -47,8 +47,8 @@ export interface WasmChain {
   puyo_tsukai_count: number;
   // JS側のChainだとここはPartial<Record>
   attributes: Map<PuyoAttr, WasmAttributeChain>;
+  popped_chance_num: number;
   is_all_cleared: boolean;
-  is_chance_popped: boolean;
 }
 
 export interface WasmStepCountingBonus {
@@ -87,12 +87,18 @@ export type WasmSolutionResult = {
    * 大きいほど良い値。
    */
   value: number;
+  /** 弾けたチャンスぷよの数 */
+  popped_chance_num: number;
+  /** 弾けたハートの数 */
+  popped_heart_num: number;
+  /** 弾けたプリズムの数 */
+  popped_prism_num: number;
+  /** 弾けたおじゃまの数 */
+  popped_ojama_num: number;
+  /** 弾けた固ぷよの数 */
+  popped_kata_num: number;
   /** 全消しされたかどうか */
   is_all_cleared: boolean;
-  /** チャンスぷよが弾けたかどうか */
-  is_chance_popped: boolean;
-  /** プリズムが弾けたかどうか */
-  is_prism_popped: boolean;
 };
 
 export interface WasmExplorationResult {
