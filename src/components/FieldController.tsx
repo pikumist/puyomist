@@ -1,6 +1,7 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import {
   Box,
+  type BoxProps,
   Grid,
   IconButton,
   type ResponsiveValue,
@@ -16,7 +17,7 @@ import { boardResetButtonClicked } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
 import AnimationStepSlider from './settings/AnimationStepSlider';
 
-interface IProps {
+interface FieldControllerProps extends BoxProps {
   /** 現在なぞり位置 */
   tracingCoords: PuyoCoord[];
   /** コマのリスト */
@@ -28,9 +29,14 @@ interface IProps {
 }
 
 /** フィールドコントローラー */
-const FieldController: React.FC<IProps> = (props) => {
-  const { tracingCoords, animationSteps, activeAnimationStepIndex, hideReset } =
-    props;
+const FieldController: React.FC<FieldControllerProps> = (props) => {
+  const {
+    tracingCoords,
+    animationSteps,
+    activeAnimationStepIndex,
+    hideReset,
+    ...rest
+  } = props;
   const dispatch = useDispatch<AppDispatch>();
 
   const responsiveHideReset =
@@ -42,7 +48,7 @@ const FieldController: React.FC<IProps> = (props) => {
   const onBoardRestButtonCliecked = () => dispatch(boardResetButtonClicked());
 
   return (
-    <Box minH="40px">
+    <Box minH="40px" {...rest}>
       {animationSteps?.length > 0 ? (
         <Grid gap="1" templateColumns="1fr auto">
           <AnimationStepSlider

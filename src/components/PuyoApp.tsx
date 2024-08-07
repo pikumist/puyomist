@@ -155,7 +155,7 @@ const PuyoApp: React.FC = () => {
               }}
             >
               <Show below="lg">
-                <Stack>
+                <Stack maxW={{ base: 360, sm: 215, md: 215 }}>
                   <FieldController
                     hideReset={{ base: false, sm: true, lg: false }}
                     tracingCoords={simulationData.traceCoords}
@@ -174,7 +174,7 @@ const PuyoApp: React.FC = () => {
                   />
                 </Stack>
               </Show>
-              <Box>
+              <Box maxW={{ base: 360, sm: 215, md: 215, lg: 440, xl: 480 }}>
                 <SolutionMenu
                   solving={solving}
                   hasResult={Boolean(solveResult)}
