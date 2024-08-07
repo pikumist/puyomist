@@ -1,10 +1,6 @@
-import { Box, HStack, Select, Text } from '@chakra-ui/react';
+import { Box, HStack, Text } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
-import { useDispatch } from 'react-redux';
-import {
-  ExplorationCategory,
-  explorationCategoryDescriptionMap
-} from '../logics/ExplorationTarget';
+import { explorationCategoryDescriptionMap } from '../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttr,
   coloredPuyoAttrList,
@@ -13,7 +9,7 @@ import {
 import { Simulator } from '../logics/Simulator';
 import { formatDuration } from '../logics/datetime';
 import type { SolveResult } from '../logics/solution';
-import { optimalSolutionIndexChanged } from '../reducers/puyoAppSlice';
+import OptimalSolutionSelector from './OptimalSolutionSelector';
 import PuyoIcon from './PuyoIcon';
 
 interface SolutionResultViewProps {
@@ -29,7 +25,6 @@ interface SolutionResultViewProps {
 const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
   (props) => {
     const { result, index, isInProgress } = props;
-    const dispatch = useDispatch();
 
     const totalDamageMap = useMemo(() => {
       const solution = result?.optimal_solutions[index];
@@ -43,12 +38,6 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
         ])
       );
     }, [result, index]);
-
-    const onIndexChanged = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      dispatch(
-        optimalSolutionIndexChanged(Number.parseInt(e.target.value, 10))
-      );
-    };
 
     const elapsedTime = result?.elapsedTime
       ? formatDuration(result?.elapsedTime)
@@ -64,33 +53,7 @@ const SolutionResultView: React.FC<SolutionResultViewProps> = React.memo(
                 result?.explorationTarget.category
               )}
             </Text>
-            <HStack>
-              <Select
-                aria-label="解の選択"
-                value={index}
-                onChange={onIndexChanged}
-              >
-                {[...result.optimal_solutions.entries()].map(
-                  ([i, solutionResult]) => {
-                    const cellAddrs = solutionResult.trace_coords
-                      .map((coord) => coord.toCellAddr())
-                      .join(',');
-                    const value = solutionResult.value.toFixed(
-                      result.explorationTarget.category ===
-                        ExplorationCategory.Damage
-                        ? 2
-                        : 0
-                    );
-                    return (
-                      <option value={i} key={cellAddrs} data-index={i}>
-                        {value}&nbsp;(
-                        {cellAddrs})
-                      </option>
-                    );
-                  }
-                )}
-              </Select>
-            </HStack>
+            <OptimalSolutionSelector result={result} index={index} />
             <Text>
               探索時間: {elapsedTime}
               {isInProgress ? ' ...' : ''}
