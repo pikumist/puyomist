@@ -115,12 +115,18 @@ pub struct SolutionResult {
      * 大きいほど良い値。
      */
     pub value: f64,
+    /** 弾けたチャンスぷよの数 */
+    pub popped_chance_num: u32,
+    /** 弾けたハートの数 */
+    pub popped_heart_num: u32,
+    /** 弾けたプリズムの数 */
+    pub popped_prism_num: u32,
+    /** 弾けたおじゃまの数 (固ぷよからおじゃまになりそして弾けたものも含む) */
+    pub popped_ojama_num: u32,
+    /** 弾けた固ぷよの数 (固ぷよからおじゃまになったものの数。さらにそのおじゃまが弾けたものも含む) */
+    pub popped_kata_num: u32,
     /** 全消しされたかどうか */
     pub is_all_cleared: bool,
-    /** チャンスぷよが弾けたかどうか */
-    pub is_chance_popped: bool,
-    /** プリズムが弾けたかどうか */
-    pub is_prism_popped: bool,
 }
 
 /** 探索結果 */

@@ -344,7 +344,6 @@ impl<'a> SimulatorBB<'a> {
                 },
             );
         }
-        /* TODO: 固ぷよも Chain に加える。他のシミュレーターも対応する必要がある。
         if kata_connected != 0 {
             attributes.insert(
                 PuyoAttr::Kata,
@@ -355,7 +354,6 @@ impl<'a> SimulatorBB<'a> {
                 },
             );
         }
-        */
 
         let poppable_connected =
             total_colored_connected | heart_connected | prism_connected | ojama_connected;
@@ -388,9 +386,8 @@ impl<'a> SimulatorBB<'a> {
             boost_count,
             puyo_tsukai_count,
             attributes,
+            popped_chance_num: chance_connected.count_ones(),
             is_all_cleared,
-            is_chance_popped: chance_connected != 0,
-            is_prism_popped: prism_connected != 0,
         };
 
         chains.push(chain);
@@ -1490,9 +1487,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
             }
         );
         assert_eq!(
@@ -1510,9 +1506,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1530,9 +1525,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1550,9 +1544,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1570,9 +1563,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1600,9 +1592,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1620,9 +1611,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1650,9 +1640,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1670,9 +1659,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1700,9 +1688,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1720,9 +1707,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1740,9 +1726,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1760,9 +1745,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1780,9 +1764,8 @@ mod tests {
                         separated_blocks_num: 2
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
     }
@@ -1860,9 +1843,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1880,9 +1862,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1900,9 +1881,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1920,9 +1900,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1940,9 +1919,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1960,9 +1938,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -1980,9 +1957,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2000,9 +1976,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2020,9 +1995,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2040,9 +2014,8 @@ mod tests {
                         separated_blocks_num: 2
                     }
                 )]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
     }
@@ -2118,9 +2091,8 @@ mod tests {
                         }
                     )
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
             }
         );
         assert_eq!(
@@ -2148,9 +2120,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2178,9 +2149,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2208,9 +2178,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: true,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: true
             }
         );
     }
@@ -2308,9 +2277,8 @@ mod tests {
                         }
                     ),
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: true,
-                is_prism_popped: false
+                popped_chance_num: 1,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2338,9 +2306,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
     }
@@ -2432,11 +2399,18 @@ mod tests {
                             popped_count: 1,
                             separated_blocks_num: 0
                         }
+                    ),
+                    (
+                        PuyoAttr::Kata,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
+                        }
                     )
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true
             }
         );
         assert_eq!(
@@ -2464,9 +2438,8 @@ mod tests {
                         }
                     )
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2502,9 +2475,8 @@ mod tests {
                         }
                     ),
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
     }
@@ -2593,9 +2565,8 @@ mod tests {
                         }
                     ),
                 ]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2613,9 +2584,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2633,9 +2603,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2653,9 +2622,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
             }
         );
         assert_eq!(
@@ -2673,9 +2641,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2693,9 +2660,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2713,9 +2679,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2733,9 +2698,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
         assert_eq!(
@@ -2753,9 +2717,8 @@ mod tests {
                         separated_blocks_num: 1
                     }
                 ),]),
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
     }

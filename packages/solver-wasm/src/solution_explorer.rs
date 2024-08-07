@@ -7,6 +7,7 @@ use crate::{
         CountingBonusType, ExplorationCategory, ExplorationTarget, PreferenceKind,
     },
     puyo::{Field, NextPuyos},
+    puyo_attr::PuyoAttr,
     puyo_coord::PuyoCoord,
     puyo_type::is_traceable_type,
     simulation_environment::SimulationEnvironment,
@@ -36,10 +37,10 @@ fn better_solution_by_chance_popped<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> Option<&'a SolutionResult> {
-    if s2.is_chance_popped && !s1.is_chance_popped {
+    if s2.popped_chance_num > 0 && s1.popped_chance_num == 0 {
         return Some(s2);
     }
-    if !s2.is_chance_popped && s1.is_chance_popped {
+    if s2.popped_chance_num == 0 && s1.popped_chance_num > 0 {
         return Some(s1);
     }
     return None;
@@ -49,10 +50,10 @@ fn better_solution_by_prism_popped<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> Option<&'a SolutionResult> {
-    if s2.is_prism_popped && !s1.is_prism_popped {
+    if s2.popped_prism_num > 0 && s1.popped_prism_num == 0 {
         return Some(s2);
     }
-    if !s2.is_prism_popped && s1.is_prism_popped {
+    if s2.popped_prism_num == 0 && s1.popped_prism_num > 0 {
         return Some(s1);
     }
     return None;
@@ -233,9 +234,12 @@ impl<'a> SolutionExplorer<'a> {
 
     fn calc_solution_result(&self, trace_coords: Vec<PuyoCoord>) -> SolutionResult {
         let chains = self.do_chains_bb(&trace_coords);
+        let popped_chance_num = chains.iter().map(|c| c.popped_chance_num).sum();
+        let popped_heart_num = sum_attr_popped_count(&chains, PuyoAttr::Heart);
+        let popped_prism_num = sum_attr_popped_count(&chains, PuyoAttr::Prism);
+        let popped_ojama_num = sum_attr_popped_count(&chains, PuyoAttr::Ojama);
+        let popped_kata_num = sum_attr_popped_count(&chains, PuyoAttr::Kata);
         let is_all_cleared = chains.iter().any(|c| c.is_all_cleared);
-        let is_chance_popped = chains.iter().any(|c| c.is_chance_popped);
-        let is_prism_popped = chains.iter().any(|c| c.is_prism_popped);
 
         let value: f64;
 
@@ -291,9 +295,12 @@ impl<'a> SolutionExplorer<'a> {
             trace_coords,
             chains,
             value,
+            popped_chance_num,
+            popped_heart_num,
+            popped_prism_num,
+            popped_ojama_num,
+            popped_kata_num,
             is_all_cleared,
-            is_chance_popped,
-            is_prism_popped,
         };
     }
 
@@ -358,7 +365,7 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
-    fn test_solve_all_traces_special_rule_1_1() {
+    fn test_solve_all_traces_special_rule_1_1_modified() {
         // Arrange
         let exploration_target = ExplorationTarget {
             category: ExplorationCategory::Damage,
@@ -389,13 +396,16 @@ mod tests {
         let g = PuyoType::Green;
         let y = PuyoType::Yellow;
         let p = PuyoType::Purple;
+        let pc = PuyoType::PurpleChance;
         let h = PuyoType::Heart;
+        let o = PuyoType::Ojama;
+        let z = PuyoType::Kata;
         let mut id_counter = 0;
         let field = [
-            [r, p, h, p, y, g, y, y],
-            [r, y, p, h, y, g, p, g],
-            [b, y, g, b, h, y, g, p],
-            [b, r, b, r, p, b, r, p],
+            [r, p, z, p, y, g, y, y],
+            [r, y, p, h, y, g, pc, g],
+            [b, y, g, b, o, y, g, pc],
+            [b, r, b, r, p, b, r, pc],
             [y, g, p, p, r, b, g, g],
             [b, g, b, r, b, y, r, r],
         ]
@@ -427,572 +437,651 @@ mod tests {
         let actual = explorer.solve_all_traces();
 
         // Arrange
-        assert_eq!(actual.candidates_num, 804);
+        assert_eq!(actual.candidates_num, 703);
         assert_eq!(actual.optimal_solutions.len(), 2);
+        let s0 = &actual.optimal_solutions[0];
         assert_eq!(
-            actual.optimal_solutions[0],
-            SolutionResult {
-                trace_coords: Vec::from([PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }]),
-                chains: Vec::from([
-                    Chain {
-                        chain_num: 1,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Purple,
-                            AttributeChain {
-                                strength: 1.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 2,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 3.8000000000000003,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 3,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 5.8999999999999995,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 4,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Yellow,
-                            AttributeChain {
-                                strength: 8.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 5,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Blue,
-                            AttributeChain {
-                                strength: 9.4,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 6,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Purple,
-                                AttributeChain {
-                                    strength: 10.799999999999999,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 7,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 12.200000000000001,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 8,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Blue,
-                                AttributeChain {
-                                    strength: 13.6,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 9,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 15.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 10,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Yellow,
-                                AttributeChain {
-                                    strength: 16.400000000000002,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 11,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Blue,
-                            AttributeChain {
-                                strength: 17.800000000000004,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 12,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 19.2,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 13,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Purple,
-                            AttributeChain {
-                                strength: 20.599999999999998,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 14,
-                        simultaneous_num: 10,
-                        boost_count: 0,
-                        puyo_tsukai_count: 10,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 90.19999999999999,
-                                popped_count: 10,
-                                separated_blocks_num: 2,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                ]),
-                value: 108.99999999999999,
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+            s0.trace_coords,
+            Vec::from([PuyoCoord { x: 5, y: 2 }, PuyoCoord { x: 6, y: 2 }])
+        );
+        assert_eq!(s0.chains.len(), 14);
+        assert_eq!(
+            s0.chains[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 1.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 3,
+                is_all_cleared: false
             }
         );
         assert_eq!(
-            actual.optimal_solutions[1],
-            SolutionResult {
-                trace_coords: Vec::from([
-                    PuyoCoord { x: 4, y: 1 },
-                    PuyoCoord { x: 5, y: 2 },
-                    PuyoCoord { x: 6, y: 2 }
-                ]),
-                chains: Vec::from([
-                    Chain {
-                        chain_num: 1,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Purple,
-                            AttributeChain {
-                                strength: 1.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 2,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 3.8000000000000003,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 3,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 5.8999999999999995,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 4,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Yellow,
-                            AttributeChain {
-                                strength: 8.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
-                    },
-                    Chain {
-                        chain_num: 5,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Blue,
-                            AttributeChain {
-                                strength: 9.4,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            }
-                        )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 6,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Purple,
-                                AttributeChain {
-                                    strength: 10.799999999999999,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 7,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 12.200000000000001,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 8,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Blue,
-                                AttributeChain {
-                                    strength: 13.6,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 9,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 15.0,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 10,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 4,
-                        attributes: HashMap::from([
-                            (
-                                PuyoAttr::Yellow,
-                                AttributeChain {
-                                    strength: 16.400000000000002,
-                                    popped_count: 3,
-                                    separated_blocks_num: 1,
-                                },
-                            ),
-                            (
-                                PuyoAttr::Heart,
-                                AttributeChain {
-                                    strength: 0.0,
-                                    popped_count: 1,
-                                    separated_blocks_num: 0,
-                                },
-                            )
-                        ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 11,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Blue,
-                            AttributeChain {
-                                strength: 17.800000000000004,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 12,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Red,
-                            AttributeChain {
-                                strength: 19.2,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 13,
-                        simultaneous_num: 3,
-                        boost_count: 0,
-                        puyo_tsukai_count: 3,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Purple,
-                            AttributeChain {
-                                strength: 20.599999999999998,
-                                popped_count: 3,
-                                separated_blocks_num: 1,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                    Chain {
-                        chain_num: 14,
-                        simultaneous_num: 10,
-                        boost_count: 0,
-                        puyo_tsukai_count: 10,
-                        attributes: HashMap::from([(
-                            PuyoAttr::Green,
-                            AttributeChain {
-                                strength: 90.19999999999999,
-                                popped_count: 10,
-                                separated_blocks_num: 2,
-                            },
-                        ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
-                    },
-                ]),
-                value: 108.99999999999999,
-                is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false
+            s0.chains[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 3.8000000000000003,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
             }
         );
+        assert_eq!(
+            s0.chains[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 5.8999999999999995,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[3],
+            Chain {
+                chain_num: 4,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Yellow,
+                    AttributeChain {
+                        strength: 8.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[4],
+            Chain {
+                chain_num: 5,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 9.4,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[5],
+            Chain {
+                chain_num: 6,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 12.419999999999998,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[6],
+            Chain {
+                chain_num: 7,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 12.200000000000001,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[7],
+            Chain {
+                chain_num: 8,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 13.6,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Heart,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[8],
+            Chain {
+                chain_num: 9,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 15.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[9],
+            Chain {
+                chain_num: 10,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 16.400000000000002,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Kata,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[10],
+            Chain {
+                chain_num: 11,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 17.800000000000004,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[11],
+            Chain {
+                chain_num: 12,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 19.2,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            },
+        );
+        assert_eq!(
+            s0.chains[12],
+            Chain {
+                chain_num: 13,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 23.689999999999994,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s0.chains[13],
+            Chain {
+                chain_num: 14,
+                simultaneous_num: 10,
+                boost_count: 0,
+                puyo_tsukai_count: 10,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 90.19999999999999,
+                        popped_count: 10,
+                        separated_blocks_num: 2,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(s0.value, 108.99999999999999);
+        assert_eq!(s0.popped_chance_num, 3);
+        assert_eq!(s0.popped_heart_num, 1);
+        assert_eq!(s0.popped_prism_num, 0);
+        assert_eq!(s0.popped_ojama_num, 2);
+        assert_eq!(s0.popped_kata_num, 1);
+        assert_eq!(s0.is_all_cleared, false);
+
+        let s1 = &actual.optimal_solutions[1];
+        assert_eq!(
+            s1.trace_coords,
+            Vec::from([
+                PuyoCoord { x: 4, y: 1 },
+                PuyoCoord { x: 5, y: 2 },
+                PuyoCoord { x: 6, y: 2 }
+            ])
+        );
+        assert_eq!(s1.chains.len(), 14);
+        assert_eq!(
+            s1.chains[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 1.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 3,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 3.8000000000000003,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 5.8999999999999995,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[3],
+            Chain {
+                chain_num: 4,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Yellow,
+                    AttributeChain {
+                        strength: 8.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[4],
+            Chain {
+                chain_num: 5,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 9.4,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[5],
+            Chain {
+                chain_num: 6,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 12.419999999999998,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[6],
+            Chain {
+                chain_num: 7,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 12.200000000000001,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[7],
+            Chain {
+                chain_num: 8,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Blue,
+                        AttributeChain {
+                            strength: 13.6,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Heart,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[8],
+            Chain {
+                chain_num: 9,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 15.0,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[9],
+            Chain {
+                chain_num: 10,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Yellow,
+                        AttributeChain {
+                            strength: 16.400000000000002,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Kata,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[10],
+            Chain {
+                chain_num: 11,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 17.800000000000004,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[11],
+            Chain {
+                chain_num: 12,
+                simultaneous_num: 3,
+                boost_count: 0,
+                puyo_tsukai_count: 3,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 19.2,
+                        popped_count: 3,
+                        separated_blocks_num: 1,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            },
+        );
+        assert_eq!(
+            s1.chains[12],
+            Chain {
+                chain_num: 13,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([
+                    (
+                        PuyoAttr::Purple,
+                        AttributeChain {
+                            strength: 23.689999999999994,
+                            popped_count: 3,
+                            separated_blocks_num: 1,
+                        },
+                    ),
+                    (
+                        PuyoAttr::Ojama,
+                        AttributeChain {
+                            strength: 0.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0,
+                        },
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(
+            s1.chains[13],
+            Chain {
+                chain_num: 14,
+                simultaneous_num: 10,
+                boost_count: 0,
+                puyo_tsukai_count: 10,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 90.19999999999999,
+                        popped_count: 10,
+                        separated_blocks_num: 2,
+                    },
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+        assert_eq!(s0.value, 108.99999999999999);
+        assert_eq!(s0.popped_chance_num, 3);
+        assert_eq!(s0.popped_heart_num, 1);
+        assert_eq!(s0.popped_prism_num, 0);
+        assert_eq!(s0.popped_ojama_num, 2);
+        assert_eq!(s0.popped_kata_num, 1);
+        assert_eq!(s0.is_all_cleared, false);
     }
 
     #[test]
@@ -1080,229 +1169,252 @@ mod tests {
                 PuyoCoord { x: 3, y: 1 },
             ])
         );
+        assert_eq!(solution.chains.len(), 12);
         assert_eq!(
-            solution.chains,
-            Vec::from([
-                Chain {
-                    chain_num: 1,
-                    simultaneous_num: 8,
-                    boost_count: 0,
-                    puyo_tsukai_count: 8,
-                    attributes: HashMap::from([
-                        (
-                            PuyoAttr::Blue,
-                            AttributeChain {
-                                strength: 1.6,
-                                popped_count: 7,
-                                separated_blocks_num: 1
-                            }
-                        ),
-                        (
-                            PuyoAttr::Prism,
-                            AttributeChain {
-                                strength: 3.0,
-                                popped_count: 1,
-                                separated_blocks_num: 0
-                            }
-                        )
-                    ]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: true
-                },
-                Chain {
-                    chain_num: 2,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Yellow,
-                        AttributeChain {
-                            strength: 5.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false
-                },
-                Chain {
-                    chain_num: 3,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Green,
-                        AttributeChain {
-                            strength: 8.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 4,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Purple,
-                        AttributeChain {
-                            strength: 11.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 5,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Red,
-                        AttributeChain {
-                            strength: 13.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 6,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Purple,
-                        AttributeChain {
-                            strength: 15.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 7,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Red,
-                        AttributeChain {
-                            strength: 17.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 8,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Green,
-                        AttributeChain {
-                            strength: 19.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 9,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
+            solution.chains[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 8,
+                boost_count: 0,
+                puyo_tsukai_count: 8,
+                attributes: HashMap::from([
+                    (
                         PuyoAttr::Blue,
                         AttributeChain {
-                            strength: 21.0,
-                            popped_count: 4,
+                            strength: 1.6,
+                            popped_count: 7,
                             separated_blocks_num: 1
                         }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 10,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Yellow,
+                    ),
+                    (
+                        PuyoAttr::Prism,
                         AttributeChain {
-                            strength: 23.0,
-                            popped_count: 4,
-                            separated_blocks_num: 1
+                            strength: 3.0,
+                            popped_count: 1,
+                            separated_blocks_num: 0
                         }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 11,
-                    simultaneous_num: 4,
-                    boost_count: 0,
-                    puyo_tsukai_count: 4,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Green,
-                        AttributeChain {
-                            strength: 25.000000000000004,
-                            popped_count: 4,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: true,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-                Chain {
-                    chain_num: 12,
-                    simultaneous_num: 8,
-                    boost_count: 0,
-                    puyo_tsukai_count: 8,
-                    attributes: HashMap::from([(
-                        PuyoAttr::Blue,
-                        AttributeChain {
-                            strength: 43.2,
-                            popped_count: 8,
-                            separated_blocks_num: 1
-                        }
-                    ),]),
-                    is_all_cleared: false,
-                    is_chance_popped: false,
-                    is_prism_popped: false,
-                },
-            ])
+                    )
+                ]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[1],
+            Chain {
+                chain_num: 2,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Yellow,
+                    AttributeChain {
+                        strength: 5.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[2],
+            Chain {
+                chain_num: 3,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 8.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[3],
+            Chain {
+                chain_num: 4,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 11.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[4],
+            Chain {
+                chain_num: 5,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 13.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[5],
+            Chain {
+                chain_num: 6,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Purple,
+                    AttributeChain {
+                        strength: 15.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[6],
+            Chain {
+                chain_num: 7,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Red,
+                    AttributeChain {
+                        strength: 17.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[7],
+            Chain {
+                chain_num: 8,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 19.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[8],
+            Chain {
+                chain_num: 9,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 21.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[9],
+            Chain {
+                chain_num: 10,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Yellow,
+                    AttributeChain {
+                        strength: 23.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false,
+            }
+        );
+        assert_eq!(
+            solution.chains[10],
+            Chain {
+                chain_num: 11,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Green,
+                    AttributeChain {
+                        strength: 25.000000000000004,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: true,
+            }
+        );
+        assert_eq!(
+            solution.chains[11],
+            Chain {
+                chain_num: 12,
+                simultaneous_num: 8,
+                boost_count: 0,
+                puyo_tsukai_count: 8,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 43.2,
+                        popped_count: 8,
+                        separated_blocks_num: 1
+                    }
+                ),]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
         );
         assert_eq!(solution.value, 68.80000000000001);
+        assert_eq!(solution.popped_chance_num, 0);
+        assert_eq!(solution.popped_heart_num, 0);
+        assert_eq!(solution.popped_prism_num, 1);
+        assert_eq!(solution.popped_ojama_num, 0);
+        assert_eq!(solution.popped_kata_num, 0);
         assert_eq!(solution.is_all_cleared, true);
-        assert_eq!(solution.is_chance_popped, false);
-        assert_eq!(solution.is_prism_popped, true);
     }
 
     #[test]
@@ -1410,9 +1522,8 @@ mod tests {
                                 }
                             )
                         ]),
+                        popped_chance_num: 0,
                         is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
                     },
                     Chain {
                         chain_num: 2,
@@ -1437,9 +1548,8 @@ mod tests {
                                 }
                             )
                         ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 3,
@@ -1464,9 +1574,8 @@ mod tests {
                                 }
                             )
                         ]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 4,
@@ -1491,15 +1600,17 @@ mod tests {
                                 }
                             )
                         ]),
-                        is_all_cleared: true,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: true
                     }
                 ]),
                 value: 66.35,
+                popped_chance_num: 0,
+                popped_heart_num: 0,
+                popped_prism_num: 0,
+                popped_ojama_num: 0,
+                popped_kata_num: 0,
                 is_all_cleared: true,
-                is_chance_popped: false,
-                is_prism_popped: false
             }
         );
         assert_eq!(
@@ -1526,9 +1637,8 @@ mod tests {
                                 separated_blocks_num: 1
                             }
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 2,
@@ -1543,9 +1653,8 @@ mod tests {
                                 separated_blocks_num: 1
                             }
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 3,
@@ -1560,9 +1669,8 @@ mod tests {
                                 separated_blocks_num: 1
                             }
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 4,
@@ -1577,9 +1685,8 @@ mod tests {
                                 separated_blocks_num: 1
                             }
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 5,
@@ -1594,9 +1701,8 @@ mod tests {
                                 separated_blocks_num: 1,
                             }
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 6,
@@ -1611,9 +1717,8 @@ mod tests {
                                 separated_blocks_num: 1,
                             },
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 7,
@@ -1628,9 +1733,8 @@ mod tests {
                                 separated_blocks_num: 1,
                             },
                         ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 8,
@@ -1645,9 +1749,8 @@ mod tests {
                                 separated_blocks_num: 1,
                             },
                         )]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 9,
@@ -1662,9 +1765,8 @@ mod tests {
                                 separated_blocks_num: 1,
                             },
                         ),]),
-                        is_all_cleared: false,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: false
                     },
                     Chain {
                         chain_num: 10,
@@ -1679,15 +1781,17 @@ mod tests {
                                 separated_blocks_num: 1,
                             },
                         ),]),
-                        is_all_cleared: true,
-                        is_chance_popped: false,
-                        is_prism_popped: false,
+                        popped_chance_num: 0,
+                        is_all_cleared: true
                     },
                 ]),
                 value: 22.3,
-                is_all_cleared: true,
-                is_chance_popped: false,
-                is_prism_popped: false
+                popped_chance_num: 0,
+                popped_heart_num: 0,
+                popped_prism_num: 0,
+                popped_ojama_num: 0,
+                popped_kata_num: 0,
+                is_all_cleared: true
             }
         );
     }

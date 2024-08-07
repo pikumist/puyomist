@@ -26,10 +26,8 @@ pub struct Chain {
     pub puyo_tsukai_count: u32,
     /// 各属性ごとの連鎖情報 (含まれる属性は5色とハート、プリズム、おじゃま)
     pub attributes: HashMap<PuyoAttr, AttributeChain>,
+    /** 弾けたチャンスぷよの数 */
+    pub popped_chance_num: u32,
     /// この連鎖で全消しを達成したかどうか
     pub is_all_cleared: bool,
-    /// この連鎖チャンスぷよを消したかどうか
-    pub is_chance_popped: bool,
-    /// プリズムを消したかどうか
-    pub is_prism_popped: bool,
 }
