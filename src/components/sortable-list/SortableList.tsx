@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { PreferenceKind } from '../../logics/ExplorationTarget';
 import SortableItem, { DragHandle } from './parts/SortableItem';
 import SortableOverlay from './parts/SortableOverlay';
 
@@ -54,10 +55,23 @@ const SortableList = <T extends BaseItem>(props: Props<T>) => {
         setActive(active);
       }}
       onDragEnd={({ active, over }) => {
-        if (over && active.id !== over?.id) {
-          const activeIndex = items.findIndex(({ id }) => id === active.id);
-          const overIndex = items.findIndex(({ id }) => id === over.id);
-          onChange(arrayMove(items, activeIndex, overIndex));
+        if (over) {
+          if (active.id !== over?.id) {
+            const activeIndex = items.findIndex(({ id }) => id === active.id);
+            const overIndex = items.findIndex(({ id }) => id === over.id);
+            onChange(arrayMove(items, activeIndex, overIndex));
+          }
+        } else {
+          const pref = active.id as PreferenceKind;
+          if (
+            pref !== PreferenceKind.BiggerValue &&
+            pref !== PreferenceKind.SmallerValue
+          ) {
+            const activeIndex = items.findIndex(({ id }) => id === active.id);
+            const newItems = [...items];
+            newItems.splice(activeIndex, 1);
+            onChange(newItems);
+          }
         }
         setActive(null);
       }}
@@ -66,7 +80,8 @@ const SortableList = <T extends BaseItem>(props: Props<T>) => {
       }}
     >
       <SortableContext items={items}>
-        <Stack gap="1">
+        {/* item内でメニューを開くと高さがバグってスクロールバーが出てしまうのでXY方向のoverflowを無くしている */}
+        <Stack gap="1" maxH="276px" overflowY="hidden" overflowX="hidden">
           {items.map((item) => (
             <Fragment key={item.id}>{renderItem(item)}</Fragment>
           ))}

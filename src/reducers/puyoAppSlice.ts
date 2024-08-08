@@ -383,12 +383,40 @@ const puyoAppSlice = createSlice({
       state.explorationTarget.optimal_solution_count = action.payload;
     },
 
-    /** 探索対象の優先度に変更があったとき */
+    /** 探索対象の優先度リストに変更があったとき */
     explorationPreferencePrioritiesChanged: (
       state,
       action: PayloadAction<PreferenceKind[]>
     ) => {
       state.explorationTarget.preference_priorities = action.payload;
+    },
+
+    /** 派生プリファレンスに置換されたとき */
+    explorationPreferenceReplaced: (
+      state,
+      action: PayloadAction<{ from: PreferenceKind; to: PreferenceKind }>
+    ) => {
+      const { from, to } = action.payload;
+      const preference_priorities = [
+        ...state.explorationTarget.preference_priorities
+      ];
+      preference_priorities.splice(preference_priorities.indexOf(from), 1, to);
+      state.explorationTarget.preference_priorities = preference_priorities;
+    },
+
+    /** プリファレンスが追加されたとき */
+    explorationPreferenceAdded: (
+      state,
+      action: PayloadAction<PreferenceKind>
+    ) => {
+      const pref = action.payload;
+      if (
+        !state.explorationTarget.preference_priorities.some(
+          (p) => p % 10 === pref % 10
+        )
+      ) {
+        state.explorationTarget.preference_priorities.push(pref);
+      }
     },
 
     /** ダメージの主属性項目が選択されたとき */
@@ -674,6 +702,8 @@ export const {
   explorationCategorySelected,
   explorationOptimalSolutionNumChanged,
   explorationPreferencePrioritiesChanged,
+  explorationPreferenceReplaced,
+  explorationPreferenceAdded,
   explorationDamageMainAttrSelected,
   explorationDamageSubAttrSelected,
   explorationDamageMainSubRatioSelected,
