@@ -14,24 +14,99 @@ export enum ExplorationCategory {
 export enum PreferenceKind {
   /** 探索対象の値が大きい方 */
   BiggerValue = 1,
-  /** チャンスぷよ消し */
+  /** チャンスぷよ消しがある */
   ChancePop = 2,
-  /** プリズム消し */
+  /** プリズム消しがある */
   PrismPop = 3,
   /** 全消し */
   AllClear = 4,
   /** なぞり数が少ない方 */
-  SmallerTraceNum = 5
+  SmallerTraceNum = 5,
+  /** ハート消しがある */
+  HeartPop = 6,
+  /** おじゃま消しがある (固ぷよも含む) */
+  OjamaPop = 7,
+
+  //
+  // 反対
+  //
+  /** 探索対象の値が小さい方 */
+  SmallerValue = 11,
+  /** チャンスぷよ消しがない */
+  NoChancePop = 12,
+  /** プリズム消しがない */
+  NoPrismPop = 13,
+  /** 全消ししない */
+  NoAllClear = 14,
+  /** なぞり数が多い方 */
+  BiggerTraceNum = 15,
+  /** ハート消しがない */
+  NoHeartPop = 16,
+  /** おじゃま消しがない (固ぷよも含む) */
+  NoOjamaPop = 17,
+
+  //
+  // 数が多い
+  //
+  /** チャンスぷよ消し数が多い */
+  MoreChancePop = 22,
+  /** プリズム消し数が多い */
+  MorePrismPop = 23,
+  /** ハート消し数が多い */
+  MoreHeartPop = 26,
+  /** おじゃま消し数が多い (固ぷよも含む。固ぷよが完全に消えたら2個分) */
+  MoreOjamaPop = 27,
+
+  //
+  // 数が少ない
+  //
+  /** チャンスぷよ消し数が少ない */
+  LessChancePop = 32,
+  /** プリズム消し数が少ない */
+  LessPrismPop = 33,
+  /** ハート消し数が少ない */
+  LessHeartPop = 36,
+  /** おじゃま消し数が少ない (固ぷよも含む。固ぷよが完全に消えたら2個分) */
+  LessOjamaPop = 37
 }
+
+/** 値に関するプリファレンスかどうか */
+export const isValuePreference = (pref: PreferenceKind) =>
+  pref === PreferenceKind.BiggerValue || pref === PreferenceKind.SmallerValue;
+
+/** 同類派生のプリファレンスリストを取得する。 */
+export const getDerivativePreferenceList = (pref: PreferenceKind) => {
+  const mod = pref % 10;
+  return [...preferenceKindDescriptionMap.keys()].filter(
+    (p) => p !== pref && p % 10 === mod
+  );
+};
 
 /** 好みの種類とその説明のマップ */
 export const preferenceKindDescriptionMap: ReadonlyMap<PreferenceKind, string> =
   new Map([
     [PreferenceKind.BiggerValue, '探索対象の値が大きい'],
-    [PreferenceKind.ChancePop, 'チャンスぷよを含む'],
+    [PreferenceKind.ChancePop, 'チャンスを含む'],
     [PreferenceKind.PrismPop, 'プリズムを含む'],
     [PreferenceKind.AllClear, '全消し達成'],
-    [PreferenceKind.SmallerTraceNum, 'なぞり数が少ない']
+    [PreferenceKind.SmallerTraceNum, 'なぞり数が少ない'],
+    [PreferenceKind.HeartPop, 'ハートを含む'],
+    [PreferenceKind.OjamaPop, 'おじゃまを含む'],
+    [PreferenceKind.SmallerValue, '探索対象の値が小さい'],
+    [PreferenceKind.NoChancePop, 'チャンスを含まない'],
+    [PreferenceKind.NoPrismPop, 'プリズムを含まない'],
+    [PreferenceKind.NoAllClear, '全消ししない'],
+    [PreferenceKind.BiggerTraceNum, 'なぞり数が多い'],
+    [PreferenceKind.NoHeartPop, 'ハートを含まない'],
+    [PreferenceKind.NoOjamaPop, 'おじゃまを含まない'],
+    [PreferenceKind.MoreChancePop, 'チャンス消し数が多い'],
+    [PreferenceKind.MorePrismPop, 'プリズム消し数が多い'],
+    [PreferenceKind.MoreHeartPop, 'ハート消し数が多い'],
+    [PreferenceKind.MoreOjamaPop, 'おじゃま消し数が多い'],
+    [PreferenceKind.LessChancePop, 'チャンス消し数が少ない'],
+    [PreferenceKind.LessPrismPop, 'プリズム消し数が少ない'],
+    [PreferenceKind.LessHeartPop, 'ハート消し数が少ない'],
+    [PreferenceKind.LessOjamaPop, 'おじゃま消し数が少ない']
   ]);
 
 /** 探索共通設定 */

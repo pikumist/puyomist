@@ -10,7 +10,6 @@ pub mod puyo_attr;
 pub mod puyo_coord;
 pub mod puyo_type;
 pub mod simulation_environment;
-pub mod simulator;
 pub mod simulator_bb;
 pub mod solution;
 pub mod solution_explorer;
@@ -25,7 +24,6 @@ use exploration_target::ExplorationTarget;
 use puyo::{Field, NextPuyos};
 use puyo_coord::PuyoCoord;
 use simulation_environment::SimulationEnvironment;
-use simulator::Simulator;
 use solution_explorer::SolutionExplorer;
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
@@ -48,30 +46,6 @@ where
     T: serde::ser::Serialize + ?Sized,
 {
     return serde_wasm_bindgen::to_value(&value);
-}
-
-#[wasm_bindgen]
-pub fn do_chains(
-    js_environment: JsValue,
-    js_boost_area_coord_set: JsValue,
-    js_field: JsValue,
-    js_next_puyos: JsValue,
-    js_trace_coords: JsValue,
-) -> JsValue {
-    console_error_panic_hook::set_once();
-
-    let environment: SimulationEnvironment = from_value(js_environment).unwrap();
-    let boost_area_coord_set: HashSet<PuyoCoord> = from_value(js_boost_area_coord_set).unwrap();
-    let mut field: Field = from_value(js_field).unwrap();
-    let mut next_puyos: NextPuyos = from_value(js_next_puyos).unwrap();
-    let trace_coords: Vec<PuyoCoord> = from_value(js_trace_coords).unwrap();
-    let simulator = Simulator {
-        environment: &environment,
-        boost_area_coord_set: &boost_area_coord_set,
-    };
-    let chains = simulator.do_chains(&mut field, &mut next_puyos, &trace_coords);
-    let result = to_value(&chains).unwrap();
-    return result;
 }
 
 #[wasm_bindgen]

@@ -154,7 +154,12 @@ export class Simulator {
    * @returns
    */
   static isChancePopped(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.is_chance_popped);
+    return chains.some((chain) => chain.popped_chance_num > 0);
+  }
+
+  /** チャンスぷよが何個弾けたか */
+  static calcPoppedChanceNum(chains: Chain[]): number {
+    return chains.reduce((acc, chain) => acc + chain.popped_chance_num, 0);
   }
 
   /**
@@ -163,7 +168,9 @@ export class Simulator {
    * @returns
    */
   static isPrismPopped(chains: Chain[]): boolean {
-    return chains.some((chain) => chain.is_prism_popped);
+    return chains.some(
+      (chain) => (chain.attributes[PuyoAttr.Prism]?.popped_count ?? 0) > 0
+    );
   }
 
   /**
@@ -499,7 +506,9 @@ export class Simulator {
       simultaneous_num: poppedPuyoNum,
       boost_count: boostCount,
       puyo_tsukai_count: puyoTsukaiCount,
-      attributes: {} as Record<PuyoAttr, AttributeChain>
+      attributes: {} as Record<PuyoAttr, AttributeChain>,
+      popped_chance_num: 0,
+      is_all_cleared: false
     };
 
     for (const attr of [
@@ -510,12 +519,14 @@ export class Simulator {
       PuyoAttr.Purple,
       PuyoAttr.Heart,
       PuyoAttr.Prism,
-      PuyoAttr.Ojama
+      PuyoAttr.Ojama,
+      PuyoAttr.Kata
     ]) {
       if (
         attr === PuyoAttr.Heart ||
         attr === PuyoAttr.Prism ||
-        attr === PuyoAttr.Ojama
+        attr === PuyoAttr.Ojama ||
+        attr === PuyoAttr.Kata
       ) {
         const block = blocks.find((block) => block.attr === attr);
         if (!block) {
@@ -568,23 +579,19 @@ export class Simulator {
           };
         }
       } else {
-        if (block.attr === PuyoAttr.Prism) {
-          result.is_prism_popped = true;
-        }
         for (const [c] of block.coordIdMap) {
           const type = this.field[c.y][c.x]!.type;
           if (isChancePuyo(type)) {
-            result.is_chance_popped = true;
+            result.popped_chance_num += 1;
           }
           this.field[c.y][c.x] = undefined;
         }
       }
     }
 
-    const allCleared = this.field.every((row) => row.every((puyo) => !puyo));
-    if (allCleared) {
-      result.is_all_cleared = allCleared;
-    }
+    result.is_all_cleared = this.field.every((row) =>
+      row.every((puyo) => !puyo)
+    );
 
     this.chains.push(result);
 

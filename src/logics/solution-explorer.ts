@@ -14,6 +14,7 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
+import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -171,7 +172,9 @@ export type PartialSolutionResult = Omit<
   'totalDamages' | 'totalWildDamage' | 'chains'
 >;
 
-const betterSolutionByValue = <S extends PartialSolutionResult>(
+export const better_solution_by_bigger_value = <
+  S extends PartialSolutionResult
+>(
   s1: S,
   s2: S
 ): S | undefined => {
@@ -184,33 +187,33 @@ const betterSolutionByValue = <S extends PartialSolutionResult>(
   return undefined;
 };
 
-const betterSolutionByChancePopped = <S extends PartialSolutionResult>(
+export const better_solution_by_chance_pop = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.is_chance_popped && !s1.is_chance_popped) {
+  if (s2.popped_chance_num > 0 && s1.popped_chance_num === 0) {
     return s2;
   }
-  if (!s2.is_chance_popped && s1.is_chance_popped) {
+  if (s2.popped_chance_num === 0 && s1.popped_chance_num > 0) {
     return s1;
   }
   return undefined;
 };
 
-const betterSolutionByPrismPopped = <S extends PartialSolutionResult>(
+export const better_solution_by_prism_pop = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
-  if (s2.is_prism_popped && !s1.is_prism_popped) {
+  if (s2.popped_prism_num > 0 && s1.popped_prism_num === 0) {
     return s2;
   }
-  if (!s2.is_prism_popped && s1.is_prism_popped) {
+  if (s2.popped_prism_num === 0 && s1.popped_prism_num > 0) {
     return s1;
   }
   return undefined;
 };
 
-const betterSolutionByAllCleared = <S extends PartialSolutionResult>(
+export const better_solution_by_all_clear = <S extends PartialSolutionResult>(
   s1: S,
   s2: S
 ): S | undefined => {
@@ -223,7 +226,9 @@ const betterSolutionByAllCleared = <S extends PartialSolutionResult>(
   return undefined;
 };
 
-const betterSolutionByTraceCoords = <S extends PartialSolutionResult>(
+export const better_solution_by_smaller_trace_num = <
+  S extends PartialSolutionResult
+>(
   s1: S,
   s2: S
 ): S | undefined => {
@@ -236,12 +241,239 @@ const betterSolutionByTraceCoords = <S extends PartialSolutionResult>(
   return undefined;
 };
 
+export const better_solution_by_heart_pop = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.popped_heart_num > 0 && s1.popped_heart_num === 0) {
+    return s2;
+  }
+  if (s2.popped_heart_num === 0 && s1.popped_heart_num > 0) {
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_ojama_pop = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (
+    (s2.popped_ojama_num > 0 || s2.popped_kata_num > 0) &&
+    s1.popped_ojama_num === 0 &&
+    s1.popped_kata_num === 0
+  ) {
+    return s2;
+  }
+  if (
+    s2.popped_ojama_num === 0 &&
+    s2.popped_kata_num === 0 &&
+    (s1.popped_ojama_num > 0 || s1.popped_kata_num > 0)
+  ) {
+    return s1;
+  }
+  return undefined;
+};
+
+const the_other = <S extends PartialSolutionResult>(
+  s1: S,
+  s2: S,
+  target: S | undefined
+): S | undefined => {
+  if (target) {
+    if (target === s1) {
+      return s2;
+    }
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_smaller_value = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_bigger_value(s1, s2));
+};
+
+export const better_solution_by_no_chance_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_chance_pop(s1, s2));
+};
+
+export const better_solution_by_no_prism_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_prism_pop(s1, s2));
+};
+
+export const better_solution_by_no_all_clear = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_all_clear(s1, s2));
+};
+
+export const better_solution_by_bigger_trace_num = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_smaller_trace_num(s1, s2));
+};
+
+export const better_solution_by_no_heart_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_heart_pop(s1, s2));
+};
+
+export const better_solution_by_no_ojama_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_ojama_pop(s1, s2));
+};
+
+export const better_solution_by_more_chance_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.popped_chance_num > s1.popped_chance_num) {
+    return s2;
+  }
+  if (s2.popped_chance_num < s1.popped_chance_num) {
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_more_prism_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.popped_prism_num > s1.popped_prism_num) {
+    return s2;
+  }
+  if (s2.popped_prism_num < s1.popped_prism_num) {
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_more_heart_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  if (s2.popped_heart_num > s1.popped_heart_num) {
+    return s2;
+  }
+  if (s2.popped_heart_num < s1.popped_heart_num) {
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_more_ojama_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  const s2_ojama_num = s2.popped_ojama_num + s2.popped_kata_num;
+  const s1_ojama_num = s1.popped_ojama_num + s1.popped_kata_num;
+
+  if (s2_ojama_num > s1_ojama_num) {
+    return s2;
+  }
+  if (s2_ojama_num < s1_ojama_num) {
+    return s1;
+  }
+  return undefined;
+};
+
+export const better_solution_by_less_chance_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_more_chance_pop(s1, s2));
+};
+
+export const better_solution_by_less_prism_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_more_prism_pop(s1, s2));
+};
+
+export const better_solution_by_less_heart_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_more_heart_pop(s1, s2));
+};
+
+export const better_solution_by_less_ojama_pop = <
+  S extends PartialSolutionResult
+>(
+  s1: S,
+  s2: S
+): S | undefined => {
+  return the_other(s1, s2, better_solution_by_more_ojama_pop(s1, s2));
+};
+
 const betterMethodMap = new Map([
-  [PreferenceKind.BiggerValue, betterSolutionByValue],
-  [PreferenceKind.ChancePop, betterSolutionByChancePopped],
-  [PreferenceKind.PrismPop, betterSolutionByPrismPopped],
-  [PreferenceKind.AllClear, betterSolutionByAllCleared],
-  [PreferenceKind.SmallerTraceNum, betterSolutionByTraceCoords]
+  [PreferenceKind.BiggerValue, better_solution_by_bigger_value],
+  [PreferenceKind.ChancePop, better_solution_by_chance_pop],
+  [PreferenceKind.PrismPop, better_solution_by_prism_pop],
+  [PreferenceKind.AllClear, better_solution_by_all_clear],
+  [PreferenceKind.SmallerTraceNum, better_solution_by_smaller_trace_num],
+  [PreferenceKind.HeartPop, better_solution_by_heart_pop],
+  [PreferenceKind.OjamaPop, better_solution_by_ojama_pop],
+  [PreferenceKind.SmallerValue, better_solution_by_smaller_value],
+  [PreferenceKind.NoChancePop, better_solution_by_no_chance_pop],
+  [PreferenceKind.NoPrismPop, better_solution_by_no_prism_pop],
+  [PreferenceKind.NoAllClear, better_solution_by_no_all_clear],
+  [PreferenceKind.BiggerTraceNum, better_solution_by_bigger_trace_num],
+  [PreferenceKind.NoHeartPop, better_solution_by_no_heart_pop],
+  [PreferenceKind.NoOjamaPop, better_solution_by_no_ojama_pop],
+  [PreferenceKind.MoreChancePop, better_solution_by_more_chance_pop],
+  [PreferenceKind.MorePrismPop, better_solution_by_more_prism_pop],
+  [PreferenceKind.MoreHeartPop, better_solution_by_more_heart_pop],
+  [PreferenceKind.MoreOjamaPop, better_solution_by_more_ojama_pop],
+  [PreferenceKind.LessChancePop, better_solution_by_less_chance_pop],
+  [PreferenceKind.LessPrismPop, better_solution_by_less_prism_pop],
+  [PreferenceKind.LessHeartPop, better_solution_by_less_heart_pop],
+  [PreferenceKind.LessOjamaPop, better_solution_by_less_ojama_pop]
 ]);
 
 /**
@@ -336,16 +568,27 @@ const calcSolutionResult = (
     }
   }
 
-  const is_all_cleared = Simulator.isAllCleared(chains);
-  const is_chance_popped = Simulator.isChancePopped(chains);
-  const is_prism_popped = Simulator.isPrismPopped(chains);
-
   return {
     trace_coords: traceCoords,
     chains,
     value: value!,
-    is_all_cleared,
-    is_chance_popped,
-    is_prism_popped
+    popped_chance_num: Simulator.calcPoppedChanceNum(chains),
+    popped_prism_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Prism
+    ),
+    popped_heart_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Heart
+    ),
+    popped_ojama_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Ojama
+    ),
+    popped_kata_num: Simulator.calcTotalCountOfTargetAttr(
+      chains,
+      PuyoAttr.Kata
+    ),
+    is_all_cleared: Simulator.isAllCleared(chains)
   };
 };

@@ -7,12 +7,13 @@ use crate::{
 
 /** 連鎖情報から対象属性のポップカウント総数を求める。 */
 pub fn sum_attr_popped_count(chains: &Vec<Chain>, attr: PuyoAttr) -> u32 {
-    chains.iter().fold(0, |acc, c| {
-        acc + match c.attributes.get(&attr) {
-            Some(attr_chain) => attr_chain.popped_count,
+    return chains
+        .iter()
+        .map(|c| match c.attributes.get(&attr) {
+            Some(a) => a.popped_count,
             None => 0,
-        }
-    })
+        })
+        .sum();
 }
 
 /** 連鎖情報からブーストカウントの総数を求める。 */
@@ -101,9 +102,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
             Chain {
                 chain_num: 2,
@@ -128,9 +128,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
             Chain {
                 chain_num: 3,
@@ -155,9 +154,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 
@@ -204,9 +202,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 1,
                 is_all_cleared: false,
-                is_chance_popped: true,
-                is_prism_popped: false,
             },
             Chain {
                 chain_num: 2,
@@ -231,9 +228,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 
@@ -285,9 +281,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: true,
-                is_prism_popped: false,
             },
             Chain {
                 chain_num: 2,
@@ -312,9 +307,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 
@@ -349,9 +343,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 2,
@@ -376,9 +369,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 3,
@@ -393,9 +385,8 @@ mod tests {
                         separated_blocks_num: 1,
                     },
                 )]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 
@@ -430,9 +421,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 2,
@@ -457,9 +447,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 3,
@@ -474,9 +463,8 @@ mod tests {
                         separated_blocks_num: 1,
                     },
                 )]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 
@@ -544,9 +532,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 2,
@@ -571,9 +558,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: true,
             },
             Chain {
                 chain_num: 3,
@@ -606,9 +592,8 @@ mod tests {
                         },
                     ),
                 ]),
+                popped_chance_num: 0,
                 is_all_cleared: false,
-                is_chance_popped: false,
-                is_prism_popped: false,
             },
         ]);
 

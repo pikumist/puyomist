@@ -12,7 +12,7 @@ import {
   Text
 } from '@chakra-ui/react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   CountingBonusType,
@@ -20,9 +20,7 @@ import {
   type ExplorationTarget,
   type ExplorationTargetDamage,
   type ExplorationTargetSkillPuyoCount,
-  type PreferenceKind,
-  explorationCategoryDescriptionMap,
-  preferenceKindDescriptionMap
+  explorationCategoryDescriptionMap
 } from '../../logics/ExplorationTarget';
 import {
   type ColoredPuyoAttr,
@@ -41,11 +39,10 @@ import {
   explorationDamageMainSubRatioSelected,
   explorationDamageSubAttrSelected,
   explorationOptimalSolutionNumChanged,
-  explorationPreferencePrioritiesChanged,
   explorationPuyoCountMainAttrSelected
 } from '../../reducers/puyoAppSlice';
 import type { AppDispatch } from '../../reducers/store';
-import SortableList from '../sortable-list/SortableList';
+import PreferencePrioritySetting from './PreferencePrioritySetting';
 
 /** 探索対象の設定 */
 const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
@@ -98,51 +95,6 @@ const CategorySelector: React.FC<{
         )}
       </Select>
     </HStack>
-  );
-};
-
-const PreferencePrioritySetting: React.FC<{
-  preferencePriorities: PreferenceKind[];
-}> = (props) => {
-  const { preferencePriorities } = props;
-  const dispatch = useDispatch<AppDispatch>();
-
-  const items = useMemo(() => {
-    return preferencePriorities.map((pref, i) => ({
-      id: pref,
-      index: i + 1,
-      description: preferenceKindDescriptionMap.get(pref)
-    }));
-  }, [preferencePriorities]);
-
-  const onChanged = (
-    items: {
-      id: PreferenceKind;
-      index: number;
-      description: string | undefined;
-    }[]
-  ) => {
-    dispatch(explorationPreferencePrioritiesChanged(items.map(({ id }) => id)));
-  };
-
-  return (
-    <Stack>
-      <Text>優先度</Text>
-      <SortableList
-        items={items}
-        onChange={onChanged}
-        renderItem={(item) => (
-          <SortableList.Item id={item.id}>
-            <HStack background="gray.700">
-              <Text ml="2" fontSize="sm">
-                {item.index}. {item.description}
-              </Text>
-              <SortableList.DragHandle ml="auto" />
-            </HStack>
-          </SortableList.Item>
-        )}
-      />
-    </Stack>
   );
 };
 
