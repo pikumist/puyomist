@@ -33,7 +33,7 @@ fn better_solution_by_bigger_value<'a>(
     return None;
 }
 
-fn better_solution_by_chance_popped<'a>(
+fn better_solution_by_chance_pop<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> Option<&'a SolutionResult> {
@@ -46,7 +46,7 @@ fn better_solution_by_chance_popped<'a>(
     return None;
 }
 
-fn better_solution_by_prism_popped<'a>(
+fn better_solution_by_prism_pop<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> Option<&'a SolutionResult> {
@@ -59,7 +59,7 @@ fn better_solution_by_prism_popped<'a>(
     return None;
 }
 
-fn better_solution_by_all_cleared<'a>(
+fn better_solution_by_all_clear<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> Option<&'a SolutionResult> {
@@ -85,12 +85,191 @@ fn better_solution_by_smaller_trace_num<'a>(
     return None;
 }
 
+fn better_solution_by_heart_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    if s2.popped_heart_num > 0 && s1.popped_heart_num == 0 {
+        return Some(s2);
+    }
+    if s2.popped_heart_num == 0 && s1.popped_heart_num > 0 {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn better_solution_by_ojama_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    if (s2.popped_ojama_num > 0 || s2.popped_kata_num > 0)
+        && (s1.popped_ojama_num == 0 && s1.popped_kata_num == 0)
+    {
+        return Some(s2);
+    }
+    if (s2.popped_ojama_num == 0 && s2.popped_kata_num == 0)
+        && (s1.popped_ojama_num > 0 || s1.popped_kata_num > 0)
+    {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn the_other<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+    target: Option<&'a SolutionResult>,
+) -> Option<&'a SolutionResult> {
+    match target {
+        Some(s) => {
+            if s == s1 {
+                Some(s2)
+            } else {
+                Some(s1)
+            }
+        }
+        None => None,
+    }
+}
+
+fn better_solution_by_smaller_value<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_bigger_value(s1, s2));
+}
+
+fn better_solution_by_no_chance_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_chance_pop(s1, s2));
+}
+
+fn better_solution_by_no_prism_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_prism_pop(s1, s2));
+}
+
+fn better_solution_by_no_all_clear<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_all_clear(s1, s2));
+}
+
+fn better_solution_by_bigger_trace_num<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_smaller_trace_num(s1, s2));
+}
+
+fn better_solution_by_no_heart_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_heart_pop(s1, s2));
+}
+
+fn better_solution_by_no_ojama_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_ojama_pop(s1, s2));
+}
+
+fn better_solution_by_more_chance_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    if s2.popped_chance_num > s1.popped_chance_num {
+        return Some(s2);
+    }
+    if s2.popped_chance_num < s1.popped_chance_num {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn better_solution_by_more_prism_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    if s2.popped_prism_num > s1.popped_prism_num {
+        return Some(s2);
+    }
+    if s2.popped_prism_num < s1.popped_prism_num {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn better_solution_by_more_heart_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    if s2.popped_heart_num > s1.popped_heart_num {
+        return Some(s2);
+    }
+    if s2.popped_heart_num < s1.popped_heart_num {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn better_solution_by_more_ojama_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    let s2_ojama_num = s2.popped_ojama_num + s2.popped_kata_num;
+    let s1_ojama_num = s1.popped_ojama_num + s1.popped_kata_num;
+
+    if s2_ojama_num > s1_ojama_num {
+        return Some(s2);
+    }
+    if s2_ojama_num < s1_ojama_num {
+        return Some(s1);
+    }
+    return None;
+}
+
+fn better_solution_by_less_chance_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_more_chance_pop(s1, s2));
+}
+
+fn better_solution_by_less_prism_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_more_prism_pop(s1, s2));
+}
+
+fn better_solution_by_less_heart_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_more_heart_pop(s1, s2));
+}
+
+fn better_solution_by_less_ojama_pop<'a>(
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> Option<&'a SolutionResult> {
+    return the_other(s1, s2, better_solution_by_more_ojama_pop(s1, s2));
+}
+
 type BetterFn = for<'a> fn(&'a SolutionResult, &'a SolutionResult) -> Option<&'a SolutionResult>;
 
 static BETTER_METHOD_MAP: OnceLock<HashMap<PreferenceKind, BetterFn>> = OnceLock::new();
 
 fn better_solution<'a>(
-    preference_priorities: &[PreferenceKind; 5],
+    preference_priorities: &Vec<PreferenceKind>,
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> &'a SolutionResult {
@@ -102,19 +281,87 @@ fn better_solution<'a>(
             ),
             (
                 PreferenceKind::ChancePop,
-                better_solution_by_chance_popped as BetterFn,
+                better_solution_by_chance_pop as BetterFn,
             ),
             (
                 PreferenceKind::PrismPop,
-                better_solution_by_prism_popped as BetterFn,
+                better_solution_by_prism_pop as BetterFn,
             ),
             (
                 PreferenceKind::AllClear,
-                better_solution_by_all_cleared as BetterFn,
+                better_solution_by_all_clear as BetterFn,
             ),
             (
                 PreferenceKind::SmallerTraceNum,
                 better_solution_by_smaller_trace_num as BetterFn,
+            ),
+            (
+                PreferenceKind::HeartPop,
+                better_solution_by_heart_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::OjamaPop,
+                better_solution_by_ojama_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::SmallerValue,
+                better_solution_by_smaller_value as BetterFn,
+            ),
+            (
+                PreferenceKind::NoChancePop,
+                better_solution_by_no_chance_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::NoPrismPop,
+                better_solution_by_no_prism_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::NoAllClear,
+                better_solution_by_no_all_clear as BetterFn,
+            ),
+            (
+                PreferenceKind::BiggerTraceNum,
+                better_solution_by_bigger_trace_num as BetterFn,
+            ),
+            (
+                PreferenceKind::NoHeartPop,
+                better_solution_by_no_heart_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::NoOjamaPop,
+                better_solution_by_no_ojama_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::MoreChancePop,
+                better_solution_by_more_chance_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::MorePrismPop,
+                better_solution_by_more_prism_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::MoreHeartPop,
+                better_solution_by_more_heart_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::MoreOjamaPop,
+                better_solution_by_more_ojama_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::LessChancePop,
+                better_solution_by_less_chance_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::LessPrismPop,
+                better_solution_by_less_prism_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::LessHeartPop,
+                better_solution_by_less_heart_pop as BetterFn,
+            ),
+            (
+                PreferenceKind::LessOjamaPop,
+                better_solution_by_less_ojama_pop as BetterFn,
             ),
         ]);
     });
@@ -364,18 +611,954 @@ mod tests {
     };
     use std::collections::HashSet;
 
+    const S: SolutionResult = SolutionResult {
+        trace_coords: Vec::new(),
+        chains: Vec::new(),
+        value: 0.0,
+        popped_chance_num: 0,
+        popped_heart_num: 0,
+        popped_prism_num: 0,
+        popped_ojama_num: 0,
+        popped_kata_num: 0,
+        is_all_cleared: false,
+    };
+
+    #[test]
+    fn test_better_solution_by_bigger_value_s1() {
+        let s1 = SolutionResult { value: 2.0, ..S };
+        let s2 = SolutionResult { value: 1.0, ..S };
+        assert_eq!(better_solution_by_bigger_value(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_bigger_value_s2() {
+        let s1 = SolutionResult { value: 1.0, ..S };
+        let s2 = SolutionResult { value: 2.0, ..S };
+        assert_eq!(better_solution_by_bigger_value(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_bigger_value_none() {
+        let s1 = SolutionResult { value: 1.0, ..S };
+        let s2 = SolutionResult { value: 1.0, ..S };
+        assert!(better_solution_by_bigger_value(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_chance_pop_s1() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_chance_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_chance_pop_s2() {
+        let s1 = SolutionResult {
+            popped_chance_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_chance_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_chance_pop_none() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_chance_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_prism_pop_s1() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_prism_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_prism_pop_s2() {
+        let s1 = SolutionResult {
+            popped_prism_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_prism_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_prism_pop_none() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_prism_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_all_clear_s1() {
+        let s1 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: false,
+            ..S
+        };
+        assert_eq!(better_solution_by_all_clear(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_all_clear_s2() {
+        let s1 = SolutionResult {
+            is_all_cleared: false,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        assert_eq!(better_solution_by_all_clear(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_all_clear_none() {
+        let s1 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        assert!(better_solution_by_all_clear(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_trace_num_s1() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([PuyoCoord::index_to_coord(0).unwrap()]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        assert_eq!(better_solution_by_smaller_trace_num(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_trace_num_s2() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([PuyoCoord::index_to_coord(0).unwrap()]),
+            ..S
+        };
+        assert_eq!(better_solution_by_smaller_trace_num(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_trace_num_none() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(1).unwrap(),
+                PuyoCoord::index_to_coord(2).unwrap(),
+            ]),
+            ..S
+        };
+        assert!(better_solution_by_smaller_trace_num(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_heart_pop_s1() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_heart_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_heart_pop_s2() {
+        let s1 = SolutionResult {
+            popped_heart_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_heart_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_heart_pop_none() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_heart_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_ojama_pop_s1() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_ojama_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_ojama_pop_s2() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_ojama_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_ojama_pop_none() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_ojama_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_value_s1() {
+        let s1 = SolutionResult { value: 1.0, ..S };
+        let s2 = SolutionResult { value: 2.0, ..S };
+        assert_eq!(better_solution_by_smaller_value(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_value_s2() {
+        let s1 = SolutionResult { value: 2.0, ..S };
+        let s2 = SolutionResult { value: 1.0, ..S };
+        assert_eq!(better_solution_by_smaller_value(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_smaller_value_none() {
+        let s1 = SolutionResult { value: 1.0, ..S };
+        let s2 = SolutionResult { value: 1.0, ..S };
+        assert!(better_solution_by_smaller_value(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_no_chance_pop_s1() {
+        let s1 = SolutionResult {
+            popped_chance_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_chance_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_chance_pop_s2() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_chance_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_chance_pop_none() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_no_chance_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_no_prism_pop_s1() {
+        let s1 = SolutionResult {
+            popped_prism_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_prism_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_prism_pop_s2() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_prism_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_prism_pop_none() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_no_prism_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_no_all_clear_s1() {
+        let s1 = SolutionResult {
+            is_all_cleared: false,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_all_clear(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_all_clear_s2() {
+        let s1 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: false,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_all_clear(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_all_clear_none() {
+        let s1 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        let s2 = SolutionResult {
+            is_all_cleared: true,
+            ..S
+        };
+        assert!(better_solution_by_no_all_clear(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_bigger_trace_num_s1() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([PuyoCoord::index_to_coord(0).unwrap()]),
+            ..S
+        };
+        assert_eq!(better_solution_by_bigger_trace_num(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_bigger_trace_num_s2() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([PuyoCoord::index_to_coord(0).unwrap()]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        assert_eq!(better_solution_by_bigger_trace_num(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_bigger_trace_num_none() {
+        let s1 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(0).unwrap(),
+                PuyoCoord::index_to_coord(1).unwrap(),
+            ]),
+            ..S
+        };
+        let s2 = SolutionResult {
+            trace_coords: Vec::from([
+                PuyoCoord::index_to_coord(1).unwrap(),
+                PuyoCoord::index_to_coord(2).unwrap(),
+            ]),
+            ..S
+        };
+        assert!(better_solution_by_bigger_trace_num(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_no_heart_pop_s1() {
+        let s1 = SolutionResult {
+            popped_heart_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_heart_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_heart_pop_s2() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_heart_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_heart_pop_none() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_no_heart_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_no_ojama_pop_s1() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_ojama_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_ojama_pop_s2() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_no_ojama_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_no_ojama_pop_none() {
+        let s1 = SolutionResult {
+            popped_ojama_num: 0,
+            popped_kata_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_ojama_num: 2,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert!(better_solution_by_no_ojama_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_more_chance_pop_s1() {
+        let s1 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_chance_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_chance_pop_s2() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_chance_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_chance_pop_none() {
+        let s1 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_more_chance_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_more_prism_pop_s1() {
+        let s1 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_prism_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_prism_pop_s2() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_prism_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_prism_pop_none() {
+        let s1 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_more_prism_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_more_heart_pop_s1() {
+        let s1 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_heart_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_heart_pop_s2() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_heart_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_more_heart_pop_none() {
+        let s1 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_more_heart_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_more_ojama_pop_s1() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_ojama_pop(&s1, &s2).unwrap(), &s1);
+        s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 1,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_ojama_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_more_ojama_pop_s2() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 1,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_ojama_pop(&s1, &s2).unwrap(), &s2);
+        s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_more_ojama_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_more_ojama_pop_none() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_more_ojama_pop(&s1, &s2).is_none());
+        s1 = SolutionResult {
+            popped_ojama_num: 2,
+            popped_kata_num: 1,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_more_ojama_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_less_chance_pop_s1() {
+        let s1 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_chance_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_chance_pop_s2() {
+        let s1 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_chance_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_chance_pop_none() {
+        let s1 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_chance_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_less_chance_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_less_prism_pop_s1() {
+        let s1 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_prism_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_prism_pop_s2() {
+        let s1 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_prism_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_prism_pop_none() {
+        let s1 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_prism_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_less_prism_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_less_heart_pop_s1() {
+        let s1 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_heart_pop(&s1, &s2).unwrap(), &s1)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_heart_pop_s2() {
+        let s1 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_heart_pop(&s1, &s2).unwrap(), &s2)
+    }
+
+    #[test]
+    fn test_better_solution_by_less_heart_pop_none() {
+        let s1 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        let s2 = SolutionResult {
+            popped_heart_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_less_heart_pop(&s1, &s2).is_none());
+    }
+
+    #[test]
+    fn test_better_solution_by_less_ojama_pop_s1() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 1,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_ojama_pop(&s1, &s2).unwrap(), &s1);
+        s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_ojama_pop(&s1, &s2).unwrap(), &s1);
+    }
+
+    #[test]
+    fn test_better_solution_by_less_ojama_pop_s2() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 1,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_ojama_pop(&s1, &s2).unwrap(), &s2);
+        s1 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 1,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 0,
+            ..S
+        };
+        assert_eq!(better_solution_by_less_ojama_pop(&s1, &s2).unwrap(), &s2);
+    }
+
+    #[test]
+    fn test_better_solution_by_less_ojama_pop_none() {
+        let mut s1 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        let mut s2 = SolutionResult {
+            popped_ojama_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_less_ojama_pop(&s1, &s2).is_none());
+        s1 = SolutionResult {
+            popped_ojama_num: 2,
+            popped_kata_num: 1,
+            ..S
+        };
+        s2 = SolutionResult {
+            popped_ojama_num: 1,
+            popped_kata_num: 2,
+            ..S
+        };
+        assert!(better_solution_by_less_ojama_pop(&s1, &s2).is_none());
+    }
+
     #[test]
     fn test_solve_all_traces_special_rule_1_1_modified() {
         // Arrange
         let exploration_target = ExplorationTarget {
             category: ExplorationCategory::Damage,
-            preference_priorities: [
+            preference_priorities: Vec::from([
                 PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::PrismPop,
                 PreferenceKind::AllClear,
                 PreferenceKind::SmallerTraceNum,
-            ],
+            ]),
             optimal_solution_count: 2,
             main_attr: Some(PuyoAttr::Green),
             sub_attr: None,
@@ -1089,13 +2272,13 @@ mod tests {
         // Arrange
         let exploration_target = ExplorationTarget {
             category: ExplorationCategory::Damage,
-            preference_priorities: [
+            preference_priorities: Vec::from([
                 PreferenceKind::PrismPop,
                 PreferenceKind::AllClear,
                 PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::SmallerTraceNum,
-            ],
+            ]),
             optimal_solution_count: 1,
             main_attr: Some(PuyoAttr::Blue),
             sub_attr: None,
@@ -1422,13 +2605,13 @@ mod tests {
         // Arrange
         let exploration_target = ExplorationTarget {
             category: ExplorationCategory::Damage,
-            preference_priorities: [
+            preference_priorities: Vec::from([
                 PreferenceKind::AllClear,
                 PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::PrismPop,
                 PreferenceKind::SmallerTraceNum,
-            ],
+            ]),
             optimal_solution_count: 2,
             main_attr: None,
             sub_attr: None,

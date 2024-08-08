@@ -64,13 +64,13 @@ fn setup_input() -> (
 
     let exploration_target = ExplorationTarget {
         category: ExplorationCategory::Damage,
-        preference_priorities: [
+        preference_priorities: Vec::from([
             PreferenceKind::BiggerValue,
             PreferenceKind::ChancePop,
             PreferenceKind::PrismPop,
             PreferenceKind::AllClear,
             PreferenceKind::SmallerTraceNum,
-        ],
+        ]),
         optimal_solution_count: 1,
         main_attr: Some(PuyoAttr::Green),
         sub_attr: None,
