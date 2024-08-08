@@ -18,12 +18,657 @@ import type { SolutionResult } from './solution';
 import {
   type PartialSolutionResult,
   betterSolution,
+  better_solution_by_all_clear,
+  better_solution_by_bigger_trace_num,
+  better_solution_by_bigger_value,
+  better_solution_by_chance_pop,
+  better_solution_by_heart_pop,
+  better_solution_by_less_chance_pop,
+  better_solution_by_less_heart_pop,
+  better_solution_by_less_ojama_pop,
+  better_solution_by_less_prism_pop,
+  better_solution_by_more_chance_pop,
+  better_solution_by_more_heart_pop,
+  better_solution_by_more_ojama_pop,
+  better_solution_by_more_prism_pop,
+  better_solution_by_no_all_clear,
+  better_solution_by_no_chance_pop,
+  better_solution_by_no_ojama_pop,
+  better_solution_by_no_prism_pop,
+  better_solution_by_ojama_pop,
+  better_solution_by_prism_pop,
+  better_solution_by_smaller_trace_num,
+  better_solution_by_smaller_value,
   mergeResultIfRankedIn,
   solveAllTraces,
   solveIncludingTraceIndex
 } from './solution-explorer';
 
 describe('solution-explorer', () => {
+  describe('various better_solution methods', () => {
+    const S: SolutionResult = {
+      trace_coords: [],
+      chains: [],
+      value: 0.0,
+      popped_chance_num: 0,
+      popped_heart_num: 0,
+      popped_prism_num: 0,
+      popped_ojama_num: 0,
+      popped_kata_num: 0,
+      is_all_cleared: false
+    };
+
+    describe('better_solution_by_bigger_value()', () => {
+      it.each([
+        { s1: { ...S, value: 2.0 }, s2: { ...S, value: 1.0 }, expected: 's1' },
+        { s1: { ...S, value: 1.0 }, s2: { ...S, value: 2.0 }, expected: 's2' },
+        { s1: { ...S, value: 1.0 }, s2: { ...S, value: 1.0 }, expected: '' }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_bigger_value(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_chance_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_chance_num: 0 },
+          s2: { ...S, popped_chance_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_chance_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_prism_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_prism_num: 0 },
+          s2: { ...S, popped_prism_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_prism_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_all_clear()', () => {
+      it.each([
+        {
+          s1: { ...S, is_all_cleared: true },
+          s2: { ...S, is_all_cleared: false },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, is_all_cleared: false },
+          s2: { ...S, is_all_cleared: true },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, is_all_cleared: true },
+          s2: { ...S, is_all_cleared: true },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_all_clear(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_smaller_trace_num()', () => {
+      it.each([
+        {
+          s1: { ...S, trace_coords: [PuyoCoord.indexToCoord(0)!] },
+          s2: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          expected: 's1'
+        },
+        {
+          s1: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          s2: { ...S, trace_coords: [PuyoCoord.indexToCoord(0)!] },
+          expected: 's2'
+        },
+        {
+          s1: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          s2: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(1)!,
+              PuyoCoord.indexToCoord(2)!
+            ]
+          },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_smaller_trace_num(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_heart_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_heart_num: 0 },
+          s2: { ...S, popped_heart_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_heart_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_ojama_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 0, popped_kata_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 0, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 0, popped_kata_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 0, popped_kata_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_ojama_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_smaller_value()', () => {
+      it.each([
+        { s1: { ...S, value: 1.0 }, s2: { ...S, value: 2.0 }, expected: 's1' },
+        { s1: { ...S, value: 2.0 }, s2: { ...S, value: 1.0 }, expected: 's2' },
+        { s1: { ...S, value: 1.0 }, s2: { ...S, value: 1.0 }, expected: '' }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_smaller_value(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_no_chance_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_chance_num: 0 },
+          s2: { ...S, popped_chance_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 0 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_no_chance_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_no_prism_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_prism_num: 0 },
+          s2: { ...S, popped_prism_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 0 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_no_prism_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_no_all_clear()', () => {
+      it.each([
+        {
+          s1: { ...S, is_all_cleared: false },
+          s2: { ...S, is_all_cleared: true },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, is_all_cleared: true },
+          s2: { ...S, is_all_cleared: false },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, is_all_cleared: true },
+          s2: { ...S, is_all_cleared: true },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_no_all_clear(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_bigger_trace_num()', () => {
+      it.each([
+        {
+          s1: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          s2: { ...S, trace_coords: [PuyoCoord.indexToCoord(0)!] },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, trace_coords: [PuyoCoord.indexToCoord(0)!] },
+          s2: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          expected: 's2'
+        },
+        {
+          s1: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(0)!,
+              PuyoCoord.indexToCoord(1)!
+            ]
+          },
+          s2: {
+            ...S,
+            trace_coords: [
+              PuyoCoord.indexToCoord(1)!,
+              PuyoCoord.indexToCoord(2)!
+            ]
+          },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_bigger_trace_num(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_no_ojama_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_ojama_num: 0, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 0, popped_kata_num: 1 },
+          s2: { ...S, popped_ojama_num: 0, popped_kata_num: 0 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 0, popped_kata_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_no_ojama_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_more_chance_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_chance_num: 2 },
+          s2: { ...S, popped_chance_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_chance_num: 2 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_more_chance_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_more_prism_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_prism_num: 2 },
+          s2: { ...S, popped_prism_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_prism_num: 2 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_more_prism_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_more_heart_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_heart_num: 2 },
+          s2: { ...S, popped_heart_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_heart_num: 2 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_more_heart_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_more_ojama_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_ojama_num: 2 },
+          s2: { ...S, popped_ojama_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 1 },
+          s2: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1 },
+          s2: { ...S, popped_ojama_num: 2 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 1, popped_kata_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 2 },
+          s2: { ...S, popped_ojama_num: 2 },
+          expected: ''
+        },
+        {
+          s1: { ...S, popped_kata_num: 2 },
+          s2: { ...S, popped_kata_num: 2 },
+          expected: ''
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 2 },
+          s2: { ...S, popped_ojama_num: 2, popped_kata_num: 1 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_more_ojama_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_less_chance_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_chance_num: 1 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_chance_num: 2 },
+          s2: { ...S, popped_chance_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_chance_num: 2 },
+          s2: { ...S, popped_chance_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_less_chance_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_less_prism_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_prism_num: 1 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_prism_num: 2 },
+          s2: { ...S, popped_prism_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_prism_num: 2 },
+          s2: { ...S, popped_prism_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_less_prism_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_less_heart_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_heart_num: 2 },
+          s2: { ...S, popped_heart_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_heart_num: 2 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_less_heart_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_less_ojama_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_ojama_num: 1 },
+          s2: { ...S, popped_ojama_num: 2 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          s2: { ...S, popped_ojama_num: 1, popped_kata_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 2 },
+          s2: { ...S, popped_ojama_num: 1 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 1 },
+          s2: { ...S, popped_ojama_num: 1, popped_kata_num: 0 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_ojama_num: 2 },
+          s2: { ...S, popped_ojama_num: 2 },
+          expected: ''
+        },
+        {
+          s1: { ...S, popped_kata_num: 2 },
+          s2: { ...S, popped_kata_num: 2 },
+          expected: ''
+        },
+        {
+          s1: { ...S, popped_ojama_num: 1, popped_kata_num: 2 },
+          s2: { ...S, popped_ojama_num: 2, popped_kata_num: 1 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_less_ojama_pop(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+  });
+
   describe('betterSolution()', () => {
     type Input = {
       s1: PartialSolutionResult;
