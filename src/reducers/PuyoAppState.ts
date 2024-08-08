@@ -33,6 +33,8 @@ export interface PuyoAppState {
   isBoardEditing: boolean;
   /** シミュレーションに用いるデータ */
   simulationData: SimulationData;
+  /** 連鎖ステップのアニメーション間隔(ms) */
+  animationDuration: number;
   /** アニメーション中かどうか */
   animating: boolean;
   /** アニメーションのステップ情報のリスト */
@@ -90,9 +92,9 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
     maxTraceNum: Simulator.defaultMaxTraceNum,
     traceMode: TraceMode.Normal,
     poppingLeverage: 1.0,
-    chainLeverage: 1.0,
-    animationDuration: Simulator.defaultAnimationDuration
+    chainLeverage: 1.0
   },
+  animationDuration: 200,
   animating: false,
   animationSteps: [],
   activeAnimationStepIndex: -1,

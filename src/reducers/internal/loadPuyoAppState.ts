@@ -33,7 +33,6 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const options: Partial<SimulationData> = {
     maxTraceNum,
     poppingLeverage,
-    animationDuration,
     boostAreaCoordList
   };
 
@@ -72,6 +71,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     boardEditMode,
     isBoardEditing: false,
     simulationData,
+    animationDuration,
     animating: false,
     animationSteps: [],
     activeAnimationStepIndex: -1,

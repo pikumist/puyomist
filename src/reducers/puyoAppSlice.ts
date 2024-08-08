@@ -339,7 +339,7 @@ const puyoAppSlice = createSlice({
 
     /** アニメーション時間間隔が変更されたとき */
     animationDurationChanged: (state, action: PayloadAction<number>) => {
-      state.simulationData.animationDuration = action.payload;
+      state.animationDuration = action.payload;
     },
 
     /** 最適化対象カテゴリーの項目が選択されたとき */
@@ -740,8 +740,7 @@ export const doChainAnimation =
   () => async (dispatch: AppDispatch, getState: () => RootState) => {
     dispatch(puyoAppSlice.actions.chainAnimationStarted());
 
-    const getAnimationDuration = () =>
-      getState().puyoApp.simulationData.animationDuration;
+    const getAnimationDuration = () => getState().puyoApp.animationDuration;
     const animationSteps = getState().puyoApp.animationSteps;
 
     for (let i = 0; i < animationSteps.length; i++) {

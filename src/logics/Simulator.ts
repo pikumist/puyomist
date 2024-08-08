@@ -54,7 +54,6 @@ export class Simulator {
   private traceMode = TraceMode.Normal;
   private poppingLeverage = 1.0;
   private chainLeverage = 1.0;
-  private animationDuration = Simulator.defaultAnimationDuration;
   private currentChainNum = 0;
   private chains: Chain[] = [];
 
@@ -75,7 +74,6 @@ export class Simulator {
       this.traceMode = simulationData.traceMode;
       this.poppingLeverage = simulationData.poppingLeverage;
       this.chainLeverage = simulationData.chainLeverage;
-      this.animationDuration = simulationData.animationDuration;
     } else {
       this.field = [...new Array(PuyoCoord.YNum)].map(() => [
         ...new Array(PuyoCoord.XNum)
@@ -97,8 +95,7 @@ export class Simulator {
       maxTraceNum: this.maxTraceNum,
       traceMode: this.traceMode,
       poppingLeverage: this.poppingLeverage,
-      chainLeverage: this.chainLeverage,
-      animationDuration: this.animationDuration
+      chainLeverage: this.chainLeverage
     };
   }
 
@@ -130,7 +127,6 @@ export class Simulator {
 
     this.isChanceMode = false;
     this.maxTraceNum = Simulator.defaultMaxTraceNum;
-    this.animationDuration = Simulator.defaultAnimationDuration;
     this.currentChainNum = 0;
   }
 

@@ -63,10 +63,6 @@ export const createSimulationData = (
     board.chainLeverage ??
     weakOptions.chainLeverage ??
     1.0;
-  const animationDuration =
-    strongOptions.animationDuration ??
-    weakOptions.animationDuration ??
-    Simulator.defaultAnimationDuration;
 
   return {
     nextPuyos,
@@ -78,7 +74,6 @@ export const createSimulationData = (
     maxTraceNum,
     traceMode,
     poppingLeverage,
-    chainLeverage,
-    animationDuration
+    chainLeverage
   };
 };

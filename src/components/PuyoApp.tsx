@@ -217,6 +217,7 @@ const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
   const {
     boostAreaKeyList,
     simulationData,
+    animationDuration,
     explorationTarget,
     solutionMethod,
     screenshotInfo,
@@ -227,8 +228,7 @@ const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
     minimumPuyoNumForPopping,
     maxTraceNum,
     poppingLeverage,
-    chainLeverage,
-    animationDuration
+    chainLeverage
   } = simulationData;
 
   return (

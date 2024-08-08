@@ -24,8 +24,6 @@ export interface SimulationData {
   poppingLeverage: number;
   /** 連鎖倍率 */
   chainLeverage: number;
-  /** アニメーション間隔 (ms) */
-  animationDuration: number;
 }
 
 /**
@@ -45,7 +43,6 @@ export const cloneSimulationData = (
   const traceMode = simulationData.traceMode;
   const poppingLeverage = simulationData.poppingLeverage;
   const chainLeverage = simulationData.chainLeverage;
-  const animationDuration = simulationData.animationDuration;
 
   return {
     nextPuyos,
@@ -57,7 +54,6 @@ export const cloneSimulationData = (
     maxTraceNum,
     traceMode,
     poppingLeverage,
-    chainLeverage,
-    animationDuration
+    chainLeverage
   };
 };

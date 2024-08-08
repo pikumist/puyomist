@@ -18,7 +18,7 @@ store.subscribe(() => {
   session.setNextSelection(puyoApp.nextSelection);
   session.setMaxTraceNum(puyoApp.simulationData.maxTraceNum);
   session.setPoppingLeverage(puyoApp.simulationData.poppingLeverage);
-  session.setAnimationDuration(puyoApp.simulationData.animationDuration);
+  session.setAnimationDuration(puyoApp.animationDuration);
   session.setExplorationTarget(puyoApp.explorationTarget);
   session.setSolutionMethod(puyoApp.solutionMethod);
   session.setLastScreenshotBoard(puyoApp.lastScreenshotBoard);
