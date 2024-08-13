@@ -51,7 +51,7 @@ const ExplorationTargetSetting: React.FC<{ target: ExplorationTarget }> = (
   const { target } = props;
 
   return (
-    <Stack my={2} spacing={1}>
+    <Stack spacing={1}>
       <CategorySelector category={target.category} />
       <DetailSetting target={target} />
       <OptimalSolutionCountInput num={target.optimal_solution_count} />

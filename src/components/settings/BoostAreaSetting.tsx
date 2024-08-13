@@ -1,4 +1,4 @@
-import { Box, Checkbox, CheckboxGroup, Stack, Text } from '@chakra-ui/react';
+import { Checkbox, CheckboxGroup, Stack, Text } from '@chakra-ui/react';
 import type React from 'react';
 import { useDispatch } from 'react-redux';
 import { boostAreaKeyMap } from '../../logics/BoostArea';
@@ -19,10 +19,8 @@ const BoostAreaSetting: React.FC<IProps> = (props) => {
     dispatch(boostAreaKeyListChanged(keyList));
 
   return (
-    <Stack my={2} spacing={0}>
-      <Box>
-        <Text>ブーストエリア</Text>
-      </Box>
+    <Stack my={2} spacing={1}>
+      <Text>ブーストエリア</Text>
       <CheckboxGroup value={boostAreaKeyList} onChange={onKeyListChanged}>
         <Stack spacing={[2, 5]} direction={['row']}>
           {[...boostAreaKeyMap].map(([key, area]) => (
