@@ -13,6 +13,11 @@ import {
   Progress,
   Show,
   Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Text,
   useColorModeValue,
   useDisclosure
@@ -248,34 +253,48 @@ const SidebarContent = ({ onClose, isDrawer, ...rest }: SidebarProps) => {
         </Text>
         <CloseButton display={{ base: 'flex', md: 'none' }} onClick={onClose} />
       </Flex>
-      <Grid
-        mx={{ base: 6, md: 4 }}
-        gap="1"
-        templateColumns={{
-          base: 'repeat(1, 1fr)',
-          sm: 'repeat(2, 1fr)',
-          md: 'repeat(1, 1fr)'
-        }}
-      >
-        <TraceModeSelector traceMode={traceMode} />
-        <MinimumPuyoNumInput
-          traceMode={traceMode}
-          num={minimumPuyoNumForPopping}
-        />
-        <MaxTraceNumInput maxTraceNum={maxTraceNum} />
-        <AnimationDurationInput duration={animationDuration} />
-        <PoppingLeverageInput leverage={poppingLeverage} />
-        <ChainLeverageInput leverage={chainLeverage} />
-        <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
-        <SolutionMethodSelector method={solutionMethod} />
-        <ExplorationTargetSetting target={explorationTarget} />
-        <BoardReceiver
-          mt="2"
-          canvasMaxWidth={100}
-          screenshotInfo={screenshotInfo}
-          errorMessage={screenshotErrorMessage}
-        />
-      </Grid>
+      <Tabs isFitted variant="enclosed">
+        <TabList>
+          <Tab>フィールド</Tab>
+          <Tab>探索</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <Grid
+              gap="1"
+              templateColumns={{
+                base: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(1, 1fr)'
+              }}
+            >
+              <TraceModeSelector traceMode={traceMode} />
+              <MinimumPuyoNumInput
+                traceMode={traceMode}
+                num={minimumPuyoNumForPopping}
+              />
+              <MaxTraceNumInput maxTraceNum={maxTraceNum} />
+              <AnimationDurationInput duration={animationDuration} />
+              <PoppingLeverageInput leverage={poppingLeverage} />
+              <ChainLeverageInput leverage={chainLeverage} />
+            </Grid>
+            <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />
+          </TabPanel>
+          <TabPanel>
+            <Stack spacing="1">
+              <MaxTraceNumInput maxTraceNum={maxTraceNum} />
+              <SolutionMethodSelector method={solutionMethod} />
+              <ExplorationTargetSetting target={explorationTarget} />
+            </Stack>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+      <BoardReceiver
+        mt="2"
+        canvasMaxWidth={100}
+        screenshotInfo={screenshotInfo}
+        errorMessage={screenshotErrorMessage}
+      />
     </Box>
   );
 };
