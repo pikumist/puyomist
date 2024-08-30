@@ -10,6 +10,6 @@ export default {
     [G, G, R, H, P, Y, B, B],
     [Y, B, B, W, P, B, R, B],
     [Y, R, R, B, Y, G, G, G],
-    [R, B, Y, Y, P, G, G, G]
+    [R, B, Y, Y, P, R, R, R]
   ]
 } as Board;
