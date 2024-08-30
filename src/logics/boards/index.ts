@@ -6,6 +6,7 @@ import specialRule2 from './specialRule2';
 import specialRule3 from './specialRule3';
 import specialRule4 from './specialRule4';
 import specialRule5 from './specialRule5';
+import specialRule6 from './specialRule6';
 
 const specialBoards = {
   chainSeed1,
@@ -14,7 +15,8 @@ const specialBoards = {
   specialRule2,
   specialRule3,
   specialRule4,
-  specialRule5
+  specialRule5,
+  specialRule6
 };
 
 export const possibleSpecialBoardIds = (() => {
@@ -47,7 +49,8 @@ export const boardKeyNameMap = new Map<string, string>([
   ['specialRule2', 'しろマール'],
   ['specialRule3', 'あたプー'],
   ['specialRule4', 'なつアマ'],
-  ['specialRule5', 'キュアブイ']
+  ['specialRule5', 'キュアブイ'],
+  ['specialRule6', '黄昏']
 ]);
 
 export const customBoardId = 'custom';
