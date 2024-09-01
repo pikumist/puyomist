@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Accept } from 'react-dropzone';
 import { useDispatch } from 'react-redux';
 import type { ScreenshotInfo } from '../hooks/internal/ScreenshotInfo';
+import { parseBoardJson, parsePuyomistJson } from '../logics/app-json';
 import { parseBoardCsv } from '../logics/board-csv';
 import { detectBoard } from '../logics/board-detection';
-import { parseBoardJson } from '../logics/board-json';
 import {
   boardDetectedAndSolve,
+  puyomistJsonDetectedAndSolve,
   screenshotReceived
 } from '../reducers/puyoAppSlice';
 import type { AppDispatch } from '../reducers/store';
@@ -89,11 +90,26 @@ const BoardReceiver: React.FC<BoardReceiverProps> = (props) => {
             break;
           }
           case 'application/json': {
-            const errorOrBoard = parseBoardJson(await file.text());
-            if (typeof errorOrBoard === 'string') {
-              dispatch(boardDetectedAndSolve(errorOrBoard));
-            } else {
-              dispatch(boardDetectedAndSolve(undefined, errorOrBoard));
+            try {
+              const text = await file.text();
+              const json = JSON.parse(text);
+              if (json.type === 'board') {
+                const errorOrBoard = parseBoardJson(text);
+                if (typeof errorOrBoard === 'string') {
+                  dispatch(boardDetectedAndSolve(errorOrBoard));
+                } else {
+                  dispatch(boardDetectedAndSolve(undefined, errorOrBoard));
+                }
+              } else if (json.type === 'puyomist') {
+                const errorOrPuyomist = parsePuyomistJson(text);
+                if (typeof errorOrPuyomist === 'string') {
+                  dispatch(boardDetectedAndSolve(errorOrPuyomist));
+                } else {
+                  dispatch(puyomistJsonDetectedAndSolve(errorOrPuyomist));
+                }
+              }
+            } catch (ex) {
+              dispatch(boardDetectedAndSolve('JSONが不正'));
             }
             break;
           }

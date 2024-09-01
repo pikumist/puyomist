@@ -27,6 +27,7 @@ import {
 import { cloneSimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import { TraceMode } from '../logics/TraceMode';
+import type { PuyomistJson } from '../logics/app-json';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { sleep } from '../logics/generics/sleep';
@@ -674,6 +675,32 @@ const puyoAppSlice = createSlice({
       ) as any;
       state.animationSteps = [];
       state.isBoardEditing = false;
+    },
+
+    /** puyomist JSONを受け取ったとき */
+    puyomistJsonDetected: (state, action: PayloadAction<PuyomistJson>) => {
+      const puyomist = action.payload;
+      state.screenshotErrorMessage = undefined;
+
+      const bd = puyomist.board;
+      state.lastScreenshotBoard = bd;
+      state.boardId = customBoardId;
+      state.boostAreaKeyList = puyomist.boostAreaKeyList;
+      const boostAreaCoordList = [
+        ...puyomist.boostAreaKeyList
+          .map((key) => boostAreaKeyMap.get(key)?.coordSet)
+          .filter(Boolean)
+          .reduce((m, s) => unionSet(m!, s!), new Set<PuyoCoord>([]))!
+          .keys()
+      ];
+      state.explorationTarget = puyomist.explorationTarget;
+      state.simulationData = createSimulationData(
+        bd,
+        { boostAreaCoordList },
+        state.simulationData as any
+      ) as any;
+      state.animationSteps = [];
+      state.isBoardEditing = false;
     }
   }
 });
@@ -838,11 +865,22 @@ export const playSolutionButtonClicked =
     dispatch(tracingFinished());
   };
 
-/** 盤面判定が完了したら自動で最適化計算 */
+/** 盤面判定が完了したら自動で最適解探索 */
 export const boardDetectedAndSolve =
   (error?: string | undefined, board?: Board | undefined) =>
   (dispatch: AppDispatch, getState: () => RootState) => {
     dispatch(boardDetected({ error, board }));
+    dispatch(solutionResetButtonClicked());
+    if (!getState().puyoApp.screenshotErrorMessage) {
+      dispatch(solveButtonClicked());
+    }
+  };
+
+/** puyomist JSONを受け取ったら自動で最適解探索 */
+export const puyomistJsonDetectedAndSolve =
+  (json: PuyomistJson) =>
+  (dispatch: AppDispatch, getState: () => RootState) => {
+    dispatch(puyoAppSlice.actions.puyomistJsonDetected(json));
     dispatch(solutionResetButtonClicked());
     if (!getState().puyoApp.screenshotErrorMessage) {
       dispatch(solveButtonClicked());
