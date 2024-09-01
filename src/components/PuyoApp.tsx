@@ -68,7 +68,8 @@ const PuyoApp: React.FC = () => {
     simulationData,
     lastTraceCoords,
     animationSteps,
-    activeAnimationStepIndex
+    activeAnimationStepIndex,
+    explorationTarget
   } = state;
   const chains = selectActiveChains(state);
   const hasBoostArea = boostAreaKeyList.length > 0;
@@ -117,7 +118,11 @@ const PuyoApp: React.FC = () => {
                     disabled={boardId === customBoardId}
                     nextSelection={nextSelection}
                   />
-                  <ExportMenu simulationData={simulationData} />
+                  <ExportMenu
+                    simulationData={simulationData}
+                    boostAreaKeyList={boostAreaKeyList}
+                    explorationTarget={explorationTarget}
+                  />
                   <BoardEditPopover
                     isBoardEditing={isBoardEditing}
                     boardEditMode={boardEditMode}
