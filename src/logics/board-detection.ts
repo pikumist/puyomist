@@ -253,12 +253,29 @@ const detectPrism = (rgbList: number[][]) => {
  * @returns
  */
 const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
-  const [rgb1, rgb2, rgb3, rgb4, rgb5, rgb6, rgb7] = rgbList;
+  const [rgb1, rgb2, rgb3, rgb4, rgb5, rgb6, rgb7, rgb8] = rgbList;
 
   let puyoAttr = detectPuyoAttr(rgb1);
 
   if (puyoAttr === PuyoAttr.Padding) {
+    if (isChanceMode) {
+      return undefined;
+    }
     puyoAttr = detectPrism([rgb3, rgb4, rgb5, rgb6, rgb7]);
+  }
+
+  if (puyoAttr === PuyoAttr.Padding) {
+    const [r1, g1, b1] = rgb1;
+    const [r8, g8, b8] = rgb8;
+    const { h: h1, s: s1, v: v1 } = rgbToHsv(r1, g1, b1);
+    const { h: h8, s: s8, v: v8 } = rgbToHsv(r8, g8, b8);
+
+    if (h1 === 180 && s1 <= 5 && v1 === 100) {
+      if (h8 === 240 && s8 === 10 && v8 === 37) {
+        return PuyoType.Kata;
+      }
+      return PuyoType.Ojama;
+    }
   }
 
   if (!isColoredPuyoAttr(puyoAttr)) {
@@ -267,9 +284,9 @@ const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
         return PuyoType.Heart;
       case PuyoAttr.Prism:
         return PuyoType.Prism;
-      case PuyoAttr.Padding:
-        return isChanceMode ? undefined : PuyoType.Padding;
-      // TODO: ojama, ojama
+      case PuyoAttr.Padding: {
+        return PuyoType.Padding;
+      }
     }
   }
 
@@ -390,7 +407,9 @@ const detectField = (
     [0.75, 0.4],
     [0.65, 0.7],
     [0.35, 0.7],
-    [0.25, 0.4]
+    [0.25, 0.4],
+    // kata
+    [0.15, 0.92]
   ];
 
   const field: (PuyoType | undefined)[][] = [[], [], [], [], [], []];
@@ -408,6 +427,8 @@ const detectField = (
         return getPixel(ctx, xList[oi], yList[oi]);
       });
 
+      //console.log(JSON.stringify({ i, j }));
+
       const puyoType = detectFieldPuyoType(rgbaList, boardMeta.isChanceMode);
 
       //const hsv2 = rgbToHsv(rgbaList[1][0], rgbaList[1][1], rgbaList[1][2]);
@@ -422,6 +443,7 @@ const detectField = (
       ctx.fillRect(xList[4], yList[4], 1, 1);
       ctx.fillRect(xList[5], yList[5], 1, 1);
       ctx.fillRect(xList[6], yList[6], 1, 1);
+      ctx.fillRect(xList[7], yList[7], 1, 1);
       */
 
       field[i][j] = puyoType;
