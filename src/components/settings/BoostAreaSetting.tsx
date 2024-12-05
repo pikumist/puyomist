@@ -24,7 +24,7 @@ const BoostAreaSetting: React.FC<IProps> = (props) => {
       <CheckboxGroup value={boostAreaKeyList} onChange={onKeyListChanged}>
         <Stack spacing={[2, 5]} direction={['row']}>
           {[...boostAreaKeyMap].map(([key, area]) => (
-            <Checkbox key={key} value={key}>
+            <Checkbox key={key} value={key} size="sm">
               {area.name}
             </Checkbox>
           ))}
