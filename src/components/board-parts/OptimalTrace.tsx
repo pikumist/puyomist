@@ -19,10 +19,11 @@ const OptimalTrace: React.FC<OptimalTraceProps> = React.memo((props) => {
     <g transform={outerTransform}>
       <rect
         className={styles.optimalTrace}
-        x="4"
-        y="4"
-        width="40"
-        height="40"
+        x="3.5"
+        y="3.5"
+        width="41"
+        height="41"
+        rx="4"
       />
     </g>
   );

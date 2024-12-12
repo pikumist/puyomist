@@ -173,6 +173,11 @@ const PuyoBoard: React.FC<IProps> = (props) => {
       onPointerUp={onPointerUp}
       onPointerOut={onPointerOut}
     >
+      <defs>
+        <pattern id="star" viewBox="0,0,10,10" width="12.5%" height="12.5%">
+          <polygon points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2" fill="#000" />
+        </pattern>
+      </defs>
       <title>&nbsp;</title>
       <BoardBackground />
       <BoardFrame />
