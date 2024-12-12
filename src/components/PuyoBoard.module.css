@@ -22,13 +22,14 @@
 
 .optimalTrace {
   stroke-width: 2px;
-  stroke: #aaa;
+  stroke: #fff;
   fill: none;
+  opacity: 0.8;
 }
 
 .trace {
   stroke: none;
-  fill: rgba(255, 255, 255, 0.5);
+  fill: url(#star);
 }
 
 .puyo {
