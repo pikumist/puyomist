@@ -78,6 +78,7 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
 
   return (
     <Popover
+      placement="right"
       isOpen={isEditing}
       onOpen={setIsEditing.on}
       onClose={setIsEditing.off}
