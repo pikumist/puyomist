@@ -19,6 +19,7 @@ import { type ColoredPuyoAttr, PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import {
   type PuyoType,
+  convertPuyoType,
   isTraceablePuyo,
   toChanceColoredType,
   toNormalColoredType,
@@ -154,6 +155,21 @@ const puyoAppSlice = createSlice({
           break;
         case HowToEditBoard.AddPlus:
           setTargetPuyoType(toPlusColoredType(prevType!));
+          break;
+        case HowToEditBoard.ToRed:
+          setTargetPuyoType(convertPuyoType(prevType!, PuyoAttr.Red));
+          break;
+        case HowToEditBoard.ToBlue:
+          setTargetPuyoType(convertPuyoType(prevType!, PuyoAttr.Blue));
+          break;
+        case HowToEditBoard.ToGreen:
+          setTargetPuyoType(convertPuyoType(prevType!, PuyoAttr.Green));
+          break;
+        case HowToEditBoard.ToYellow:
+          setTargetPuyoType(convertPuyoType(prevType!, PuyoAttr.Yellow));
+          break;
+        case HowToEditBoard.ToPurple:
+          setTargetPuyoType(convertPuyoType(prevType!, PuyoAttr.Purple));
           break;
         case HowToEditBoard.ToCustomType:
           setTargetPuyoType(customType);

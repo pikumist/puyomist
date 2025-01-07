@@ -136,7 +136,7 @@ const PuyoBoard: React.FC<IProps> = (props) => {
 
   const { howToEdit, customType } = boardEditMode ?? {};
 
-  let cursor: string;
+  let cursor = '';
 
   if (hasAnimation) {
     cursor = styles.cursorNotAllowed;
@@ -145,14 +145,29 @@ const PuyoBoard: React.FC<IProps> = (props) => {
       case HowToEditBoard.ClearEnhance:
         cursor = styles.cursorCrosshair;
         break;
-      case HowToEditBoard.ToCustomType:
-        cursor = styles[getCursorClass(customType)];
-        break;
       case HowToEditBoard.AddChance:
         cursor = styles.cursorChance;
         break;
       case HowToEditBoard.AddPlus:
         cursor = styles.cursorPlus;
+        break;
+      case HowToEditBoard.ToRed:
+        cursor = styles.cursorRed;
+        break;
+      case HowToEditBoard.ToBlue:
+        cursor = styles.cursorBlue;
+        break;
+      case HowToEditBoard.ToGreen:
+        cursor = styles.cursorGreen;
+        break;
+      case HowToEditBoard.ToYellow:
+        cursor = styles.cursorYellow;
+        break;
+      case HowToEditBoard.ToPurple:
+        cursor = styles.cursorPurple;
+        break;
+      case HowToEditBoard.ToCustomType:
+        cursor = styles[getCursorClass(customType)];
         break;
     }
   } else {
