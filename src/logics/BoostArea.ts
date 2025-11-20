@@ -165,4 +165,37 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
       )
     }
   ],
+  [
+    'haruka',
+    {
+      name: '春香',
+      coordSet: new Set(
+        ['B2', 'E2', 'G3', 'C4', 'G4', 'D5', 'H5', 'B6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'chihaya',
+    {
+      name: '千早',
+      coordSet: new Set(
+        ['A2', 'G2', 'C3', 'D4', 'H4', 'B5', 'E6', 'H6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'miki',
+    {
+      name: '美希',
+      coordSet: new Set(
+        ['C2', 'H2', 'D3', 'B4', 'E4', 'F5', 'D6', 'G6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ]
 ]);
