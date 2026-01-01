@@ -41,7 +41,7 @@ const OptimalSolutionSelector: React.FC<OptimalSolutionSelectorProps> =
           );
           return (
             <option value={i} key={cellAddrs} data-index={i}>
-              {value}&nbsp;(
+              {i + 1}:&nbsp;{value}&nbsp;(
               {cellAddrs})
             </option>
           );
