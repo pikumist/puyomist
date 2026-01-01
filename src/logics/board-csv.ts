@@ -98,6 +98,7 @@ const puyoTypeToStringMap = new Map<PuyoType | undefined, string>([
   [PuyoType.YellowChancePlus, 'Yc+'],
   [PuyoType.Purple, 'P'],
   [PuyoType.PurplePlus, 'P+'],
+  [PuyoType.PurpleChance, 'Pc'],
   [PuyoType.PurpleChancePlus, 'Pc+'],
   [PuyoType.Heart, 'H'],
   [PuyoType.Prism, 'W'],
