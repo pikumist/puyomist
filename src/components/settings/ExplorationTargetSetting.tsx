@@ -98,6 +98,8 @@ const CategorySelector: React.FC<{
   );
 };
 
+const OPTIMAL_SOLUTION_COUNT_MAX = 100;
+
 const OptimalSolutionCountInput: React.FC<{
   num: number;
 }> = (props) => {
@@ -117,7 +119,7 @@ const OptimalSolutionCountInput: React.FC<{
         value={num}
         step={1}
         min={1}
-        max={10}
+        max={OPTIMAL_SOLUTION_COUNT_MAX}
         onChange={onChanged}
       >
         <NumberInputField />
