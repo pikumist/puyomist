@@ -122,6 +122,28 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
     }
   ],
   [
+    'serilly',
+    {
+      name: 'セリリ',
+      coordSet: new Set(
+        ['D2', 'F2', 'D3', 'D4', 'E4', 'D5', 'E6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'harpy',
+    {
+      name: 'ハーピー',
+      coordSet: new Set(
+        ['C2', 'C3', 'A4', 'C4', 'A5', 'A6', 'B6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
     'amitie',
     {
       name: 'アミティ',
@@ -215,6 +237,28 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
       name: 'フェーリ',
       coordSet: new Set(
         ['C2', 'D3', 'E3', 'E4', 'C5', 'D5', 'C6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'ally',
+    {
+      name: 'アリィ',
+      coordSet: new Set(
+        ['E2', 'E3', 'H4', 'E5', 'H5', 'D6', 'F6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'rafisol',
+    {
+      name: 'ラフィソル',
+      coordSet: new Set(
+        ['F2', 'G3', 'D4', 'G4', 'F5', 'G5', 'E6'].map(
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         )
       )
