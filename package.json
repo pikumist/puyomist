@@ -40,12 +40,12 @@
     "@biomejs/biome": "1.9.4",
     "@types/react": "^18.3.18",
     "@types/ws": "^8.5.14",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^6.0.2",
     "chokidar": "^4.0.3",
-    "tsx": "^4.19.3",
+    "tsx": "^4.22.4",
     "typescript": "^5.8.2",
-    "vite": "^6.4.2",
-    "vitest": "^3.0.7",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8",
     "ws": "^8.18.1"
   },
   "volta": {
