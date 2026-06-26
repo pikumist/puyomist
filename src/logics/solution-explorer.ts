@@ -92,6 +92,71 @@ export const solveIncludingTraceIndex = (
   return explorationResult;
 };
 
+/**
+ * なぞりの先頭セル列 prefix から始まる部分木を探索する (並列探索の深さカット分割用)。
+ * Rust 側 SolutionExplorer::solve_traces_with_prefix と等価。
+ * recurse=false なら prefix のなぞり 1 件のみ、true なら prefix と全拡張を評価する。
+ */
+export const solveWithPrefix = (
+  simulator: Simulator,
+  explorationTarget: ExplorationTarget,
+  prefix: number[],
+  recurse: boolean
+): ExplorationResult => {
+  const explorationResult: ExplorationResult = {
+    candidates_num: 0,
+    optimal_solutions: []
+  };
+  if (prefix.length === 0) {
+    return explorationResult;
+  }
+
+  const sim = new Simulator(simulator.getSimulationData());
+  const maxTraceNum = sim.getActualMaxTraceNum();
+  if (prefix.length > maxTraceNum) {
+    return explorationResult;
+  }
+
+  const isTraceableAt = (idx: number): boolean => {
+    const coord = PuyoCoord.indexToCoord(idx)!;
+    return isTraceablePuyo(sim.getField()[coord.y][coord.x]?.type);
+  };
+
+  if (!isTraceableAt(prefix[0])) {
+    return explorationResult;
+  }
+  const state = new SolutionState(
+    createfilledOneBitFieldBeforeIndex(prefix[0]),
+    new Map()
+  );
+  state.addTraceCoord(PuyoCoord.indexToCoord(prefix[0])!);
+
+  for (let k = 1; k < prefix.length; k++) {
+    const coord = PuyoCoord.indexToCoord(prefix[k])!;
+    if (
+      !isTraceableAt(prefix[k]) ||
+      !state.checkIfAddableCoord(coord, maxTraceNum)
+    ) {
+      return explorationResult;
+    }
+    state.addTraceCoord(coord);
+  }
+
+  updateExplorationResult(
+    explorationTarget,
+    calcSolutionResult(sim, explorationTarget, state.getTraceCoords()),
+    explorationResult
+  );
+
+  if (recurse) {
+    for (const nextCoord of state.enumerateCandidates()) {
+      advanceTrace(sim, explorationTarget, state, nextCoord, explorationResult);
+    }
+  }
+
+  return explorationResult;
+};
+
 const advanceTrace = (
   simulator: Simulator,
   explorationTarget: ExplorationTarget,

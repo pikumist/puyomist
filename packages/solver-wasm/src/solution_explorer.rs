@@ -1,8 +1,6 @@
 use crate::{
     chain::Chain,
-    chain_helper::{
-        sum_attr_popped_count, sum_colored_attr_damage, sum_puyo_tsukai_count, sum_wild_damage,
-    },
+    chain_helper::calc_boost_ratio,
     exploration_target::{
         CountingBonusType, ExplorationCategory, ExplorationTarget, PreferenceKind,
     },
@@ -11,14 +9,20 @@ use crate::{
     puyo_coord::PuyoCoord,
     puyo_type::is_traceable_type,
     simulation_environment::SimulationEnvironment,
-    simulator_bb::{BitBoards, SimulatorBB},
+    simulator_bb::{BitBoards, ChainsAggregate, SimulatorBB},
     solution::{ExplorationResult, SolutionResult, SolutionState},
 };
+use num_traits::ToPrimitive;
 use std::{
     cmp,
     collections::{HashMap, HashSet},
     sync::OnceLock,
 };
+
+/// PuyoAttr を集約配列のインデックス (Red=1→0 … Kata=9→8) に変換する。
+fn attr_index(attr: PuyoAttr) -> usize {
+    attr.to_u8().unwrap() as usize - 1
+}
 
 fn better_solution_by_bigger_value<'a>(
     s1: &'a SolutionResult,
@@ -426,6 +430,7 @@ impl<'a> SolutionExplorer<'a> {
                 self.advance_trace(&state, coord, &mut result);
             }
         }
+        self.finalize_chains(&mut result);
         return result;
     }
 
@@ -439,9 +444,81 @@ impl<'a> SolutionExplorer<'a> {
                 };
                 let state = SolutionState::new(coord_index);
                 self.advance_trace(&state, coord, &mut result);
+                self.finalize_chains(&mut result);
                 return Some(result);
             }
         }
+    }
+
+    fn is_traceable_at(&self, coord: PuyoCoord) -> bool {
+        match self.field[coord.y as usize][coord.x as usize] {
+            Some(p) => is_traceable_type(p.puyo_type),
+            None => false,
+        }
+    }
+
+    /// なぞりの先頭セル列 `prefix`(正準順のインデックス列)から始まる部分木を探索する。
+    ///
+    /// 並列探索の「深さカット」分割用プリミティブ。
+    /// - `recurse=false`: `prefix` のなぞり 1 件のみ評価(深さ d 未満の「幹」タスク)。
+    /// - `recurse=true` : `prefix` と、その全拡張を評価(深さ d の「葉」タスク)。
+    ///
+    /// 例) インデックス i を細分するには、`([i], false)` と、i の各候補 j について `([i, j], true)` を投げる。
+    /// 和は `solve_traces_including_index(i)` と過不足なく一致する(正準列挙の部分木が互いに素かつ網羅的)。
+    /// 無効な(連結でない/なぞれない/上限超過の)プレフィックスは空結果を返す。
+    pub fn solve_traces_with_prefix(
+        &self,
+        prefix: &[u8],
+        recurse: bool,
+    ) -> Option<ExplorationResult> {
+        if prefix.is_empty() {
+            return None;
+        }
+        let mut result = ExplorationResult {
+            candidates_num: 0,
+            optimal_solutions: Vec::new(),
+        };
+        let max = self.get_actual_max_trace_num();
+        if prefix.len() as u32 > max {
+            return Some(result);
+        }
+
+        // 先頭セル
+        let first = match PuyoCoord::index_to_coord(prefix[0]) {
+            Some(c) => c,
+            None => return None,
+        };
+        if !self.is_traceable_at(first) {
+            return Some(result);
+        }
+        let mut state = SolutionState::new(prefix[0]);
+        state.add_trace_coord(first);
+
+        // 残りのプレフィックスを正準規則に従って replay
+        for &idx in &prefix[1..] {
+            let coord = match PuyoCoord::index_to_coord(idx) {
+                Some(c) => c,
+                None => return None,
+            };
+            if !self.is_traceable_at(coord) || !state.check_if_addable_coord(&coord, max) {
+                return Some(result);
+            }
+            state.add_trace_coord(coord);
+        }
+
+        // prefix のなぞりを評価
+        let sr = self.calc_solution_result(state.get_trace_coords());
+        self.update_exploration_result(sr, &mut result);
+
+        // 拡張(葉タスク)
+        if recurse {
+            for next_coord in state.get_next_candidate_coords() {
+                self.advance_trace(&state, *next_coord, &mut result);
+            }
+        }
+
+        self.finalize_chains(&mut result);
+        return Some(result);
     }
 
     fn advance_trace(
@@ -461,7 +538,7 @@ impl<'a> SolutionExplorer<'a> {
             let mut st = state.clone();
             st.add_trace_coord(coord);
 
-            let solution_result = self.calc_solution_result(st.get_trace_coords().clone());
+            let solution_result = self.calc_solution_result(st.get_trace_coords());
 
             self.update_exploration_result(solution_result, exploration_result);
 
@@ -479,48 +556,61 @@ impl<'a> SolutionExplorer<'a> {
         }
     }
 
-    fn calc_solution_result(&self, trace_coords: Vec<PuyoCoord>) -> SolutionResult {
-        let chains = self.do_chains_bb(&trace_coords);
-        let popped_chance_num = chains.iter().map(|c| c.popped_chance_num).sum();
-        let popped_heart_num = sum_attr_popped_count(&chains, PuyoAttr::Heart);
-        let popped_prism_num = sum_attr_popped_count(&chains, PuyoAttr::Prism);
-        let popped_ojama_num = sum_attr_popped_count(&chains, PuyoAttr::Ojama);
-        let popped_kata_num = sum_attr_popped_count(&chains, PuyoAttr::Kata);
-        let is_all_cleared = chains.iter().any(|c| c.is_all_cleared);
+    /// 探索中の評価。HashMap/Vec<Chain> を構築せず、スカラー集約だけで SolutionResult を作る。
+    /// `chains` は空のままにし、最終的な勝者についてのみ `finalize_chains` でフル構築する。
+    fn calc_solution_result(&self, trace_coords: &[PuyoCoord]) -> SolutionResult {
+        let agg = self.do_chains_aggregate_bb(trace_coords);
+        let value = self.calc_value(&agg);
 
-        let value: f64;
+        return SolutionResult {
+            trace_coords: trace_coords.to_vec(),
+            chains: Vec::new(),
+            value,
+            popped_chance_num: agg.popped_chance_num,
+            popped_heart_num: agg.popped[attr_index(PuyoAttr::Heart)],
+            popped_prism_num: agg.popped[attr_index(PuyoAttr::Prism)],
+            popped_ojama_num: agg.popped[attr_index(PuyoAttr::Ojama)],
+            popped_kata_num: agg.popped[attr_index(PuyoAttr::Kata)],
+            is_all_cleared: agg.is_all_cleared,
+        };
+    }
 
+    /// 集約スカラーから探索対象の値を計算する。
+    /// chain_helper のフルチェーン版と数値的に一致させること。
+    fn calc_value(&self, agg: &ChainsAggregate) -> f64 {
         match self.exploration_target.category {
             ExplorationCategory::Damage => {
+                let boost_ratio = calc_boost_ratio(agg.boost_count);
                 if let Some(main_attr) = self.exploration_target.main_attr {
-                    let main_value = sum_colored_attr_damage(&chains, main_attr);
-                    let main_sub_ratio = match self.exploration_target.main_sub_ratio {
-                        Some(ratio) => ratio,
-                        None => 0.0,
-                    };
+                    let main_value =
+                        (agg.color_strength[attr_index(main_attr)] + agg.prism_strength)
+                            * boost_ratio;
+                    let main_sub_ratio = self.exploration_target.main_sub_ratio.unwrap_or(0.0);
                     let sub_value = match self.exploration_target.sub_attr {
                         Some(sub_attr) => {
-                            sum_colored_attr_damage(&chains, sub_attr) * main_sub_ratio
+                            (agg.color_strength[attr_index(sub_attr)] + agg.prism_strength)
+                                * boost_ratio
+                                * main_sub_ratio
                         }
                         None => 0.0,
                     };
-                    value = main_value + sub_value;
-                }
-                // ワイルド
-                else {
-                    value = sum_wild_damage(&chains);
+                    main_value + sub_value
+                } else {
+                    // ワイルド
+                    let wild_pure: f64 = agg.color_strength.iter().sum();
+                    (wild_pure + agg.prism_strength) * boost_ratio
                 }
             }
             ExplorationCategory::SkillPuyoCount => {
                 if let Some(main_attr) = self.exploration_target.main_attr {
-                    let main_value = sum_attr_popped_count(&chains, main_attr);
+                    let main_value = agg.popped[attr_index(main_attr)];
                     let mut bonus_value: u32 = 0;
                     if let Some(counting_bonus) = &self.exploration_target.counting_bonus {
                         if counting_bonus.bonus_type == CountingBonusType::Step {
                             let height = counting_bonus
                                 .target_attrs
                                 .iter()
-                                .fold(0, |acc, attr| acc + sum_attr_popped_count(&chains, *attr));
+                                .fold(0, |acc, attr| acc + agg.popped[attr_index(*attr)]);
                             let mut steps = height / counting_bonus.step_height as u32;
                             if !counting_bonus.repeat {
                                 steps = cmp::min(1, steps);
@@ -528,31 +618,36 @@ impl<'a> SolutionExplorer<'a> {
                             bonus_value = counting_bonus.bonus_count as u32 * steps;
                         }
                     }
-                    value = (main_value + bonus_value) as f64
+                    (main_value + bonus_value) as f64
                 } else {
-                    value = 0 as f64;
+                    0.0
                 }
             }
-            ExplorationCategory::PuyotsukaiCount => {
-                value = sum_puyo_tsukai_count(&chains) as f64;
-            }
+            ExplorationCategory::PuyotsukaiCount => agg.puyo_tsukai_count as f64,
         }
-
-        return SolutionResult {
-            trace_coords,
-            chains,
-            value,
-            popped_chance_num,
-            popped_heart_num,
-            popped_prism_num,
-            popped_ojama_num,
-            popped_kata_num,
-            is_all_cleared,
-        };
     }
 
-    /// Bitboardを使ったシミュレーターで連鎖させる。
-    fn do_chains_bb(&self, trace_coords: &Vec<PuyoCoord>) -> Vec<Chain> {
+    /// 最適解リストの各要素について、空だった `chains` をフル構築して埋める。
+    fn finalize_chains(&self, exploration_result: &mut ExplorationResult) {
+        for s in exploration_result.optimal_solutions.iter_mut() {
+            s.chains = self.do_chains_bb(&s.trace_coords);
+        }
+    }
+
+    /// Bitboardを使ったシミュレーターで連鎖させ、スカラーを集約する。(探索用・確保なし)
+    fn do_chains_aggregate_bb(&self, trace_coords: &[PuyoCoord]) -> ChainsAggregate {
+        let sim = SimulatorBB {
+            environment: self.environment,
+            boost_area: self.boost_area,
+        };
+        return sim.do_chains_aggregate(
+            &mut self.boards.clone(),
+            SimulatorBB::coords_to_board(trace_coords.iter()),
+        );
+    }
+
+    /// Bitboardを使ったシミュレーターで連鎖させる。(フル Chain・勝者再構築用)
+    fn do_chains_bb(&self, trace_coords: &[PuyoCoord]) -> Vec<Chain> {
         let sim = SimulatorBB {
             environment: self.environment,
             boost_area: self.boost_area,
@@ -2977,5 +3072,99 @@ mod tests {
                 is_all_cleared: true
             }
         );
+    }
+
+    #[test]
+    fn test_solve_traces_with_prefix_partitions_exactly() {
+        // Arrange
+        let exploration_target = ExplorationTarget {
+            category: ExplorationCategory::Damage,
+            preference_priorities: Vec::from([
+                PreferenceKind::BiggerValue,
+                PreferenceKind::SmallerTraceNum,
+            ]),
+            optimal_solution_count: 1,
+            main_attr: Some(PuyoAttr::Green),
+            sub_attr: None,
+            main_sub_ratio: None,
+            counting_bonus: None,
+        };
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 3,
+            max_trace_num: 4,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 7.0,
+        };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let mut id_counter = 0;
+        let field = [
+            [r, p, b, p, y, g, y, y],
+            [r, y, p, b, y, g, p, g],
+            [b, y, g, b, r, y, g, p],
+            [b, r, b, r, p, b, r, p],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo {
+                    id: id_counter,
+                    puyo_type,
+                })
+            })
+        });
+        let next_puyos = [g, g, g, g, g, g, g, g].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo {
+                id: id_counter,
+                puyo_type,
+            })
+        });
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
+
+        // Act & Assert: 各開始インデックスについて、深さ2カットの分割が
+        // solve_traces_including_index と過不足なく一致すること。
+        let mut total_whole: u64 = 0;
+        let mut total_parts: u64 = 0;
+        for i in 0..(PuyoCoord::X_NUM * PuyoCoord::Y_NUM) {
+            let whole = explorer.solve_traces_including_index(i).unwrap();
+
+            // 幹 [i] (再帰なし) + 各2セルプレフィックス [i, j] (再帰あり)
+            let mut sum = explorer
+                .solve_traces_with_prefix(&[i], false)
+                .unwrap()
+                .candidates_num;
+            let ci = PuyoCoord::index_to_coord(i).unwrap();
+            for nb in ci.adjacent_coords() {
+                let j = nb.index();
+                if j > i {
+                    sum += explorer
+                        .solve_traces_with_prefix(&[i, j], true)
+                        .unwrap()
+                        .candidates_num;
+                }
+            }
+            assert_eq!(sum, whole.candidates_num, "index {} の分割が不一致", i);
+
+            total_whole += whole.candidates_num;
+            total_parts += sum;
+        }
+        // 全体としても一致 (max_trace_num=4 の総数 3435)
+        assert_eq!(total_whole, 3435);
+        assert_eq!(total_parts, 3435);
     }
 }

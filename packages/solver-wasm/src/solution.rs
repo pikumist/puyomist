@@ -1,5 +1,12 @@
 use crate::{chain::Chain, puyo_coord::PuyoCoord};
 use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
+
+/// なぞり座標・候補座標を保持する小ベクタ。
+/// なぞりは高々 max_trace_num 個、候補もフロンティア周長程度しかないため、
+/// 16 要素までインライン (ヒープ確保なし) で持つ。探索の各ノードで clone されるので、
+/// ここをスタック化することで ~1 億候補ぶんの小ヒープ確保を消す。
+pub type CoordVec = SmallVec<[PuyoCoord; 16]>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SolutionState {
@@ -12,10 +19,10 @@ pub struct SolutionState {
     forbidden_field_bits: u64,
 
     /** なぞっている座標のリスト */
-    trace_coords: Vec<PuyoCoord>,
+    trace_coords: CoordVec,
 
     /** 次のなぞり候補となりうる座標のリスト。 */
-    next_candidate_coords: Vec<PuyoCoord>,
+    next_candidate_coords: CoordVec,
 }
 
 impl SolutionState {
@@ -23,8 +30,8 @@ impl SolutionState {
     pub fn new(forbidden_indexes_before: u8) -> SolutionState {
         SolutionState {
             forbidden_field_bits: (1 << forbidden_indexes_before) - 1,
-            trace_coords: Vec::new(),
-            next_candidate_coords: Vec::new(),
+            trace_coords: CoordVec::new(),
+            next_candidate_coords: CoordVec::new(),
         }
     }
 
@@ -33,12 +40,12 @@ impl SolutionState {
     }
 
     /** なぞり座標リストを取得する */
-    pub fn get_trace_coords(&self) -> &Vec<PuyoCoord> {
+    pub fn get_trace_coords(&self) -> &[PuyoCoord] {
         return &self.trace_coords;
     }
 
     /** 次のなぞり候補となりうる座標のリストを取得する */
-    pub fn get_next_candidate_coords(&self) -> &Vec<PuyoCoord> {
+    pub fn get_next_candidate_coords(&self) -> &[PuyoCoord] {
         return &self.next_candidate_coords;
     }
 
@@ -66,7 +73,7 @@ impl SolutionState {
 
     pub fn add_trace_coord(&mut self, coord: PuyoCoord) {
         // 新しい座標を起点に新たに候補になる座標リストを作る
-        let mut new_candidate_coords: Vec<PuyoCoord> = PuyoCoord::adjacent_coords(&coord)
+        let mut new_candidate_coords: CoordVec = PuyoCoord::adjacent_coords(&coord)
             .into_iter()
             .filter(|c| {
                 if self.forbidden_field_bits & (1 << c.index()) != 0 {
@@ -87,7 +94,7 @@ impl SolutionState {
             for c in former {
                 self.forbidden_field_bits |= 1 << c.index();
             }
-            new_candidate_coords.splice(0..0, latter.iter().cloned());
+            new_candidate_coords.insert_many(0, latter.iter().cloned());
             self.next_candidate_coords = new_candidate_coords;
         } else {
             self.forbidden_field_bits |= 1 << coord_index;
@@ -157,13 +164,13 @@ mod tests {
     #[test]
     fn test_get_trace_coords() {
         let mut s = SolutionState::new(0);
-        assert_eq!(*s.get_trace_coords(), []);
+        assert!(s.get_trace_coords().is_empty());
         s.add_trace_coord(PuyoCoord { x: 0, y: 0 });
-        assert_eq!(*s.get_trace_coords(), [PuyoCoord { x: 0, y: 0 }]);
+        assert_eq!(s.get_trace_coords(), &[PuyoCoord { x: 0, y: 0 }][..]);
         s.add_trace_coord(PuyoCoord { x: 1, y: 1 });
         assert_eq!(
-            *s.get_trace_coords(),
-            [PuyoCoord { x: 0, y: 0 }, PuyoCoord { x: 1, y: 1 }]
+            s.get_trace_coords(),
+            &[PuyoCoord { x: 0, y: 0 }, PuyoCoord { x: 1, y: 1 }][..]
         );
     }
 
@@ -246,14 +253,14 @@ mod tests {
             false
         );
         assert_eq!(
-            *s.get_next_candidate_coords(),
-            Vec::from([
+            s.get_next_candidate_coords(),
+            &[
                 PuyoCoord { x: 3, y: 1 },
                 PuyoCoord { x: 3, y: 2 },
                 PuyoCoord { x: 1, y: 3 },
                 PuyoCoord { x: 2, y: 3 },
                 PuyoCoord { x: 3, y: 3 },
-            ])
+            ][..]
         );
         assert_eq!(s.__get_forbidden_field_bits(), 460799);
     }

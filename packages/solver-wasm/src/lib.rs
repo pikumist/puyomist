@@ -138,3 +138,56 @@ pub fn solve_traces_including_index(
         Err(e) => Err(JsError::new(&e.to_string())),
     }
 }
+
+/// なぞりの先頭セル列 `js_prefix`(セルインデックスの配列)から始まる部分木を探索する。
+/// 並列探索の細粒度分割(深さカット)用。recurse の意味は SolutionExplorer::solve_traces_with_prefix を参照。
+#[wasm_bindgen]
+pub fn solve_traces_with_prefix(
+    js_exploration_target: JsValue,
+    js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
+    js_field: JsValue,
+    js_next_puyos: JsValue,
+    js_prefix: JsValue,
+    recurse: bool,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let exploration_target: ExplorationTarget = match from_value(js_exploration_target) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let environment: SimulationEnvironment = match from_value(js_environment) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let boost_area_coord_set: HashSet<PuyoCoord> = match from_value(js_boost_area_coord_set) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let field: Field = match from_value(js_field) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let next_puyos: NextPuyos = match from_value(js_next_puyos) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let prefix: Vec<u8> = match from_value(js_prefix) {
+        Ok(v) => v,
+        Err(e) => return Err(JsError::new(&e.to_string())),
+    };
+    let explorer = SolutionExplorer::new(
+        &exploration_target,
+        &environment,
+        &boost_area_coord_set,
+        &field,
+        &next_puyos,
+    );
+    let exploration_result = explorer.solve_traces_with_prefix(&prefix, recurse);
+
+    match to_value(&exploration_result) {
+        Ok(result) => Ok(result),
+        Err(e) => Err(JsError::new(&e.to_string())),
+    }
+}

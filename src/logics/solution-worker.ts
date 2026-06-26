@@ -5,7 +5,8 @@ import type { SimulationData } from './SimulationData';
 import { Simulator } from './Simulator';
 import {
   solveAllTraces as _solveAllTraces,
-  solveIncludingTraceIndex as _solveIncludingTraceIndex
+  solveIncludingTraceIndex as _solveIncludingTraceIndex,
+  solveWithPrefix as _solveWithPrefix
 } from './solution-explorer';
 
 const fixFieldBoostAreas = (simulationData: SimulationData): void => {
@@ -51,7 +52,26 @@ export async function solveIncludingTraceIndex(
   );
 }
 
+/**
+ * @deprecated Rust版に集約する
+ */
+export async function solveWithPrefix(
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget,
+  prefix: number[],
+  recurse: boolean
+) {
+  fixFieldBoostAreas(simulationData);
+  return _solveWithPrefix(
+    new Simulator(simulationData),
+    explorationTarget,
+    prefix,
+    recurse
+  );
+}
+
 expose({
   solveAllTraces,
-  solveIncludingTraceIndex
+  solveIncludingTraceIndex,
+  solveWithPrefix
 });
