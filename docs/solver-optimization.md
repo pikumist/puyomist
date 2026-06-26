@@ -97,10 +97,12 @@ RUSTFLAGS="-C target-cpu=native" cargo run --release --bin bench_natsuama -- 9
 
 | 条件 | elapsed | µs/cand |
 |---|---|---|
-| noLTO software | 281.4 s | 2.588 |
-| noLTO hardware(PEXT/BMI2) | 65.4 s | 0.602 |
-| **LTO software**(現行) | 278.8 s | **2.564** |
-| **LTO hardware(PEXT/BMI2)**(現行) | **61.9 s** | **0.570** |
+| **noLTO software**(baseline・現行リポジトリ) | 281.4 s | **2.588** |
+| **noLTO hardware(PEXT/BMI2)** | 65.4 s | **0.602** |
+| LTO software | 278.8 s | 2.564 |
+| LTO hardware(PEXT/BMI2) | 61.9 s | 0.570 |
+
+> 上は **baseline**(A/C 適用前)の値。A+C 適用後(成果物 `perf/solver-ac`)は sw 2.272 / hw 0.347(3-0 参照)。
 
 - **ハードウェア PEXT(BMI2)で 4.30×(noLTO)〜4.50×(LTO)**。wasm は PEXT 命令が無く必ず
   ソフトウェア展開なので、これが**ネイティブバックエンドにした場合の上積み分の実測値**。
@@ -149,9 +151,37 @@ Web の k=11 = **40 秒**(wasm・software PEXT・14 コア)。ネイティブ sw
 **枝刈りで最適を保証したまま“より良いオーダー”にするのは事実上不可能**。
 また各なぞりは異なるマスを消すため、盤面メモ化による重複排除も効かない。
 
-→ 改善は**定数倍**が現実的。payoff 順:
+→ 改善は**定数倍**が現実的。
 
-### 3-1. 連鎖ごとの `HashMap` をやめて固定配列/構造体に(最有力)
+### 3-0. 実装・計測結果サマリ【確定】
+標準ベンチ(なつアマ/1, k=11, ネイティブ単スレッド)で各施策を**分離計測**(純効果を測るため、
+それぞれ baseline から独立に分岐)。全変種で `candidates=108,735,877`・`best_value=827.675` 不変・132 テスト緑。
+
+| 施策 | sw(wasm相当) µs/cand | hw(PEXT) µs/cand | 判定 |
+|---|---|---|---|
+| baseline | 2.588 | 0.602 | — |
+| **C** 状態を SmallVec 化 | 2.535 (−2.0%) | 0.570 (−5.3%) | ✅ 採用 |
+| **A** 遅延チェーン構築 | 2.352 (−9.1%) | 0.380 (−36.9%) | ✅ 採用 |
+| **AC**(= 成果物 `perf/solver-ac`) | **2.272 (−12.2%)** | **0.347 (−42.4% / 1.74×)** | ✅ **land** |
+| A2 `SolutionResult.trace_coords` を inline | 2.338 (+2.9%) | 0.339 (−2.3%) | ❌ 不採用 |
+| LTO プロファイル | 2.564 (−0.9%) | 0.570 (−5.3%) | 保留(未適用) |
+
+- **A と C は加法的**(干渉なしを実測: hw 加法予測 0.348 / 実測 0.347)。
+- **A が主役**で、特に hw(PEXT)で −37%。シミュが速いほど確保コストの比率が上がるため、
+  バックエンド(native+PEXT)で最も価値が出る。
+- **A2 は棄却**:`to_vec()` の確保を消す一方で `SolutionResult` が肥大(SmallVec 32B > Vec 24B)し、
+  候補ごとの memcpy 増で相殺。主デプロイの wasm(sw)でむしろ悪化。→ この方向は構造的に頭打ち。
+- **B(HashMap→固定配列)は A が吸収**:A がホットパスから HashMap を消したため単独の B は不要に。
+
+各施策の詳細は以下。
+
+### 3-1. 連鎖ごとの `HashMap` をやめる → 【実装: A 遅延チェーン構築】
+`pop_puyo_blocks` が連鎖段ごとに `HashMap` を確保していた。**A** では探索中は
+`SimulatorBB::do_chains_aggregate`(`ChainsAggregate`)でスカラーのみ集約し `Vec<Chain>`/`HashMap` を作らない。
+`pop_puyo_blocks` は `Option<PopOutcome>` を返し、`do_chains`(フル)と `do_chains_aggregate`(集約)が
+`fold_chains` ドライバを共有。フル連鎖は最終勝者だけ `finalize_chains` で再構築。→ hw −36.9%。
+
+### 旧 3-1(没案). 連鎖ごとの `HashMap` を固定配列に
 `pop_puyo_blocks` が連鎖段ごとに `HashMap` を確保・挿入(`simulator_bb.rs:284`)。
 属性は最大 10 種で固定なので `[Option<AttributeChain>; N]` か専用 struct にすれば、
 **全候補×全連鎖段ぶんのヒープ確保(数十万回規模)が消える**。wasm のアロケータでは特に効く。
@@ -162,20 +192,25 @@ Web の k=11 = **40 秒**(wasm・software PEXT・14 コア)。ネイティブ sw
 にもかかわらず `pop_puyo_blocks` は常に `calc_separated_blocks_num`(最重量ループ)+ダメージ係数を計算している。
 **カテゴリで分岐して飛ばす**だけで、これらの目的の探索が目に見えて速くなる。
 
-### 3-3. `Vec` クローンの削減
-`advance_trace` はノードごとに `SolutionState`(`Vec` 2 本)を `clone`、
-`calc_solution_result` も `trace_coords` を `clone`。
-なぞりは最大要素数が小さいので `SmallVec`/固定長配列+`len` にすれば小確保の山が消える。
+### 3-3. `Vec` クローンの削減 → 【実装: C】
+`advance_trace` はノードごとに `SolutionState`(`Vec` 2 本)を `clone` していた。
+**C** では `SolutionState` を `SmallVec<[PuyoCoord;16]>`(`CoordVec`)化し、候補ごとの `state.clone()` を
+スタックに載せて ~1 億候補ぶんの小ヒープ確保を消す。`calc_solution_result`/`do_chains` は `&[PuyoCoord]` を取る。
+→ k=11 で sw −2.0% / hw −5.3%。A と加法的。
 
-### 3-4. ビルドプロファイル【計測済み・適用済み】
-`Cargo.toml` に `[profile.release] { lto = true, codegen-units = 1, opt-level = 3 }` を追加。
+> なお **A2**(`SolutionResult.trace_coords` も SmallVec 化して残る `to_vec()` を消す)は計測の結果**棄却**。
+> 構造体肥大による memcpy 増で相殺し、sw では悪化(3-0 参照)。
 
-| | 適用前 | 適用後 | 効果 |
+### 3-4. ビルドプロファイル【計測済み・未適用】
+`[profile.release] { lto = true, codegen-units = 1, opt-level = 3 }` を計測。**標準 k=11**:
+
+| | noLTO | LTO | 効果 |
 |---|---|---|---|
-| software (k=8) | 2.666 µs/cand | 2.593 µs/cand | −2.7% |
-| hardware (k=8) | 0.619 µs/cand | 0.601 µs/cand | −2.9% |
+| software | 2.588 µs/cand | 2.564 µs/cand | −0.9% |
+| hardware (PEXT) | 0.602 µs/cand | 0.570 µs/cand | −5.3% |
 
-ゼロコード変更で約 3%。小さいが無料。wasm バンドルサイズ/実行にも効く可能性あり。
+sw では小さい(~1%)が hw では効く(~5%)。**現状リポジトリには未適用**(本番 wasm のビルド構成と
+合わせて別途判断)。※ k=8 では sw −2.7% と出たが k=11 では −0.9%。**効果は k 依存なので必ず標準 k=11 で評価する**(教訓)。
 
 > 3-1〜3-3 を合わせて wasm 実行時間を体感 **2〜4 倍**短縮できる見込み(結果は不変)。
 
