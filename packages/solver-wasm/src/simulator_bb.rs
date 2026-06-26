@@ -82,6 +82,43 @@ const NEXT_MASK: u64 = 0b_1000000_1000000_1000000_1000000_1000000_1000000_100000
 /** 列1つ分のマスク */
 const COL_MASK: u64 = 0b_1111111;
 
+/// 1 連鎖ぶんの素データ (HashMap/Vec を確保しない軽量版)。
+/// `fold_chains` が各連鎖でこれを生成し、消費側(フル Chain 構築 / スカラー集約)に渡す。
+#[derive(Clone, Copy)]
+struct ColorPop {
+    strength: f64,
+    popped_count: u32,
+    separated_blocks_num: u32,
+}
+
+struct PopOutcome {
+    chain_num: u32,
+    simultaneous_num: u32,
+    boost_count: u32,
+    puyo_tsukai_count: u32,
+    /// 色ぷよ5色 (Red..Purple) の連鎖情報。消えなかった色は None。
+    colors: [Option<ColorPop>; 5],
+    heart_count: u32,
+    prism_count: u32,
+    ojama_count: u32,
+    kata_count: u32,
+    popped_chance_num: u32,
+    is_all_cleared: bool,
+}
+
+/// 探索中に必要なスカラーだけを集約したもの (Vec<Chain>/HashMap を作らない)。
+/// popped は属性インデックス (PuyoAttr::to_u8()-1): 0..4=色, 5=Heart,6=Prism,7=Ojama,8=Kata。
+#[derive(Default)]
+pub struct ChainsAggregate {
+    pub popped: [u32; 9],
+    pub color_strength: [f64; 5],
+    pub prism_strength: f64,
+    pub boost_count: u32,
+    pub puyo_tsukai_count: u32,
+    pub popped_chance_num: u32,
+    pub is_all_cleared: bool,
+}
+
 #[derive(Debug)]
 /// Bitboard を使った Simulator 実装
 pub struct SimulatorBB<'a> {
@@ -162,42 +199,45 @@ impl<'a> SimulatorBB<'a> {
         return board;
     }
 
-    /// なぞり消し(あるいは塗り替え)を実施して連鎖を発生させる。
+    /// なぞり消し(あるいは塗り替え)を実施して連鎖を発生させる。(フル Chain 構築版)
     pub fn do_chains(&self, boards: &mut BitBoards, trace: u64) -> Vec<Chain> {
         let mut chains: Vec<Chain> = Vec::new();
-
-        if self.activate_tracing(boards, trace, &mut chains) {
-            while self.drop_in_field(boards) {
-                if !self.pop_puyo_blocks(boards, false, &mut chains) {
-                    break;
-                }
-            }
-            while self.drop_next_into_field(boards) {
-                if !self.pop_puyo_blocks(boards, true, &mut chains) {
-                    break;
-                }
-                while self.drop_in_field(boards) {
-                    if !self.pop_puyo_blocks(boards, true, &mut chains) {
-                        break;
-                    }
-                }
-            }
-        }
-
+        self.fold_chains(boards, trace, &mut |o: PopOutcome| {
+            chains.push(Self::chain_from_outcome(&o));
+        });
         return chains;
     }
 
-    /// なぞっている箇所を発火させる。
-    fn activate_tracing(
-        &self,
-        boards: &mut BitBoards,
-        trace: u64,
-        chains: &mut Vec<Chain>,
-    ) -> bool {
-        let trace_mode = self.environment.trace_mode;
-        let popped_or_cleared: bool;
+    /// なぞり消しを実施し、探索で必要なスカラーだけを集約する。
+    /// HashMap / Vec<Chain> を一切確保しないので、全候補を回す探索の高速版に使う。
+    pub fn do_chains_aggregate(&self, boards: &mut BitBoards, trace: u64) -> ChainsAggregate {
+        let mut agg = ChainsAggregate::default();
+        self.fold_chains(boards, trace, &mut |o: PopOutcome| {
+            for i in 0..5 {
+                if let Some(cp) = o.colors[i] {
+                    agg.color_strength[i] += cp.strength;
+                    agg.popped[i] += cp.popped_count;
+                }
+            }
+            agg.popped[5] += o.heart_count;
+            agg.popped[6] += o.prism_count;
+            agg.popped[7] += o.ojama_count;
+            agg.popped[8] += o.kata_count;
+            agg.prism_strength += 3.0 * o.prism_count as f64;
+            agg.boost_count += o.boost_count;
+            agg.puyo_tsukai_count += o.puyo_tsukai_count;
+            agg.popped_chance_num += o.popped_chance_num;
+            agg.is_all_cleared |= o.is_all_cleared;
+        });
+        return agg;
+    }
 
-        match trace_mode {
+    /// 連鎖駆動の共通ループ。各連鎖で `PopOutcome` を sink に渡す。
+    /// do_chains (フル) と do_chains_aggregate (スカラー) で共有し、シミュレーション本体の二重化を防ぐ。
+    fn fold_chains<F: FnMut(PopOutcome)>(&self, boards: &mut BitBoards, trace: u64, sink: &mut F) {
+        let mut chain_num: u32 = 0;
+
+        let popped_or_cleared = match self.environment.trace_mode {
             TraceMode::Normal => {
                 let rest = !trace;
                 for c in 0..boards.colors.len() {
@@ -207,7 +247,7 @@ impl<'a> SimulatorBB<'a> {
                 boards.prism &= rest;
                 boards.plus &= rest;
                 boards.chance &= rest;
-                popped_or_cleared = trace != 0;
+                trace != 0
             }
             TraceMode::ToRed
             | TraceMode::ToBlue
@@ -220,22 +260,127 @@ impl<'a> SimulatorBB<'a> {
                 }
                 boards.heart &= rest;
                 boards.prism &= rest;
-                let c = trace_mode.to_usize().unwrap() - TraceMode::ToRed.to_usize().unwrap();
+                let c = self.environment.trace_mode.to_usize().unwrap()
+                    - TraceMode::ToRed.to_usize().unwrap();
                 boards.colors[c] |= trace;
-                popped_or_cleared = self.pop_puyo_blocks(boards, false, chains);
+                match self.pop_puyo_blocks(boards, false, chain_num + 1) {
+                    Some(o) => {
+                        chain_num += 1;
+                        sink(o);
+                        true
+                    }
+                    None => false,
+                }
             }
+        };
+
+        if !popped_or_cleared {
+            return;
         }
 
-        return popped_or_cleared;
+        while self.drop_in_field(boards) {
+            match self.pop_puyo_blocks(boards, false, chain_num + 1) {
+                Some(o) => {
+                    chain_num += 1;
+                    sink(o);
+                }
+                None => break,
+            }
+        }
+        while self.drop_next_into_field(boards) {
+            match self.pop_puyo_blocks(boards, true, chain_num + 1) {
+                Some(o) => {
+                    chain_num += 1;
+                    sink(o);
+                }
+                None => break,
+            }
+            while self.drop_in_field(boards) {
+                match self.pop_puyo_blocks(boards, true, chain_num + 1) {
+                    Some(o) => {
+                        chain_num += 1;
+                        sink(o);
+                    }
+                    None => break,
+                }
+            }
+        }
     }
 
-    /// 繋がったぷよを消す。
+    /// PopOutcome からフルの Chain (属性 HashMap 付き) を構築する。勝者の再構築時のみ使う。
+    fn chain_from_outcome(o: &PopOutcome) -> Chain {
+        let mut attributes: HashMap<PuyoAttr, AttributeChain> = HashMap::new();
+        for i in 0..5 {
+            if let Some(cp) = o.colors[i] {
+                let attr = PuyoAttr::from_u8(PuyoAttr::Red.to_u8().unwrap() + i as u8).unwrap();
+                attributes.insert(
+                    attr,
+                    AttributeChain {
+                        strength: cp.strength,
+                        popped_count: cp.popped_count,
+                        separated_blocks_num: cp.separated_blocks_num,
+                    },
+                );
+            }
+        }
+        if o.heart_count != 0 {
+            attributes.insert(
+                PuyoAttr::Heart,
+                AttributeChain {
+                    strength: 0.0,
+                    popped_count: o.heart_count,
+                    separated_blocks_num: 0,
+                },
+            );
+        }
+        if o.prism_count != 0 {
+            attributes.insert(
+                PuyoAttr::Prism,
+                AttributeChain {
+                    strength: 3.0 * o.prism_count as f64,
+                    popped_count: o.prism_count,
+                    separated_blocks_num: 0,
+                },
+            );
+        }
+        if o.ojama_count != 0 {
+            attributes.insert(
+                PuyoAttr::Ojama,
+                AttributeChain {
+                    strength: 0.0,
+                    popped_count: o.ojama_count,
+                    separated_blocks_num: 0,
+                },
+            );
+        }
+        if o.kata_count != 0 {
+            attributes.insert(
+                PuyoAttr::Kata,
+                AttributeChain {
+                    strength: 0.0,
+                    popped_count: o.kata_count,
+                    separated_blocks_num: 0,
+                },
+            );
+        }
+        Chain {
+            chain_num: o.chain_num,
+            simultaneous_num: o.simultaneous_num,
+            boost_count: o.boost_count,
+            puyo_tsukai_count: o.puyo_tsukai_count,
+            attributes,
+            popped_chance_num: o.popped_chance_num,
+            is_all_cleared: o.is_all_cleared,
+        }
+    }
+
+    /// 繋がったぷよを消す。消えるものが無ければ None。
     fn pop_puyo_blocks(
         &self,
         boards: &mut BitBoards,
         is_next_dropped: bool,
-        chains: &mut Vec<Chain>,
-    ) -> bool {
+        chain_num: u32,
+    ) -> Option<PopOutcome> {
         let red = boards.colors[0] & FIELD_MASK;
         let blue = boards.colors[1] & FIELD_MASK;
         let green = boards.colors[2] & FIELD_MASK;
@@ -263,10 +408,8 @@ impl<'a> SimulatorBB<'a> {
         let total_colored_connected = colors_connected.iter().fold(0, |acc, c| acc | c.0);
 
         if total_colored_connected == 0 {
-            return false;
+            return None;
         }
-
-        let chain_num = (chains.len() + 1) as u32;
 
         let heart_connected = Self::expand(total_colored_connected, heart);
         let prism_connected = Self::expand(total_colored_connected, prism);
@@ -281,7 +424,7 @@ impl<'a> SimulatorBB<'a> {
             + prism_connected.count_ones()
             + ojama_connected.count_ones();
 
-        let mut attributes: HashMap<PuyoAttr, AttributeChain> = HashMap::new();
+        let mut colors: [Option<ColorPop>; 5] = [None; 5];
 
         for i in 0..colors_connected.len() {
             let (connected, separated_blocks_num) = colors_connected[i];
@@ -289,7 +432,6 @@ impl<'a> SimulatorBB<'a> {
                 continue;
             }
 
-            let attr = PuyoAttr::from_u8(PuyoAttr::Red.to_u8().unwrap() + i as u8).unwrap();
             let popped_count = connected.count_ones() + (connected & plus_connected).count_ones();
             let strength = calc_damage_term(
                 1.0,
@@ -303,56 +445,11 @@ impl<'a> SimulatorBB<'a> {
                 calc_chain_factor(chain_num, Some(self.environment.chain_leverage)).unwrap(),
             );
 
-            attributes.insert(
-                attr,
-                AttributeChain {
-                    strength,
-                    popped_count,
-                    separated_blocks_num,
-                },
-            );
-        }
-
-        if heart_connected != 0 {
-            attributes.insert(
-                PuyoAttr::Heart,
-                AttributeChain {
-                    strength: 0.0,
-                    popped_count: heart_connected.count_ones(),
-                    separated_blocks_num: 0,
-                },
-            );
-        }
-        if prism_connected != 0 {
-            let popped_count = prism_connected.count_ones();
-            attributes.insert(
-                PuyoAttr::Prism,
-                AttributeChain {
-                    strength: 3.0 * popped_count as f64,
-                    popped_count,
-                    separated_blocks_num: 0,
-                },
-            );
-        }
-        if ojama_connected != 0 {
-            attributes.insert(
-                PuyoAttr::Ojama,
-                AttributeChain {
-                    strength: 0.0,
-                    popped_count: ojama_connected.count_ones(),
-                    separated_blocks_num: 0,
-                },
-            );
-        }
-        if kata_connected != 0 {
-            attributes.insert(
-                PuyoAttr::Kata,
-                AttributeChain {
-                    strength: 0.0,
-                    popped_count: kata_connected.count_ones(),
-                    separated_blocks_num: 0,
-                },
-            );
+            colors[i] = Some(ColorPop {
+                strength,
+                popped_count,
+                separated_blocks_num,
+            });
         }
 
         let poppable_connected =
@@ -380,19 +477,19 @@ impl<'a> SimulatorBB<'a> {
             boards.is_field_all_cleared()
         };
 
-        let chain = Chain {
-            chain_num: (chains.len() + 1) as u32,
+        return Some(PopOutcome {
+            chain_num,
             simultaneous_num,
             boost_count,
             puyo_tsukai_count,
-            attributes,
+            colors,
+            heart_count: heart_connected.count_ones(),
+            prism_count: prism_connected.count_ones(),
+            ojama_count: ojama_connected.count_ones(),
+            kata_count: kata_connected.count_ones(),
             popped_chance_num: chance_connected.count_ones(),
             is_all_cleared,
-        };
-
-        chains.push(chain);
-
-        return true;
+        });
     }
 
     /// フィールド内でぷよをドロップさせる。(ネクストは動かさない)
