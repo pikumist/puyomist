@@ -218,9 +218,32 @@ sw では小さい(~1%)が hw では効く(~5%)。**現状リポジトリには�
 
 ## 4. Web Worker 並列化の非効率と改善
 
-`_createSolveAllInParallel`(`src/store/internal/solve.ts:160`)は
-48 個の開始インデックスを `pLimit(hardwareConcurrency)` で並列実行している。
-ここに **3 つの非効率**がある。
+### 4-0. 実装・ブラウザ実測結果【確定】
+標準シナリオ(なつアマ/1, k=11)を実ブラウザ(14 コア)で計測。A+C(3 章)を載せた wasm 上で並列改善を積んだ。
+
+| ビルド | solve 時間 | 対 baseline |
+|---|---|---|
+| baseline(旧: 48 ワーカー使い捨て・LPT なし・A+C なし) | 40.701 s | — |
+| + A+C(厳密最適化) | 36.269 s | −10.9% |
+| + 4-A/4-B(永続プール + LPT) | 36.269 s | (k=11 では task-bound のため寄与 ~0) |
+| **+ 4-C(重 index の prefix 分割)** | **20.539 s** | **−49.5%(1.98×)** |
+
+- **A+C のブラウザ実測 −10.9%** は cargo の sw −12% とほぼ一致(計算量削減が素直に効いた)。
+- **4-A/4-B 単独は k=11 では効かない**:最重インデックス(idx2 = 12.1M = 全体の 11%)が 1 コアで律速になる
+  **task-bound** で、スケジューリングでは壁を割れない(= k≥9 の「若 index 支配」の正体)。
+- **4-C が壁を破壊**:最重インデックスを ~6 分割(各 ~2M)し、分割後の最大タスクを 1 コアの公平配分
+  (`ideal_total/cores`)未満にする → work-bound へ。36.3 s → 20.5 s(−43%)。
+  4-A/4-B は **4-C の多数の細タスクを効率配信する土台**として効く(三者一体)。
+- 合計 **ほぼ 2 倍速**。最適解は不変(分割は正準列挙と過不足なく一致: cargo `test_solve_traces_with_prefix_partitions_exactly`)。
+
+実装: `solve.ts`(タスク生成 + プール + 動的 LPT)、`solution-wasm-worker.ts`/`solution-worker.ts`(`solveWithPrefix`)、
+wasm `solve_traces_with_prefix`(`SolutionExplorer::solve_traces_with_prefix`)。
+
+> 以下は当初の問題分析(実装前)。背景として残す。
+
+`_createSolveAllInParallel`(`src/store/internal/solve.ts`)は当初
+48 個の開始インデックスを `pLimit(hardwareConcurrency)` で並列実行していた。
+ここに **3 つの非効率**があった。
 
 ### 4-A. Worker の使い捨て(最大の損失)
 `createSolveIncludingTraceIndexAbortPromises` は**タスクごとに `new Worker()` を生成し、
