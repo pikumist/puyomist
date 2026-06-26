@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export interface EnumSelectProps<T> {
   /** Currently selected value. */
@@ -22,6 +23,11 @@ export interface EnumSelectProps<T> {
   disabled?: boolean;
   /** Width / extra classes for the trigger. */
   triggerClassName?: string;
+  /**
+   * Optional per-value class (e.g. a pastel background) applied to each option
+   * in the popup and to the trigger for the currently selected value.
+   */
+  colorClassFor?: (value: T) => string | undefined;
 }
 
 /**
@@ -38,7 +44,8 @@ export function EnumSelect<T>({
   ariaLabel,
   placeholder,
   disabled,
-  triggerClassName
+  triggerClassName,
+  colorClassFor
 }: EnumSelectProps<T>) {
   const labelFor = (val: T): React.ReactNode => {
     for (const [v, label] of items) {
@@ -55,14 +62,17 @@ export function EnumSelect<T>({
       onValueChange={(v) => onValueChange(v as T)}
       disabled={disabled}
     >
-      <SelectTrigger aria-label={ariaLabel} className={triggerClassName}>
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className={cn(triggerClassName, colorClassFor?.(value))}
+      >
         <SelectValue placeholder={placeholder}>
           {(val: T) => labelFor(val)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {items.map(([v, label]) => (
-          <SelectItem key={String(v)} value={v}>
+          <SelectItem key={String(v)} value={v} className={colorClassFor?.(v)}>
             {label}
           </SelectItem>
         ))}

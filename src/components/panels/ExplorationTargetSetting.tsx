@@ -1,6 +1,7 @@
 import type React from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
+import { pastelClassForAttr } from '@/components/controls/puyoColorClass';
 import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -118,6 +119,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = ({
           ariaLabel="主属性の選択"
           value={target.main_attr ?? WILD}
           items={mainItems}
+          colorClassFor={pastelClassForAttr}
           onValueChange={(v) =>
             explorationDamageMainAttrSelected(
               (v as ColoredPuyoAttr) || undefined
@@ -131,6 +133,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = ({
           disabled={!target.main_attr}
           value={target.sub_attr ?? NONE}
           items={subItems}
+          colorClassFor={pastelClassForAttr}
           onValueChange={(v) =>
             explorationDamageSubAttrSelected(
               v === NONE ? undefined : (v as ColoredPuyoAttr)
@@ -170,6 +173,7 @@ const SkillPuyoCountSetting: React.FC<{
           items={coloredPuyoAttrList.map(
             (attr) => [attr, getPuyoAttrName(attr)] as readonly [PuyoAttr, string]
           )}
+          colorClassFor={pastelClassForAttr}
           onValueChange={(v) =>
             explorationPuyoCountMainAttrSelected(v as ColoredPuyoAttr)
           }
@@ -198,6 +202,7 @@ const SkillPuyoCountSetting: React.FC<{
                 (attr) =>
                   [attr, getPuyoAttrName(attr)] as readonly [PuyoAttr, string]
               )}
+              colorClassFor={pastelClassForAttr}
               onValueChange={(v) =>
                 explorationCountingBonusStepTargetAttrSelected(v)
               }

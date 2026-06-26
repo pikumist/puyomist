@@ -1,6 +1,7 @@
 import type React from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
+import { pastelClassForAttr } from '@/components/controls/puyoColorClass';
 import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
 import { TraceMode, traceModeDescriptionMap } from '@/logics/TraceMode';
@@ -47,6 +48,7 @@ const FieldSettingsPanel: React.FC = () => {
           ariaLabel="なぞりモードの選択"
           value={traceMode}
           items={traceModeItems}
+          colorClassFor={pastelClassForAttr}
           onValueChange={(v) => traceModeChanged(v)}
         />
       </SettingRow>

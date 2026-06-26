@@ -3,6 +3,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
+import { pastelClassForAttr } from '@/components/controls/puyoColorClass';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -66,6 +67,7 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
               triggerClassName="w-52"
               value={boardEditMode?.howToEdit ?? HowToEditBoard.ClearEnhance}
               items={howToEditItems}
+              colorClassFor={(v) => pastelClassForAttr(v - 3)}
               onValueChange={(v) => howToEditBoardChanged(v)}
             />
           </div>

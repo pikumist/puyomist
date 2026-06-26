@@ -1,6 +1,7 @@
 import type React from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
+import { pastelClassForNextSelection } from '@/components/controls/puyoColorClass';
 import { cn } from '@/lib/utils';
 import { boardIdChanged, nextItemSelected } from '@/store/puyoAppStore';
 import { usePuyoAppState } from '@/store/puyoAppStore';
@@ -54,6 +55,7 @@ const BoardControls: React.FC<{ className?: string }> = ({ className }) => {
         value={nextSelection}
         items={nextItems}
         disabled={boardId === customBoardId}
+        colorClassFor={pastelClassForNextSelection}
         onValueChange={(v) => nextItemSelected(v)}
       />
       <ExportMenu
