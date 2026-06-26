@@ -11,6 +11,16 @@
 - スクリーンショット画像からの盤面セット (グミのみ対応。チャンスぷよが混じると精度は悪いです)
 - 外部通信なし
 
+## 技術スタック
+
+- ビルド: Vite 8
+- UI: React 19 + Tailwind CSS v4 + shadcn/ui (Base UI / base-vega) + lucide-react
+- 状態管理: zustand
+- テーマ: CSS トークン + next-themes (class 方式)
+- テスト: Vitest 4 + Testing Library + jsdom、カタログは Storybook
+- Lint/Format: Biome
+- コア: 連鎖シミュレータ・ソルバ (`src/logics/`) と Rust 製 WASM ソルバ (`packages/solver-wasm/`)
+
 ## 必要な環境
 
 - node.js 22.4.x

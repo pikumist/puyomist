@@ -1,19 +1,18 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
-import PuyoApp from './components/PuyoApp.tsx';
+
+import './app/globals.css';
+
+import App from './app/App';
+import Providers from './app/Providers';
 import { session } from './logics/session';
-import { loadPuyoAppState } from './reducers/internal/loadPuyoAppState';
-import { hydrate } from './reducers/puyoAppSlice';
-import { store } from './reducers/store';
-import theme from './theme';
+import { loadPuyoAppState } from './store/loadPuyoAppState';
+import { usePuyoAppStore } from './store/puyoAppStore';
 
-store.dispatch(hydrate(loadPuyoAppState()));
+usePuyoAppStore.getState().hydrate(loadPuyoAppState());
 
-store.subscribe(() => {
+usePuyoAppStore.subscribe((puyoApp) => {
   // TODO: debounce する
-  const { puyoApp } = store.getState();
   session.setBoardId(puyoApp.boardId);
   session.setNextSelection(puyoApp.nextSelection);
   session.setMaxTraceNum(puyoApp.simulationData.maxTraceNum);
@@ -26,12 +25,12 @@ store.subscribe(() => {
   session.setBoardEditMode(puyoApp.boardEditMode);
 });
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+root.render(
   <StrictMode>
-    <Provider store={store}>
-      <ChakraProvider theme={theme}>
-        <PuyoApp />
-      </ChakraProvider>
-    </Provider>
+    <Providers>
+      <App />
+    </Providers>
   </StrictMode>
 );

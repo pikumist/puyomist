@@ -1,0 +1,167 @@
+import { describe, expect, it } from 'vitest';
+import { PuyoAttr } from './PuyoAttr';
+import {
+  PuyoType,
+  convertPuyoType,
+  getPuyoAttr,
+  getPuyoRgb,
+  getPuyoTypeName,
+  isChancePuyo,
+  isColoredPuyoType,
+  isPlusPuyo,
+  isTraceablePuyo,
+  puyoTypeMap,
+  toChanceColoredType,
+  toNormalColoredType,
+  toPlusColoredType
+} from './PuyoType';
+
+const allTypes = Object.values(PuyoType).filter(
+  (v): v is PuyoType => typeof v === 'number'
+);
+
+describe('PuyoType helpers', () => {
+  it('getPuyoTypeName returns mapped name or empty string', () => {
+    expect(getPuyoTypeName(PuyoType.Red)).toBe('赤');
+    expect(getPuyoTypeName(undefined)).toBe('');
+    for (const t of allTypes) {
+      expect(getPuyoTypeName(t)).toBe(puyoTypeMap.get(t));
+    }
+  });
+
+  it('isColoredPuyoType is true only for colored puyos', () => {
+    expect(isColoredPuyoType(PuyoType.Red)).toBe(true);
+    expect(isColoredPuyoType(PuyoType.PurpleChancePlus)).toBe(true);
+    expect(isColoredPuyoType(PuyoType.Heart)).toBe(false);
+    expect(isColoredPuyoType(PuyoType.Prism)).toBe(false);
+    expect(isColoredPuyoType(PuyoType.Padding)).toBe(false);
+  });
+
+  it('isPlusPuyo detects plus variants', () => {
+    expect(isPlusPuyo(PuyoType.RedPlus)).toBe(true);
+    expect(isPlusPuyo(PuyoType.PurpleChancePlus)).toBe(true);
+    expect(isPlusPuyo(PuyoType.Red)).toBe(false);
+    expect(isPlusPuyo(undefined)).toBe(false);
+    expect(isPlusPuyo(PuyoType.Heart)).toBe(false);
+  });
+
+  it('isChancePuyo detects chance variants', () => {
+    expect(isChancePuyo(PuyoType.RedChance)).toBe(true);
+    expect(isChancePuyo(PuyoType.PurpleChancePlus)).toBe(true);
+    expect(isChancePuyo(PuyoType.Red)).toBe(false);
+    expect(isChancePuyo(PuyoType.Heart)).toBe(false);
+  });
+
+  it('isTraceablePuyo is false for ojama/kata/padding/undefined', () => {
+    expect(isTraceablePuyo(undefined)).toBe(false);
+    expect(isTraceablePuyo(PuyoType.Ojama)).toBe(false);
+    expect(isTraceablePuyo(PuyoType.Kata)).toBe(false);
+    expect(isTraceablePuyo(PuyoType.Padding)).toBe(false);
+    expect(isTraceablePuyo(PuyoType.Red)).toBe(true);
+    expect(isTraceablePuyo(PuyoType.Heart)).toBe(true);
+    expect(isTraceablePuyo(PuyoType.Prism)).toBe(true);
+  });
+
+  it('getPuyoAttr maps every type to an attribute', () => {
+    expect(getPuyoAttr(PuyoType.Red)).toBe(PuyoAttr.Red);
+    expect(getPuyoAttr(PuyoType.Blue)).toBe(PuyoAttr.Blue);
+    expect(getPuyoAttr(PuyoType.Green)).toBe(PuyoAttr.Green);
+    expect(getPuyoAttr(PuyoType.Yellow)).toBe(PuyoAttr.Yellow);
+    expect(getPuyoAttr(PuyoType.Purple)).toBe(PuyoAttr.Purple);
+    expect(getPuyoAttr(PuyoType.Heart)).toBe(PuyoAttr.Heart);
+    expect(getPuyoAttr(PuyoType.Prism)).toBe(PuyoAttr.Prism);
+    expect(getPuyoAttr(PuyoType.Ojama)).toBe(PuyoAttr.Ojama);
+    expect(getPuyoAttr(PuyoType.Kata)).toBe(PuyoAttr.Kata);
+    expect(getPuyoAttr(PuyoType.Padding)).toBe(PuyoAttr.Padding);
+    expect(getPuyoAttr(undefined)).toBeUndefined();
+    for (const t of allTypes) {
+      expect(getPuyoAttr(t)).toBeDefined();
+    }
+  });
+
+  it('toNormalColoredType strips plus/chance and keeps non-colored intact', () => {
+    expect(toNormalColoredType(PuyoType.RedChancePlus)).toBe(PuyoType.Red);
+    expect(toNormalColoredType(PuyoType.BluePlus)).toBe(PuyoType.Blue);
+    expect(toNormalColoredType(PuyoType.GreenChance)).toBe(PuyoType.Green);
+    expect(toNormalColoredType(PuyoType.YellowPlus)).toBe(PuyoType.Yellow);
+    expect(toNormalColoredType(PuyoType.PurpleChance)).toBe(PuyoType.Purple);
+    expect(toNormalColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
+  });
+
+  it('toChanceColoredType adds chance and preserves plus', () => {
+    expect(toChanceColoredType(PuyoType.Red)).toBe(PuyoType.RedChance);
+    expect(toChanceColoredType(PuyoType.RedPlus)).toBe(PuyoType.RedChancePlus);
+    expect(toChanceColoredType(PuyoType.Blue)).toBe(PuyoType.BlueChance);
+    expect(toChanceColoredType(PuyoType.GreenPlus)).toBe(
+      PuyoType.GreenChancePlus
+    );
+    expect(toChanceColoredType(PuyoType.Yellow)).toBe(PuyoType.YellowChance);
+    expect(toChanceColoredType(PuyoType.Purple)).toBe(PuyoType.PurpleChance);
+    expect(toChanceColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
+  });
+
+  it('toPlusColoredType adds plus and preserves chance', () => {
+    expect(toPlusColoredType(PuyoType.Red)).toBe(PuyoType.RedPlus);
+    expect(toPlusColoredType(PuyoType.RedChance)).toBe(PuyoType.RedChancePlus);
+    expect(toPlusColoredType(PuyoType.Blue)).toBe(PuyoType.BluePlus);
+    expect(toPlusColoredType(PuyoType.GreenChance)).toBe(
+      PuyoType.GreenChancePlus
+    );
+    expect(toPlusColoredType(PuyoType.Yellow)).toBe(PuyoType.YellowPlus);
+    expect(toPlusColoredType(PuyoType.Purple)).toBe(PuyoType.PurplePlus);
+    expect(toPlusColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
+  });
+
+  it('convertPuyoType keeps padding and converts colored/non-colored', () => {
+    expect(convertPuyoType(PuyoType.Padding, PuyoAttr.Red)).toBe(
+      PuyoType.Padding
+    );
+    // colored -> colored preserves plus/chance terms
+    expect(convertPuyoType(PuyoType.RedChancePlus, PuyoAttr.Blue)).toBe(
+      PuyoType.BlueChancePlus
+    );
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Green)).toBe(PuyoType.Green);
+    expect(convertPuyoType(PuyoType.RedPlus, PuyoAttr.Yellow)).toBe(
+      PuyoType.YellowPlus
+    );
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Purple)).toBe(
+      PuyoType.Purple
+    );
+    // colored -> non-colored
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Heart)).toBe(PuyoType.Heart);
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Prism)).toBe(PuyoType.Prism);
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Ojama)).toBe(PuyoType.Ojama);
+    expect(convertPuyoType(PuyoType.Red, PuyoAttr.Kata)).toBe(PuyoType.Kata);
+    // non-colored -> any
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Red)).toBe(PuyoType.Red);
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Blue)).toBe(PuyoType.Blue);
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Green)).toBe(
+      PuyoType.Green
+    );
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Yellow)).toBe(
+      PuyoType.Yellow
+    );
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Purple)).toBe(
+      PuyoType.Purple
+    );
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Prism)).toBe(
+      PuyoType.Prism
+    );
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Ojama)).toBe(
+      PuyoType.Ojama
+    );
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Kata)).toBe(PuyoType.Kata);
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Padding)).toBe(
+      PuyoType.Padding
+    );
+    expect(convertPuyoType(PuyoType.Ojama, PuyoAttr.Red)).toBe(PuyoType.Red);
+  });
+
+  it('getPuyoRgb returns a color for every attribute', () => {
+    for (const t of allTypes) {
+      expect(typeof getPuyoRgb(t)).toBe('string');
+    }
+    expect(getPuyoRgb(PuyoType.Red)).toBe('#c00');
+    expect(getPuyoRgb(PuyoType.Prism)).toBe('#fff');
+  });
+});

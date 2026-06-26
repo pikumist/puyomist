@@ -1,0 +1,27 @@
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+
+import { cn } from '@/lib/utils';
+
+function Label({
+  className,
+  render,
+  ...props
+}: useRender.ComponentProps<'label'>) {
+  return useRender({
+    defaultTagName: 'label',
+    props: mergeProps<'label'>(
+      {
+        className: cn(
+          'flex items-center gap-2 text-sm font-medium leading-none select-none group-data-disabled/field:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+          className
+        )
+      },
+      props
+    ),
+    render,
+    state: { slot: 'label' }
+  });
+}
+
+export { Label };

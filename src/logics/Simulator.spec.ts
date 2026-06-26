@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createSimulationData } from '../reducers/internal/createSimulationData';
+import { createSimulationData } from '../store/internal/createSimulationData';
 import type { Board } from './Board';
 import type { Chain } from './Chain';
 import { __resetPuyoIdCount } from './Puyo';

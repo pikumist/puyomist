@@ -1,0 +1,463 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ─────────────────────────────────────────────────────────────
+   Dark variant (shadcn/ui pattern). next-themes toggles `.dark`
+   on <html>; `:root` holds the light tokens (default).
+   ───────────────────────────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────
+   Design tokens — LIGHT (default, :root)
+
+   puyomist is a puzzle app: the 5 puyo colors (red/green/blue/
+   yellow/purple) must read cleanly, so the chrome stays a neutral,
+   slightly-cool grayscale (no single dominant hue). A muted indigo
+   primary signals interactive/selected state without competing with
+   the puyo palette. Base type ~14.5px, radius a touch wider than the
+   instrument reference for a softer, friendlier puzzle feel.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* --- Backgrounds: a faint lavender "mist" tint (hue 290) --- */
+  --background:          oklch(0.92 0.014 290);   /* うすい藤霧 — controls sit on this, recessed below the lighter panels */
+  --surface:            oklch(0.99 0.005 290);    /* OPAQUE: card/popover read here */
+  --surface-glass:      oklch(0.99 0.006 290 / 0.88); /* frosted panels (see .panel) */
+  --surface-raised:     oklch(0.945 0.012 290);   /* hover / active row */
+
+  /* --- Borders / inputs (low chroma so puyo colours stay the stars) --- */
+  --border:             oklch(0.80 0.018 290);
+  --input:              oklch(0.68 0.024 290);     /* control edges crisp against panels */
+
+  /* --- Text --- */
+  --foreground:         oklch(0.205 0.020 290);   /* primary text */
+  --muted-foreground:   oklch(0.43 0.028 290);    /* secondary / meta */
+  --disabled:           oklch(0.70 0.015 290);
+
+  /* --- Primary: soft indigo-lavender, interactive/selected only --- */
+  --primary:            oklch(0.585 0.115 290);
+  --primary-foreground: oklch(0.99 0.004 290);
+
+  /* --- Accent (subtle hover fills) --- */
+  --accent:             oklch(0.95 0.018 290);
+  --accent-foreground:  oklch(0.34 0.060 290);
+  --accent-muted:       oklch(0.915 0.040 290);    /* selected-row bg */
+
+  /* --- Secondary (neutral lavender fills) --- */
+  --secondary:          oklch(0.94 0.010 290);
+  --secondary-foreground: oklch(0.205 0.020 290);
+
+  /* --- Muted (subtle backgrounds) --- */
+  --muted:              oklch(0.945 0.010 290);
+
+  /* --- Card / Popover (opaque for legibility) --- */
+  --card:               var(--surface);
+  --card-foreground:    oklch(0.205 0.020 290);
+  --popover:            var(--surface);
+  --popover-foreground: oklch(0.205 0.020 290);
+
+  /* --- Destructive --- */
+  --destructive:        oklch(0.58 0.21 27);
+
+  /* --- Focus ring --- */
+  --ring:               oklch(0.585 0.115 290);
+
+  /* --- Radius: softer for the pastel feel --- */
+  --radius:             0.75rem;
+
+  /* --- Surfaces used by the SVG board canvas area --- */
+  --canvas-bg:          oklch(0.935 0.014 290);
+  --selection-bg:       oklch(0.90 0.05 290);
+
+  /* --- Board chrome (puyo pieces themselves stay vivid via sprite) --- */
+  --board-bg:           oklch(0.22 0.020 290);     /* deep lavender-charcoal, not pure black */
+  --board-frame:        oklch(0.96 0.010 290);     /* soft frame */
+  --board-grid:         oklch(0.55 0.020 290 / 0.45);
+  --board-optimal-trace: oklch(0.98 0.005 290);
+  --board-trace:        oklch(0.30 0.030 290);     /* user-trace star pattern */
+
+  /* --- Fonts --- */
+  --font-sans: 'Inter', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* --- Sidebar tokens (shadcn compat) --- */
+  --sidebar:                    var(--surface);
+  --sidebar-foreground:         oklch(0.205 0.020 290);
+  --sidebar-primary:            oklch(0.585 0.115 290);
+  --sidebar-primary-foreground: oklch(0.99 0.004 290);
+  --sidebar-accent:             oklch(0.95 0.018 290);
+  --sidebar-accent-foreground:  oklch(0.34 0.060 290);
+  --sidebar-border:             oklch(0.80 0.018 290);
+  --sidebar-ring:               oklch(0.585 0.115 290);
+
+  --ring-width: 2px;
+  scrollbar-color: oklch(0.78 0.020 290) transparent;
+  scrollbar-width: thin;
+  accent-color: oklch(0.585 0.115 290);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Design tokens — DARK (.dark)
+   A mid-cool neutral (not near-black) so the bright puyo colors
+   sit comfortably without glare.
+   ───────────────────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  --background:          oklch(0.18 0.012 290);    /* deep lavender-charcoal base */
+  --surface:            oklch(0.265 0.014 290);
+  --surface-glass:      oklch(0.265 0.014 290 / 0.84); /* frosted panels — firmer so text reads */
+  --surface-raised:     oklch(0.32 0.016 290);
+
+  --border:             oklch(0.45 0.020 290);      /* crisper edges around panels/controls */
+  --input:              oklch(0.535 0.022 290);
+
+  --foreground:         oklch(0.965 0.008 290);
+  --muted-foreground:   oklch(0.785 0.018 290);
+  --disabled:           oklch(0.46 0.015 290);
+
+  --primary:            oklch(0.72 0.120 290);
+  --primary-foreground: oklch(0.19 0.015 290);
+
+  --accent:             oklch(0.31 0.030 290);
+  --accent-foreground:  oklch(0.92 0.030 290);
+  --accent-muted:       oklch(0.35 0.055 290);
+
+  --secondary:          oklch(0.32 0.016 290);
+  --secondary-foreground: oklch(0.965 0.008 290);
+
+  --muted:              oklch(0.32 0.016 290);
+
+  --card:               var(--surface);
+  --card-foreground:    oklch(0.965 0.008 290);
+  --popover:            var(--surface);
+  --popover-foreground: oklch(0.965 0.008 290);
+
+  --destructive:        oklch(0.62 0.20 25);
+
+  --ring:               oklch(0.72 0.120 290);
+
+  --canvas-bg:          oklch(0.165 0.010 290);
+  --selection-bg:       oklch(0.38 0.065 290);
+
+  /* Board chrome (dark) */
+  --board-bg:           oklch(0.16 0.012 290);
+  --board-frame:        oklch(0.40 0.015 290);
+  --board-grid:         oklch(0.55 0.020 290 / 0.40);
+  --board-optimal-trace: oklch(0.96 0.008 290);
+  --board-trace:        oklch(0.78 0.030 290);
+
+  --sidebar:                    var(--surface);
+  --sidebar-foreground:         oklch(0.965 0.008 290);
+  --sidebar-primary:            oklch(0.72 0.120 290);
+  --sidebar-primary-foreground: oklch(0.19 0.015 290);
+  --sidebar-accent:             oklch(0.31 0.030 290);
+  --sidebar-accent-foreground:  oklch(0.92 0.030 290);
+  --sidebar-border:             oklch(0.45 0.020 290);
+  --sidebar-ring:               oklch(0.72 0.120 290);
+
+  scrollbar-color: oklch(0.42 0.018 290) transparent;
+  accent-color: oklch(0.72 0.120 290);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Tailwind v4 @theme — wire CSS vars into Tailwind utilities
+   ───────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:            var(--background);
+  --color-foreground:            var(--foreground);
+  --color-surface:               var(--surface);
+  --color-surface-glass:         var(--surface-glass);
+  --color-surface-raised:        var(--surface-raised);
+  --color-muted:                 var(--muted);
+  --color-muted-foreground:      var(--muted-foreground);
+  --color-border:                var(--border);
+  --color-input:                 var(--input);
+  --color-ring:                  var(--ring);
+  --color-accent:                var(--accent);
+  --color-accent-foreground:     var(--accent-foreground);
+  --color-accent-muted:          var(--accent-muted);
+  --color-primary:               var(--primary);
+  --color-primary-foreground:    var(--primary-foreground);
+  --color-secondary:             var(--secondary);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-card:                  var(--card);
+  --color-card-foreground:       var(--card-foreground);
+  --color-popover:               var(--popover);
+  --color-popover-foreground:    var(--popover-foreground);
+  --color-destructive:           var(--destructive);
+  --color-canvas-bg:             var(--canvas-bg);
+  --color-selection-bg:          var(--selection-bg);
+  --color-disabled:              var(--disabled);
+
+  /* sidebar */
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
+
+  /* fonts */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+
+  /* radius scale */
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+
+  /* Type scale stays standard (xs 12 / sm 14 / base 16). The hierarchy
+     comes from intent, not from redefining "sm": body content inherits the
+     16px base; text-sm/text-xs are reserved for labels, captions, and the
+     control text shadcn ships with. */
+
+  /* soft, lavender-tinted elevation for the frosted panels */
+  --shadow-panel: 0 1px 2px oklch(0.5 0.05 290 / 0.05), 0 8px 24px oklch(0.5 0.06 290 / 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Base layer
+   ───────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  body {
+    @apply text-foreground min-h-dvh;
+    /* rem (not px) so the user's browser font-size preference is honored.
+       16px content base — controls keep shadcn's smaller text-sm. */
+    font-size: 1rem;
+    line-height: 1.55;
+    text-wrap: pretty;
+    /* ぷよミスト: a soft, single-hue lavender haze the frosted panels float on.
+       Purely decorative — strips to --background in forced-colors / print. */
+    background:
+      radial-gradient(60rem 60rem at 12% -8%, oklch(0.93 0.03 290 / 0.45), transparent 60%) fixed,
+      radial-gradient(52rem 52rem at 102% 108%, oklch(0.92 0.025 320 / 0.40), transparent 60%) fixed,
+      var(--background);
+  }
+
+  /* Numeric / damage / count contexts: tabular mono */
+  .font-mono,
+  [data-numeric],
+  time,
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: var(--ring-width) solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Utility layer — puyomist helpers
+   ───────────────────────────────────────────────────────────── */
+@layer utilities {
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Frosted-glass surface for the app panes. Opaque --surface is the fallback;
+     translucency + blur layer on only where backdrop-filter is supported so the
+     misty page background reads softly through the panel. */
+  .panel {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    /* biome-ignore lint/correctness/noUnknownProperty: progressive enhancement, ignored where unsupported */
+    corner-shape: squircle;
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .panel {
+      background-color: var(--surface-glass);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  .canvas-area {
+    background-color: var(--canvas-bg);
+  }
+
+  .visually-hidden:where(:not(:focus-within, :active)) {
+    position: absolute !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    inline-size: 1px !important;
+    block-size: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   App shell layout (3-pane desktop / 2-col tablet / mobile sheet)
+   See plan §Layout. Pane content is shared; only the outer shell
+   changes per breakpoint.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --topbar-h: 3rem;
+  --sidebar-min: 280px;
+  --sidebar-max: 320px;
+  /* fixed label column for SettingRow so stacked controls share a left edge */
+  --setting-label-w: 7.5rem;
+  /* board grows with the viewport (see .board-fluid); cap widens per breakpoint */
+  --board-cap: 480px;
+  /* notch / home-indicator safe areas (resolve to 0 off-device) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* ① Mobile-first (<768px): single column, board on top, page scrolls. */
+.app-shell {
+  display: grid;
+  grid-template-areas:
+    "topbar"
+    "board";
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  min-block-size: 100dvh;
+}
+
+.app-topbar {
+  grid-area: topbar;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 30;
+  block-size: var(--topbar-h);
+  padding-block-start: var(--safe-top);
+  padding-inline: max(1rem, var(--safe-left)) max(1rem, var(--safe-right));
+  background-color: var(--surface-glass);
+  border-block-end: 1px solid var(--border);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .app-topbar {
+    backdrop-filter: blur(12px);
+  }
+}
+
+.app-left   { grid-area: left; }
+.app-board  { grid-area: board; min-block-size: 0; }
+.app-right  { grid-area: right; }
+
+/* Side panels scroll independently; contain scroll chaining. */
+.app-left,
+.app-right {
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ② Tablet (≥768px): board + a single side column.
+   From here up the shell is a fixed-height grid, so we add breathing room
+   between panes and a margin around them — the panes become floating glass
+   cards over the misty background. */
+@media (min-width: 768px) {
+  .app-shell {
+    grid-template-areas:
+      "topbar topbar"
+      "board  right";
+    grid-template-columns: 1fr minmax(var(--sidebar-min), var(--sidebar-max));
+    grid-template-rows: auto 1fr;
+    block-size: 100dvh;
+    min-block-size: 0;
+    overflow: hidden;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    padding-inline: max(0.75rem, var(--safe-left)) max(0.75rem, var(--safe-right));
+    padding-block-end: max(0.75rem, var(--safe-bottom));
+  }
+
+  /* topbar floats as its own rounded glass bar (no longer a flush top edge) */
+  .app-topbar {
+    position: static;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    /* biome-ignore lint/correctness/noUnknownProperty: progressive enhancement, ignored where unsupported */
+    corner-shape: squircle;
+  }
+}
+
+/* ③ Desktop (≥1024px): full 3-pane. 280+1fr+280 fits 1280px width. */
+@media (min-width: 1024px) {
+  .app-shell {
+    grid-template-areas:
+      "topbar topbar topbar"
+      "left   board  right";
+    grid-template-columns:
+      minmax(var(--sidebar-min), var(--sidebar-max))
+      1fr
+      minmax(var(--sidebar-min), var(--sidebar-max));
+    grid-template-rows: auto 1fr;
+    block-size: 100dvh;
+    overflow: hidden;
+  }
+}
+
+/* Mobile bottom sheet (shadcn Sheet side="bottom") — scroll + safe area. */
+.app-sheet-body {
+  max-block-size: 85dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block-end: var(--safe-bottom);
+}
+
+/* Board canvas: grows with the column AND the viewport height so it never looks
+   small/shabby on large screens. Capped per breakpoint via --board-cap. The
+   board's viewBox is W=395 × H=322 (8×6, landscape), so 395/322 converts an
+   available height into the width that keeps the whole board visible. min()
+   picks whichever bound (column width / viewport height / cap) is smallest, so
+   it can't overflow. */
+.board-fluid,
+.board-stack {
+  inline-size: min(100%, calc(70dvh * 395 / 322), var(--board-cap));
+}
+
+.board-fluid {
+  block-size: auto;
+  touch-action: none; /* trace via pointer events without page scroll */
+}
+
+/* Board + its controls share one width so their edges line up as the board grows. */
+.board-stack {
+  display: flex;
+  flex-direction: column;
+}
+.board-stack > * {
+  inline-size: 100%;
+}
+
+@media (min-width: 1024px) {
+  :root { --board-cap: 620px; }
+}
+@media (min-width: 1440px) {
+  :root { --board-cap: 720px; }
+}

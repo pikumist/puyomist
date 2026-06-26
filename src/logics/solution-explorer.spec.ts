@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createNextPuyosAsSameType } from '../reducers/internal/createNextPuyos';
-import { createSimulationData } from '../reducers/internal/createSimulationData';
+import { createNextPuyosAsSameType } from '../store/internal/createNextPuyos';
+import { createSimulationData } from '../store/internal/createSimulationData';
 import type { Chain } from './Chain';
 import {
   ExplorationCategory,

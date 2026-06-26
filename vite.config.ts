@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@': resolve('./src'),
       $cursors: resolve('./public/assets/cursors')
     }
   },

@@ -8,21 +8,21 @@
 
 .boardBackground {
   stroke: none;
-  fill: #000;
+  fill: var(--board-bg);
 }
 
 .boardFrame {
   stroke: none;
-  fill: #eee;
+  fill: var(--board-frame);
 }
 
 .gridLine {
-  stroke: #666;
+  stroke: var(--board-grid);
 }
 
 .optimalTrace {
   stroke-width: 2px;
-  stroke: #fff;
+  stroke: var(--board-optimal-trace);
   fill: none;
   opacity: 0.8;
 }

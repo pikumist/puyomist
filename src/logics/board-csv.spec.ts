@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulationData } from '../reducers/internal/createSimulationData';
+import { createSimulationData } from '../store/internal/createSimulationData';
 import { PuyoType } from './PuyoType';
 import { parseBoardCsv, parseBoardCsvCell, toBoardCsv } from './board-csv';
 

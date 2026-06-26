@@ -1,21 +1,12 @@
 import type { FileInfo } from '../../isomorphic/FileInfo';
-import { screenshotReceived } from '../reducers/puyoAppSlice';
-import type { AppDispatch } from '../reducers/store';
+import { screenshotReceived } from '../store/puyoAppStore';
 import { ScreenshotReceiver } from './internal/ScreenshotReceiver';
 import { fileInfoToBlobUrl } from './internal/fileInfoToBlobUrl';
 
-let appDispatch: AppDispatch;
-
 /**
- * WebSocket経由でスクリーンショット画像を受け取ったらdispatchする。
+ * WebSocket経由でスクリーンショット画像を受け取ったらストアへ反映する。
  * localhostでのみ有効。
  */
-export const dispatchWhenScreenshotReceivedViaWebSocket = (
-  dispatch: AppDispatch
-) => {
-  appDispatch = dispatch;
-};
-
 if (window.location.hostname === 'localhost') {
   const receiver = new ScreenshotReceiver({
     onFileInfo: (fileInfo: FileInfo) => {
@@ -24,7 +15,7 @@ if (window.location.hostname === 'localhost') {
         ...fileInfo,
         blobUrl
       };
-      appDispatch?.(screenshotReceived(screenshotInfo));
+      screenshotReceived(screenshotInfo);
     }
   });
   receiver.start();
