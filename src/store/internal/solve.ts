@@ -1,5 +1,4 @@
 import { releaseProxy } from 'comlink';
-import pLimit from 'p-limit';
 import type { ExplorationTarget } from '../../logics/ExplorationTarget';
 import { PuyoCoord } from '../../logics/PuyoCoord';
 import type { SimulationData } from '../../logics/SimulationData';
@@ -39,56 +38,6 @@ const createSolveAllAbortPromises = (
         reject(ex);
       });
   });
-
-  const abortPromise = new Promise((_, reject) => {
-    const onAborted = () => {
-      signal.removeEventListener('abort', onAborted);
-      exitWorker();
-      reject(new Error('aborted'));
-    };
-    signal.addEventListener('abort', onAborted);
-  });
-
-  return [solvePromise, abortPromise];
-};
-
-const createSolveIncludingTraceIndexAbortPromises = (
-  factory: typeof createJsWorker | typeof createWasmWorker,
-  simulationData: SimulationData,
-  explorationTarget: ExplorationTarget,
-  index: number,
-  signal: AbortSignal
-) => {
-  if (signal.aborted) {
-    throw new Error('aborted');
-  }
-
-  const { workerInstance, workerProxy } = factory();
-
-  const exitWorker = () => {
-    try {
-      // 他のスレッドが先にabortシグナルを受け取って、proxyがリリースされている可能性があるようなので、
-      // エラーが起きたら無視する。
-      workerProxy[releaseProxy]();
-    } catch (_) {}
-    workerInstance.terminate();
-  };
-
-  const solvePromise = new Promise<ExplorationResult | undefined>(
-    (resolve, reject) => {
-      workerProxy
-        .solveIncludingTraceIndex(simulationData, explorationTarget, index)
-        .then((result) => {
-          fixTraceCoordsInResult(result);
-          exitWorker();
-          resolve(result);
-        })
-        .catch((ex) => {
-          exitWorker();
-          reject(ex);
-        });
-    }
-  );
 
   const abortPromise = new Promise((_, reject) => {
     const onAborted = () => {
@@ -168,7 +117,7 @@ const _createSolveAllInParallel =
     onProgress?: (result: SolveResult, percent: number) => void
   ): Promise<SolveResult> => {
     const startTime = Date.now();
-    const limit = pLimit(window.navigator.hardwareConcurrency || 1);
+    const concurrency = Math.max(1, window.navigator.hardwareConcurrency || 1);
 
     const maxTraceNum = simulationData.isChanceMode
       ? 5
@@ -178,59 +127,91 @@ const _createSolveAllInParallel =
     const ideal_total_num = ideal_candidates_num_by_indexes?.reduce(
       (m, n) => m + n
     );
-    const intermediate_optimal_solutions: SolutionResult[] = [];
+
+    // 4-B: 開始インデックスを「候補数(=処理時間の目安)が大きい順」に並べる (LPT)。
+    // 重いタスクを先に流し、軽いタスクで終盤の隙間を埋めることで遊休の尻尾を防ぐ。
+    const indexOrder = [...new Array(48)].map((_, i) => i);
+    if (ideal_candidates_num_by_indexes) {
+      indexOrder.sort(
+        (a, b) =>
+          ideal_candidates_num_by_indexes[b] - ideal_candidates_num_by_indexes[a]
+      );
+    }
+
+    const optimal_solutions: SolutionResult[] = [];
+    let candidates_num = 0;
     let intermediate_ideal_candidates = 0;
-    let intermediate_candidates = 0;
 
-    const solutionsByIndexs = await Promise.all(
-      [...new Array(48)].map((_, i) => {
-        return limit(async () => {
-          const result = (await Promise.race(
-            createSolveIncludingTraceIndexAbortPromises(
-              factory,
-              simulationData,
-              explorationTarget,
-              i,
-              signal
-            )
-          )) as ExplorationResult;
-
-          if (ideal_candidates_num_by_indexes && ideal_total_num) {
-            intermediate_ideal_candidates += ideal_candidates_num_by_indexes[i];
-            intermediate_candidates += result.candidates_num;
-            for (const s of result.optimal_solutions) {
-              mergeResultIfRankedIn(
-                explorationTarget,
-                s,
-                intermediate_optimal_solutions
-              );
-            }
-            onProgress?.(
-              {
-                explorationTarget,
-                elapsedTime: Date.now() - startTime,
-                candidates_num: intermediate_candidates,
-                optimal_solutions: [...intermediate_optimal_solutions]
-              },
-              (100 * intermediate_ideal_candidates) / ideal_total_num
-            );
-          }
-
-          return result;
-        });
-      })
-    );
-
-    const candidates_num = solutionsByIndexs.reduce((m, s) => {
-      return m + (s?.candidates_num || 0);
-    }, 0);
-
-    const optimal_solutions = solutionsByIndexs.shift()!.optimal_solutions;
-
-    for (const e of solutionsByIndexs) {
-      for (const s of e.optimal_solutions) {
-        mergeResultIfRankedIn(explorationTarget, s, optimal_solutions);
+    // 4-A: 永続ワーカープール。コア数ぶんのワーカーを一度だけ生成・init し、タスク間で使い回す
+    // (従来は 48 タスクごとに new Worker + wasm init していた)。
+    const pool = [...new Array(concurrency)].map(() => factory());
+    const exitAll = () => {
+      for (const w of pool) {
+        try {
+          w.workerProxy[releaseProxy]();
+        } catch (_) {}
+        w.workerInstance.terminate();
       }
+    };
+
+    // 空いたワーカーが次の(LPT順の)インデックスを引いていく動的スケジューリング。
+    // JS は単一スレッドなので nextOrderIndex++ に競合はない。
+    let nextOrderIndex = 0;
+    const runWorker = async (
+      worker: (typeof pool)[number]
+    ): Promise<void> => {
+      while (true) {
+        if (signal.aborted) {
+          throw new Error('aborted');
+        }
+        const k = nextOrderIndex++;
+        if (k >= indexOrder.length) {
+          return;
+        }
+        const i = indexOrder[k];
+
+        const result = (await worker.workerProxy.solveIncludingTraceIndex(
+          simulationData,
+          explorationTarget,
+          i
+        )) as ExplorationResult;
+        fixTraceCoordsInResult(result);
+
+        candidates_num += result.candidates_num;
+        for (const s of result.optimal_solutions) {
+          mergeResultIfRankedIn(explorationTarget, s, optimal_solutions);
+        }
+
+        if (ideal_candidates_num_by_indexes && ideal_total_num) {
+          intermediate_ideal_candidates += ideal_candidates_num_by_indexes[i];
+          onProgress?.(
+            {
+              explorationTarget,
+              elapsedTime: Date.now() - startTime,
+              candidates_num,
+              optimal_solutions: [...optimal_solutions]
+            },
+            (100 * intermediate_ideal_candidates) / ideal_total_num
+          );
+        }
+      }
+    };
+
+    const abortPromise = new Promise<never>((_, reject) => {
+      const onAborted = () => {
+        signal.removeEventListener('abort', onAborted);
+        reject(new Error('aborted'));
+      };
+      signal.addEventListener('abort', onAborted);
+    });
+
+    try {
+      await Promise.race([
+        Promise.all(pool.map((w) => runWorker(w))),
+        abortPromise
+      ]);
+    } finally {
+      exitAll();
     }
 
     return {
