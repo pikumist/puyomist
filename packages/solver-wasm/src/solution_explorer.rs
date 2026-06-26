@@ -450,6 +450,77 @@ impl<'a> SolutionExplorer<'a> {
         }
     }
 
+    fn is_traceable_at(&self, coord: PuyoCoord) -> bool {
+        match self.field[coord.y as usize][coord.x as usize] {
+            Some(p) => is_traceable_type(p.puyo_type),
+            None => false,
+        }
+    }
+
+    /// なぞりの先頭セル列 `prefix`(正準順のインデックス列)から始まる部分木を探索する。
+    ///
+    /// 並列探索の「深さカット」分割用プリミティブ。
+    /// - `recurse=false`: `prefix` のなぞり 1 件のみ評価(深さ d 未満の「幹」タスク)。
+    /// - `recurse=true` : `prefix` と、その全拡張を評価(深さ d の「葉」タスク)。
+    ///
+    /// 例) インデックス i を細分するには、`([i], false)` と、i の各候補 j について `([i, j], true)` を投げる。
+    /// 和は `solve_traces_including_index(i)` と過不足なく一致する(正準列挙の部分木が互いに素かつ網羅的)。
+    /// 無効な(連結でない/なぞれない/上限超過の)プレフィックスは空結果を返す。
+    pub fn solve_traces_with_prefix(
+        &self,
+        prefix: &[u8],
+        recurse: bool,
+    ) -> Option<ExplorationResult> {
+        if prefix.is_empty() {
+            return None;
+        }
+        let mut result = ExplorationResult {
+            candidates_num: 0,
+            optimal_solutions: Vec::new(),
+        };
+        let max = self.get_actual_max_trace_num();
+        if prefix.len() as u32 > max {
+            return Some(result);
+        }
+
+        // 先頭セル
+        let first = match PuyoCoord::index_to_coord(prefix[0]) {
+            Some(c) => c,
+            None => return None,
+        };
+        if !self.is_traceable_at(first) {
+            return Some(result);
+        }
+        let mut state = SolutionState::new(prefix[0]);
+        state.add_trace_coord(first);
+
+        // 残りのプレフィックスを正準規則に従って replay
+        for &idx in &prefix[1..] {
+            let coord = match PuyoCoord::index_to_coord(idx) {
+                Some(c) => c,
+                None => return None,
+            };
+            if !self.is_traceable_at(coord) || !state.check_if_addable_coord(&coord, max) {
+                return Some(result);
+            }
+            state.add_trace_coord(coord);
+        }
+
+        // prefix のなぞりを評価
+        let sr = self.calc_solution_result(state.get_trace_coords());
+        self.update_exploration_result(sr, &mut result);
+
+        // 拡張(葉タスク)
+        if recurse {
+            for next_coord in state.get_next_candidate_coords() {
+                self.advance_trace(&state, *next_coord, &mut result);
+            }
+        }
+
+        self.finalize_chains(&mut result);
+        return Some(result);
+    }
+
     fn advance_trace(
         &self,
         state: &SolutionState,
@@ -3001,5 +3072,99 @@ mod tests {
                 is_all_cleared: true
             }
         );
+    }
+
+    #[test]
+    fn test_solve_traces_with_prefix_partitions_exactly() {
+        // Arrange
+        let exploration_target = ExplorationTarget {
+            category: ExplorationCategory::Damage,
+            preference_priorities: Vec::from([
+                PreferenceKind::BiggerValue,
+                PreferenceKind::SmallerTraceNum,
+            ]),
+            optimal_solution_count: 1,
+            main_attr: Some(PuyoAttr::Green),
+            sub_attr: None,
+            main_sub_ratio: None,
+            counting_bonus: None,
+        };
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 3,
+            max_trace_num: 4,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 7.0,
+        };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let mut id_counter = 0;
+        let field = [
+            [r, p, b, p, y, g, y, y],
+            [r, y, p, b, y, g, p, g],
+            [b, y, g, b, r, y, g, p],
+            [b, r, b, r, p, b, r, p],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo {
+                    id: id_counter,
+                    puyo_type,
+                })
+            })
+        });
+        let next_puyos = [g, g, g, g, g, g, g, g].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo {
+                id: id_counter,
+                puyo_type,
+            })
+        });
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
+
+        // Act & Assert: 各開始インデックスについて、深さ2カットの分割が
+        // solve_traces_including_index と過不足なく一致すること。
+        let mut total_whole: u64 = 0;
+        let mut total_parts: u64 = 0;
+        for i in 0..(PuyoCoord::X_NUM * PuyoCoord::Y_NUM) {
+            let whole = explorer.solve_traces_including_index(i).unwrap();
+
+            // 幹 [i] (再帰なし) + 各2セルプレフィックス [i, j] (再帰あり)
+            let mut sum = explorer
+                .solve_traces_with_prefix(&[i], false)
+                .unwrap()
+                .candidates_num;
+            let ci = PuyoCoord::index_to_coord(i).unwrap();
+            for nb in ci.adjacent_coords() {
+                let j = nb.index();
+                if j > i {
+                    sum += explorer
+                        .solve_traces_with_prefix(&[i, j], true)
+                        .unwrap()
+                        .candidates_num;
+                }
+            }
+            assert_eq!(sum, whole.candidates_num, "index {} の分割が不一致", i);
+
+            total_whole += whole.candidates_num;
+            total_parts += sum;
+        }
+        // 全体としても一致 (max_trace_num=4 の総数 3435)
+        assert_eq!(total_whole, 3435);
+        assert_eq!(total_parts, 3435);
     }
 }
