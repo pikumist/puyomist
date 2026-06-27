@@ -301,6 +301,24 @@
     background-color: var(--canvas-bg);
   }
 
+  /* Base UI sets no width on the progress indicator while indeterminate (value
+     is null), so the bare block element fills the whole track and looks stuck
+     at 100%. Show a sliding sliver to convey "working, no measurable progress
+     yet" instead. */
+  [data-slot="progress-indicator"][data-indeterminate] {
+    width: 33%;
+    animation: progress-indeterminate 1.15s ease-in-out infinite;
+  }
+
+  @keyframes progress-indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+
   .visually-hidden:where(:not(:focus-within, :active)) {
     position: absolute !important;
     clip-path: inset(50%) !important;
