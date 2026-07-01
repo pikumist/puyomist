@@ -130,6 +130,24 @@ describe('NumberStepper', () => {
     expect(input).toHaveValue('5');
   });
 
+  it('uses default aria-labels when none is given', () => {
+    render(<NumberStepper value={5} min={1} max={15} onChange={() => {}} />);
+    expect(screen.getByLabelText('decrement')).toBeInTheDocument();
+    expect(screen.getByLabelText('increment')).toBeInTheDocument();
+  });
+
+  it('ignores other keys while editing', () => {
+    const onChange = vi.fn();
+    render(
+      <NumberStepper ariaLabel="数" value={5} min={1} max={15} onChange={onChange} />
+    );
+    const input = screen.getByLabelText('数');
+    fireEvent.change(input, { target: { value: '7' } });
+    fireEvent.keyDown(input, { key: 'a' });
+    expect(input).toHaveValue('7');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('reverts the draft and blurs on Escape', () => {
     const onChange = vi.fn();
     render(

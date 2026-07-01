@@ -24,11 +24,11 @@ export const rgbToHsv = (
     h = 60 * ((g - b) / (max - min));
   } else if (g === max) {
     h = 60 * ((b - r) / (max - min)) + 120;
-  } else if (b === max) {
+  } else {
     h = 60 * ((r - g) / (max - min)) + 240;
   }
 
-  h = wrapNum(Math.round(h!), [0, 360]);
+  h = wrapNum(Math.round(h), [0, 360]);
 
   // Saturation (彩度)
   const s = Math.round(

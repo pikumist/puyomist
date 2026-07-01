@@ -1661,6 +1661,77 @@ describe('solution-explorer', () => {
           is_all_cleared: true
         });
       });
+
+      describe('sub_attr support', () => {
+        const board = {
+          nextPuyos: [E, E, E, E, E, E, E, E],
+          field: [
+            [P, B, E, G, G, G, E, E],
+            [P, G, P, P, R, R, R, Y],
+            [G, P, G, B, P, B, Y, B],
+            [B, G, B, P, B, R, B, R],
+            [Y, B, Y, B, R, P, R, R],
+            [Y, Y, G, R, B, B, Y, Y]
+          ]
+        };
+
+        const buildSimulator = () => {
+          const simulationData = createSimulationData(board, {
+            maxTraceNum: 3
+          });
+          return new Simulator(simulationData);
+        };
+
+        it('adds the ratio-weighted sub_attr damage to the main_attr value', () => {
+          // Arrange
+          const explorationTarget: ExplorationTarget = {
+            category: ExplorationCategory.Damage,
+            preference_priorities: [PreferenceKind.SmallerTraceNum],
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Red,
+            sub_attr: PuyoAttr.Blue,
+            main_sub_ratio: 0.5
+          };
+
+          // Act
+          const actual = solveAllTraces(buildSimulator(), explorationTarget)!;
+          const solution = actual.optimal_solutions[0];
+          const mainValue = Simulator.calcTotalDamageOfTargetAttr(
+            solution.chains,
+            PuyoAttr.Red
+          );
+          const subValue =
+            Simulator.calcTotalDamageOfTargetAttr(
+              solution.chains,
+              PuyoAttr.Blue
+            ) * 0.5;
+
+          // Assert
+          expect(solution.value).toBeCloseTo(mainValue + subValue);
+        });
+
+        it('treats a missing main_sub_ratio as zero weight for the sub_attr', () => {
+          // Arrange
+          const explorationTarget: ExplorationTarget = {
+            category: ExplorationCategory.Damage,
+            preference_priorities: [PreferenceKind.SmallerTraceNum],
+            optimal_solution_count: 1,
+            main_attr: PuyoAttr.Red,
+            sub_attr: PuyoAttr.Blue
+          };
+
+          // Act
+          const actual = solveAllTraces(buildSimulator(), explorationTarget)!;
+          const solution = actual.optimal_solutions[0];
+          const mainValue = Simulator.calcTotalDamageOfTargetAttr(
+            solution.chains,
+            PuyoAttr.Red
+          );
+
+          // Assert
+          expect(solution.value).toBeCloseTo(mainValue);
+        });
+      });
     });
 
     describe('solveIncludingTraceIndex()', () => {

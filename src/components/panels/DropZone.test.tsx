@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import DropZone from './DropZone';
@@ -23,5 +29,22 @@ describe('DropZone', () => {
     fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
 
     await waitFor(() => expect(onFileAccepted).toHaveBeenCalledWith(file));
+  });
+
+  it('shows the drag-active state while a file is dragged over', async () => {
+    const { container } = render(
+      <DropZone accept={{ 'image/*': ['.png'] }} onFileAccepted={() => {}} />
+    );
+    const root = container.firstChild as HTMLElement;
+    await act(async () => {
+      fireEvent.dragEnter(root, {
+        dataTransfer: {
+          types: ['Files'],
+          files: [],
+          items: [{ kind: 'file', type: 'image/png' }]
+        }
+      });
+    });
+    expect(screen.getByText('ファイルをドロップ')).toBeInTheDocument();
   });
 });

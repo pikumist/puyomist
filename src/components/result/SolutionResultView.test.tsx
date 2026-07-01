@@ -51,4 +51,13 @@ describe('SolutionResultView', () => {
     );
     expect(screen.getByText('(推定)')).toBeInTheDocument();
   });
+
+  it('renders no elapsed time text when none is recorded', () => {
+    const result = { ...makeResult(), elapsedTime: 0 };
+    render(
+      <SolutionResultView result={result} index={0} isInProgress={false} />
+    );
+    const row = screen.getByText(/探索時間/).closest('div')!;
+    expect(row.querySelector('.num')?.textContent).toBe('');
+  });
 });

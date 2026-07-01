@@ -1,16 +1,19 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
 import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType, getPuyoAttr } from '../logics/PuyoType';
+import { TraceMode } from '../logics/TraceMode';
 import type { PuyomistJson } from '../logics/app-json';
+import * as boardsModule from '../logics/boards';
 import { customBoardId } from '../logics/boards';
 import {
   boardDetected,
   boardIdChanged,
   puyoEdited,
   puyomistJsonDetected,
+  traceModeChanged,
   usePuyoAppStore
 } from './puyoAppStore';
 import { INITIAL_PUYO_APP_STATE } from './types';
@@ -137,6 +140,39 @@ describe('puyoAppStore - 盤面編集系', () => {
     puyoEdited({ fieldCoord: coord });
     const cell = getState().lastScreenshotBoard?.field[0][0];
     expect(getPuyoAttr(cell as PuyoType)).toBe(expectedAttr);
+  });
+
+  it('puyoEdited keeps nextPuyos already defined on the special board', () => {
+    const spy = vi.spyOn(boardsModule, 'getSpecialBoard').mockReturnValue({
+      field: [...new Array(PuyoCoord.YNum)].map(() =>
+        [...new Array(PuyoCoord.XNum)].map(() => PuyoType.Red)
+      ),
+      nextPuyos: [...new Array(PuyoCoord.XNum)].map(() => PuyoType.Blue)
+    });
+    usePuyoAppStore.setState({
+      boardId: 'chainSeed1/1',
+      boardEditMode: { howToEdit: HowToEditBoard.ToRed }
+    });
+    puyoEdited({ fieldCoord: PuyoCoord.xyToCoord(0, 0)! });
+    expect(getState().lastScreenshotBoard?.nextPuyos?.[0]).toBe(
+      PuyoType.Blue
+    );
+    spy.mockRestore();
+  });
+
+  it('traceModeChanged keeps nextPuyos already defined on the special board', () => {
+    const spy = vi.spyOn(boardsModule, 'getSpecialBoard').mockReturnValue({
+      field: [...new Array(PuyoCoord.YNum)].map(() =>
+        [...new Array(PuyoCoord.XNum)].map(() => PuyoType.Red)
+      ),
+      nextPuyos: [...new Array(PuyoCoord.XNum)].map(() => PuyoType.Blue)
+    });
+    usePuyoAppStore.setState({ boardId: 'chainSeed1/1' });
+    traceModeChanged(TraceMode.Normal);
+    expect(getState().lastScreenshotBoard?.nextPuyos?.[0]).toBe(
+      PuyoType.Blue
+    );
+    spy.mockRestore();
   });
 });
 

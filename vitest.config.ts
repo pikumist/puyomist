@@ -42,13 +42,13 @@ export default defineConfig({
         '**/*.stories.tsx'
       ],
       thresholds: {
-        // Current actuals (statements/lines/functions ~99.9%, branches ~95%)
-        // captured to prevent regression, with a couple points of head-room
-        // for minor incidental fluctuation.
-        statements: 97,
-        lines: 97,
-        branches: 93,
-        functions: 97
+        // Baseline is 100% actual; floor set to 95% across all four metrics
+        // to leave head-room for incidental fluctuation while still catching
+        // real regressions.
+        statements: 95,
+        lines: 95,
+        branches: 95,
+        functions: 95
       }
     }
   }

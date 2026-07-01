@@ -101,6 +101,21 @@ describe('BoardReceiver', () => {
   });
 
   describe('handleFile', () => {
+    it('does nothing when the dropped file is rejected by the accept filter', async () => {
+      render(<BoardReceiver {...defaultProps} />);
+      const file = new File(['bogus'], 'song.mp3', {
+        type: 'audio/mpeg'
+      });
+      await uploadFile(file);
+
+      // Give the async handler a chance to run.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(screenshotReceived).not.toHaveBeenCalled();
+      expect(boardDetectedAndSolve).not.toHaveBeenCalled();
+      expect(puyomistJsonDetectedAndSolve).not.toHaveBeenCalled();
+    });
+
     it('calls screenshotReceived when an image file is dropped', async () => {
       render(<BoardReceiver {...defaultProps} />);
       const createObjectURLSpy = vi

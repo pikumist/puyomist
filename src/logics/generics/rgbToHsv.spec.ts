@@ -38,6 +38,12 @@ describe('rgbToHsv()', () => {
     {
       rgb: [128, 64, 0],
       expected: { h: 30, s: 100, v: 50 }
+    },
+    {
+      // min channel is neither 0 nor equal to max, exercising the fractional
+      // saturation branch ((max - min) / max).
+      rgb: [200, 100, 50],
+      expected: { h: 20, s: 75, v: 78 }
     }
   ])('should convert RGB to HSV', ({ rgb, expected }) => {
     // Act

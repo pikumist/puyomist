@@ -92,11 +92,21 @@ describe('PuyoType helpers', () => {
     expect(toChanceColoredType(PuyoType.Red)).toBe(PuyoType.RedChance);
     expect(toChanceColoredType(PuyoType.RedPlus)).toBe(PuyoType.RedChancePlus);
     expect(toChanceColoredType(PuyoType.Blue)).toBe(PuyoType.BlueChance);
+    expect(toChanceColoredType(PuyoType.BluePlus)).toBe(
+      PuyoType.BlueChancePlus
+    );
+    expect(toChanceColoredType(PuyoType.Green)).toBe(PuyoType.GreenChance);
     expect(toChanceColoredType(PuyoType.GreenPlus)).toBe(
       PuyoType.GreenChancePlus
     );
     expect(toChanceColoredType(PuyoType.Yellow)).toBe(PuyoType.YellowChance);
+    expect(toChanceColoredType(PuyoType.YellowPlus)).toBe(
+      PuyoType.YellowChancePlus
+    );
     expect(toChanceColoredType(PuyoType.Purple)).toBe(PuyoType.PurpleChance);
+    expect(toChanceColoredType(PuyoType.PurplePlus)).toBe(
+      PuyoType.PurpleChancePlus
+    );
     expect(toChanceColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
   });
 
@@ -104,11 +114,21 @@ describe('PuyoType helpers', () => {
     expect(toPlusColoredType(PuyoType.Red)).toBe(PuyoType.RedPlus);
     expect(toPlusColoredType(PuyoType.RedChance)).toBe(PuyoType.RedChancePlus);
     expect(toPlusColoredType(PuyoType.Blue)).toBe(PuyoType.BluePlus);
+    expect(toPlusColoredType(PuyoType.BlueChance)).toBe(
+      PuyoType.BlueChancePlus
+    );
+    expect(toPlusColoredType(PuyoType.Green)).toBe(PuyoType.GreenPlus);
     expect(toPlusColoredType(PuyoType.GreenChance)).toBe(
       PuyoType.GreenChancePlus
     );
     expect(toPlusColoredType(PuyoType.Yellow)).toBe(PuyoType.YellowPlus);
+    expect(toPlusColoredType(PuyoType.YellowChance)).toBe(
+      PuyoType.YellowChancePlus
+    );
     expect(toPlusColoredType(PuyoType.Purple)).toBe(PuyoType.PurplePlus);
+    expect(toPlusColoredType(PuyoType.PurpleChance)).toBe(
+      PuyoType.PurpleChancePlus
+    );
     expect(toPlusColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
   });
 

@@ -64,6 +64,20 @@ describe('PreferencePrioritySetting', () => {
     expect(screen.getByText('3.')).toBeInTheDocument();
   });
 
+  it('hides the add-preference trigger once every base preference is added', () => {
+    const allBase = [
+      PreferenceKind.BiggerValue,
+      PreferenceKind.ChancePop,
+      PreferenceKind.PrismPop,
+      PreferenceKind.AllClear,
+      PreferenceKind.SmallerTraceNum,
+      PreferenceKind.HeartPop,
+      PreferenceKind.OjamaPop
+    ];
+    render(<PreferencePrioritySetting preferencePriorities={allBase} />);
+    expect(screen.queryByLabelText('優先度を追加')).not.toBeInTheDocument();
+  });
+
   it('adds a preference from the add popover', () => {
     render(<PreferencePrioritySetting preferencePriorities={priorities} />);
     fireEvent.click(screen.getByLabelText('優先度を追加'));

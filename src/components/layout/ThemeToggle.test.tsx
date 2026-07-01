@@ -28,4 +28,15 @@ describe('ThemeToggle', () => {
     fireEvent.click(screen.getByLabelText('ダークモードに切替'));
     expect(screen.getByLabelText('ライトモードに切替')).toBeInTheDocument();
   });
+
+  it('toggles back to the original label after two clicks', () => {
+    renderToggle();
+    const initialLabel = screen.getByRole('button').getAttribute('aria-label');
+    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button'));
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      initialLabel
+    );
+  });
 });

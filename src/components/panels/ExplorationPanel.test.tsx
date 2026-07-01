@@ -45,4 +45,30 @@ describe('ExplorationPanel', () => {
       'solveAllInParallelByWasm'
     );
   });
+
+  it('shows an indeterminate progress bar while solving with no progress yet', () => {
+    usePuyoAppStore.setState({ solving: true, solvingProgressPercent: 0 });
+    const { container } = render(<ExplorationPanel />);
+    const bar = container.querySelector('[data-slot="progress"]') as HTMLElement;
+    expect(bar).not.toHaveAttribute('aria-valuenow');
+    expect(bar.style.visibility).toBe('visible');
+  });
+
+  it('shows the numeric progress and the estimated marker while solving', () => {
+    const result = {
+      explorationTarget: INITIAL_PUYO_APP_STATE.explorationTarget,
+      elapsedTime: 100,
+      candidates_num: 10,
+      optimal_solutions: []
+    };
+    usePuyoAppStore.setState({
+      solving: true,
+      solvingProgressPercent: 42,
+      solveResult: result
+    });
+    const { container } = render(<ExplorationPanel />);
+    const bar = container.querySelector('[data-slot="progress"]') as HTMLElement;
+    expect(bar).toHaveAttribute('aria-valuenow', '42');
+    expect(screen.getByText('(推定)')).toBeInTheDocument();
+  });
 });

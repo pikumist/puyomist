@@ -9,6 +9,7 @@ import {
   type ExplorationTargetSkillPuyoCount,
   PreferenceKind
 } from '../logics/ExplorationTarget';
+import { generatePuyoId } from '../logics/Puyo';
 import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
@@ -135,6 +136,27 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
     // 同一座標は重複追加されない
     tracingCoordAdded(c00);
     expect(getState().simulationData.traceCoords).toEqual([c00, c10]);
+  });
+
+  it('tracingCoordAdded は最初の座標がなぞれないぷよなら追加しない', () => {
+    const sim = makeRedSimulationData();
+    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Padding };
+    usePuyoAppStore.setState({ simulationData: sim });
+
+    tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
+    expect(getState().simulationData.traceCoords).toEqual([]);
+  });
+
+  it('tracingCoordAdded は隣接座標がなぞれないぷよなら追加しない', () => {
+    const sim = makeRedSimulationData();
+    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Padding };
+    usePuyoAppStore.setState({ simulationData: sim });
+
+    tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
+    tracingCoordAdded(PuyoCoord.xyToCoord(1, 0)!);
+    expect(getState().simulationData.traceCoords).toEqual([
+      PuyoCoord.xyToCoord(0, 0)!
+    ]);
   });
 
   it('tracingCoordAdded は maxTraceNum を超えない', () => {
@@ -363,6 +385,18 @@ describe('puyoAppStore - 探索対象の設定', () => {
     );
   });
 
+  it('explorationCategorySelected は optimal_solution_count が0のとき1にフォールバックする', () => {
+    usePuyoAppStore.setState({
+      explorationTarget: {
+        ...getState().explorationTarget,
+        optimal_solution_count: 0
+      }
+    });
+
+    explorationCategorySelected(ExplorationCategory.SkillPuyoCount);
+    expect(getState().explorationTarget.optimal_solution_count).toBe(1);
+  });
+
   it('explorationOptimalSolutionNumChanged は最適解数を更新する', () => {
     explorationOptimalSolutionNumChanged(10);
     expect(getState().explorationTarget.optimal_solution_count).toBe(10);
@@ -427,6 +461,15 @@ describe('puyoAppStore - 探索対象の設定', () => {
     ).toBeUndefined();
   });
 
+  it('副属性に主属性と同じ属性を選ぶとクリアされる', () => {
+    explorationCategorySelected(ExplorationCategory.Damage);
+    explorationDamageMainAttrSelected(PuyoAttr.Blue);
+    explorationDamageSubAttrSelected(PuyoAttr.Blue);
+    expect(
+      (getState().explorationTarget as ExplorationTargetDamage).sub_attr
+    ).toBeUndefined();
+  });
+
   it('ぷよ数の主属性と加速ボーナスの設定', () => {
     explorationCategorySelected(ExplorationCategory.SkillPuyoCount);
     explorationPuyoCountMainAttrSelected(PuyoAttr.Green);
@@ -455,6 +498,18 @@ describe('puyoAppStore - 探索対象の設定', () => {
 
     // 解除すると counting_bonus が undefined になる
     explorationCountingBonusTypeSelected(undefined);
+    expect(
+      (getState().explorationTarget as ExplorationTargetSkillPuyoCount)
+        .counting_bonus
+    ).toBeUndefined();
+  });
+
+  it('counting_bonus が未設定のときの加速ボーナス系アクションは何もしない', () => {
+    explorationCategorySelected(ExplorationCategory.SkillPuyoCount);
+    explorationCountingBonusStepTargetAttrSelected(PuyoAttr.Yellow);
+    explorationCountingBonusStepHeightChanged(8);
+    explorationCountingBonusCountChanged(3);
+    explorationCountingBonusStepRepeatCheckChanged(false);
     expect(
       (getState().explorationTarget as ExplorationTargetSkillPuyoCount)
         .counting_bonus
@@ -530,9 +585,38 @@ describe('puyoAppStore - 最適解探索系', () => {
     preparePlaySolutionButtonClicked();
     expect(getState().simulationData.traceCoords).toEqual([coord]);
   });
+
+  it('preparePlaySolutionButtonClicked は結果がないとなぞりを空にする', () => {
+    usePuyoAppStore.setState({
+      solveResult: undefined,
+      simulationData: {
+        ...getState().simulationData,
+        traceCoords: [PuyoCoord.xyToCoord(0, 0)!]
+      }
+    });
+    preparePlaySolutionButtonClicked();
+    expect(getState().simulationData.traceCoords).toEqual([]);
+  });
 });
 
 describe('puyoAppStore - スクリーンショット系', () => {
+  it('screenshotReceived は前の情報がなければ blobUrl を解放しない', () => {
+    const revoke = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => {});
+    const info = {
+      filePath: '',
+      fileName: 'new.png',
+      mime: 'image/png',
+      size: 2,
+      blobUrl: 'blob:new'
+    };
+    screenshotReceived(info);
+    expect(revoke).not.toHaveBeenCalled();
+    expect(getState().screenshotInfo).toBe(info);
+    revoke.mockRestore();
+  });
+
   it('screenshotReceived は前の blobUrl を解放し新しい情報を設定する', () => {
     const revoke = vi
       .spyOn(URL, 'revokeObjectURL')

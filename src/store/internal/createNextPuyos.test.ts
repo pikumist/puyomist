@@ -37,9 +37,15 @@ describe('createNextPuyos', () => {
     expect(result.every((p) => getPuyoAttr(p?.type) === attr)).toBe(true);
   });
 
-  it('honours the + suffix for plus puyos', () => {
-    const result = createNextPuyos('red+');
-    expect(result.every((p) => p?.type === PuyoType.RedPlus)).toBe(true);
+  it.each([
+    ['red+', PuyoType.RedPlus],
+    ['blue+', PuyoType.BluePlus],
+    ['green+', PuyoType.GreenPlus],
+    ['yellow+', PuyoType.YellowPlus],
+    ['purple+', PuyoType.PurplePlus]
+  ] as const)('honours the + suffix for plus puyos (%s)', (sel, expected) => {
+    const result = createNextPuyos(sel);
+    expect(result.every((p) => p?.type === expected)).toBe(true);
   });
 
   it('createNextPuyosAsSameType fills the row', () => {

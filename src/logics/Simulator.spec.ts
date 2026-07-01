@@ -1433,6 +1433,33 @@ describe('Simulator', () => {
       // Assert
       expect(actual).toBeCloseTo(20.3544);
     });
+
+    it('should return 0 when every attribute has zero strength', () => {
+      // Arrange
+      const chains: Chain[] = [
+        {
+          chain_num: 1,
+          simultaneous_num: 4,
+          boost_count: 0,
+          puyo_tsukai_count: 4,
+          attributes: {
+            [PuyoAttr.Red]: {
+              strength: 0,
+              popped_count: 0,
+              separated_blocks_num: 0
+            }
+          },
+          popped_chance_num: 0,
+          is_all_cleared: false
+        }
+      ];
+
+      // Actual
+      const actual = Simulator.calcTotalWildDamage(chains);
+
+      // Assert
+      expect(actual).toBe(0);
+    });
   });
 
   describe('isAllCleared()', () => {
