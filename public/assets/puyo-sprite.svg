@@ -7,26 +7,129 @@
   xmlns:xlink="http://www.w3.org/1999/xlink"
   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <defs>
+    <radialGradient id="redBody" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(31.5 30 -30 31.5 16 13)">
+      <stop offset="0" style="stop-color:#ff6d6d;stop-opacity:1"/>
+      <stop offset="0.45" style="stop-color:#e01822;stop-opacity:1"/>
+      <stop offset="1" style="stop-color:#830006;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="blueBody" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(31.5 30 -30 31.5 16 13)">
+      <stop offset="0" style="stop-color:#72adff;stop-opacity:1"/>
+      <stop offset="0.45" style="stop-color:#1b63e8;stop-opacity:1"/>
+      <stop offset="1" style="stop-color:#002c9b;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="greenBody" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(31.5 30 -30 31.5 16 13)">
+      <stop offset="0" style="stop-color:#86f17b;stop-opacity:1"/>
+      <stop offset="0.45" style="stop-color:#12bb32;stop-opacity:1"/>
+      <stop offset="1" style="stop-color:#007018;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="yellowBody" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(31.5 30 -30 31.5 16 13)">
+      <stop offset="0" style="stop-color:#fff477;stop-opacity:1"/>
+      <stop offset="0.48" style="stop-color:#e4cc17;stop-opacity:1"/>
+      <stop offset="1" style="stop-color:#8c7900;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="purpleBody" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(31.5 30 -30 31.5 16 13)">
+      <stop offset="0" style="stop-color:#d98aff;stop-opacity:1"/>
+      <stop offset="0.45" style="stop-color:#9730d9;stop-opacity:1"/>
+      <stop offset="1" style="stop-color:#5a007e;stop-opacity:1"/>
+    </radialGradient>
+    <linearGradient id="puyoLowerShade" x1="0" y1="12" x2="0" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" style="stop-color:#000;stop-opacity:0"/>
+      <stop offset="0.72" style="stop-color:#000;stop-opacity:0.08"/>
+      <stop offset="1" style="stop-color:#000;stop-opacity:0.24"/>
+    </linearGradient>
+    <radialGradient id="puyoUpperGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(14 10 -10 14 17 14)">
+      <stop offset="0" style="stop-color:#fff;stop-opacity:0.62"/>
+      <stop offset="0.65" style="stop-color:#fff;stop-opacity:0.2"/>
+      <stop offset="1" style="stop-color:#fff;stop-opacity:0"/>
+    </radialGradient>
+    <clipPath id="puyoRoundClip">
+      <circle cx="24" cy="24" r="20"/>
+    </clipPath>
+    <clipPath id="puyoBlueClip">
+      <path d="M24,4C35.7,4 43.3,12.7 42.7,24.4C42.1,36.5 34.4,43.6 24.7,44.2C13.2,44.9 4.6,36.4 4.3,24.7C4,12.7 12.4,4 24,4Z"/>
+    </clipPath>
+    <clipPath id="puyoGreenClip">
+      <path d="M24,4.4C35.8,3.3 44.4,11.8 44,23.5C43.6,36 34.2,42.5 23.8,43.7C12,45 3.7,37.4 4,24.8C4.3,12.6 12.8,5.4 24,4.4Z"/>
+    </clipPath>
+    <clipPath id="puyoYellowClip">
+      <path d="M24,4C35.1,3.5 42.7,12.3 43.4,23.3C44.1,34.7 35.6,43.1 24.2,43.7C12.7,44.3 4.1,35.8 4.5,24C4.9,13.3 12.8,4.5 24,4Z"/>
+    </clipPath>
+    <clipPath id="puyoPurpleClip">
+      <path d="M23.1,4.2C34.9,3.8 43.6,11.7 44.1,23.6C44.6,36.4 35.7,43.8 24.4,43.9C12.6,44 4.5,35.9 4,24.4C3.5,12.7 11.3,4.6 23.1,4.2Z"/>
+    </clipPath>
     <symbol id="plus" viewBox="0 0 48 48">
-      <path d="M22.5,25.5L17,25.5L17,22.5L22.5,22.5L22.5,17L25.5,17L25.5,22.5L31,22.5L31,25.5L25.5,25.5L25.5,31L22.5,31L22.5,25.5Z" style="fill:white;"/>
+      <g transform="translate(0.8 0.9)">
+        <path d="M22.5,25.5L17,25.5L17,22.5L22.5,22.5L22.5,17L25.5,17L25.5,22.5L31,22.5L31,25.5L25.5,25.5L25.5,31L22.5,31L22.5,25.5Z" style="fill:#160c22;fill-opacity:0.28;stroke:#160c22;stroke-width:1.1px;stroke-linejoin:round;"/>
+      </g>
+      <path d="M22.5,25.5L17,25.5L17,22.5L22.5,22.5L22.5,17L25.5,17L25.5,22.5L31,22.5L31,25.5L25.5,25.5L25.5,31L22.5,31L22.5,25.5Z" style="fill:white;fill-opacity:0.9;stroke:white;stroke-opacity:0.72;stroke-width:0.55px;stroke-linejoin:round;"/>
+      <g transform="translate(-0.45 -0.45)">
+        <path d="M22.5,25.5L17,25.5L17,22.5L22.5,22.5L22.5,17L25.5,17L25.5,22.5L31,22.5L31,25.5L25.5,25.5L25.5,31L22.5,31L22.5,25.5Z" style="fill:none;stroke:white;stroke-opacity:0.38;stroke-width:0.9px;stroke-linejoin:round;"/>
+      </g>
     </symbol>
     <symbol id="chance" viewBox="0 0 48 48">
-      <path d="M37.232,31.066C34.704,35.786 29.725,39 24,39C15.721,39 9,32.279 9,24C9,15.721 15.721,9 24,9C29.699,9 34.659,12.185 37.198,16.87L34.966,19.102C33.09,14.913 28.883,11.991 24,11.991C17.372,11.991 11.991,17.372 11.991,24C11.991,30.628 17.372,36.009 24,36.009C28.91,36.009 33.136,33.056 34.996,28.83L37.232,31.066Z" style="fill:white;"/>
+      <g transform="translate(0.8 0.9)">
+        <path d="M37.232,31.066C34.704,35.786 29.725,39 24,39C15.721,39 9,32.279 9,24C9,15.721 15.721,9 24,9C29.699,9 34.659,12.185 37.198,16.87L34.966,19.102C33.09,14.913 28.883,11.991 24,11.991C17.372,11.991 11.991,17.372 11.991,24C11.991,30.628 17.372,36.009 24,36.009C28.91,36.009 33.136,33.056 34.996,28.83L37.232,31.066Z" style="fill:#160c22;fill-opacity:0.28;stroke:#160c22;stroke-width:1px;stroke-linejoin:round;"/>
+      </g>
+      <path d="M37.232,31.066C34.704,35.786 29.725,39 24,39C15.721,39 9,32.279 9,24C9,15.721 15.721,9 24,9C29.699,9 34.659,12.185 37.198,16.87L34.966,19.102C33.09,14.913 28.883,11.991 24,11.991C17.372,11.991 11.991,17.372 11.991,24C11.991,30.628 17.372,36.009 24,36.009C28.91,36.009 33.136,33.056 34.996,28.83L37.232,31.066Z" style="fill:white;fill-opacity:0.9;stroke:white;stroke-opacity:0.7;stroke-width:0.45px;stroke-linejoin:round;"/>
+      <g transform="translate(-0.45 -0.45)">
+        <path d="M37.232,31.066C34.704,35.786 29.725,39 24,39C15.721,39 9,32.279 9,24C9,15.721 15.721,9 24,9C29.699,9 34.659,12.185 37.198,16.87L34.966,19.102C33.09,14.913 28.883,11.991 24,11.991C17.372,11.991 11.991,17.372 11.991,24C11.991,30.628 17.372,36.009 24,36.009C28.91,36.009 33.136,33.056 34.996,28.83L37.232,31.066Z" style="fill:none;stroke:white;stroke-opacity:0.36;stroke-width:0.8px;stroke-linejoin:round;"/>
+      </g>
     </symbol>
     <symbol id="red" viewBox="0 0 48 48">
-      <circle cx="24" cy="24" r="20" style="fill:rgb(172,0,0);"/>
+      <g>
+        <circle cx="24" cy="24" r="20" style="fill:url(#redBody);stroke:#6c0007;stroke-width:1.4px;"/>
+        <g clip-path="url(#puyoRoundClip)">
+          <ellipse cx="24" cy="33.5" rx="16.5" ry="9" style="fill:url(#puyoLowerShade);"/>
+          <circle cx="17" cy="14" r="14" style="fill:url(#puyoUpperGlow);"/>
+        </g>
+        <ellipse cx="16.4" cy="13.6" rx="6.4" ry="3.8" transform="rotate(-28 16.4 13.6)" style="fill:white;fill-opacity:0.45;"/>
+        <ellipse cx="21.2" cy="10.8" rx="2.2" ry="1.3" transform="rotate(-28 21.2 10.8)" style="fill:white;fill-opacity:0.4;"/>
+      </g>
     </symbol>
     <symbol id="blue" viewBox="0 0 48 48">
-      <circle cx="24" cy="24" r="20" style="fill:rgb(0,44,172);"/>
+      <g>
+        <path d="M24,4C35.7,4 43.3,12.7 42.7,24.4C42.1,36.5 34.4,43.6 24.7,44.2C13.2,44.9 4.6,36.4 4.3,24.7C4,12.7 12.4,4 24,4Z" style="fill:url(#blueBody);stroke:#002061;stroke-width:1.4px;"/>
+        <g clip-path="url(#puyoBlueClip)">
+          <ellipse cx="24" cy="33.5" rx="16.5" ry="9" style="fill:url(#puyoLowerShade);"/>
+          <circle cx="17" cy="14" r="14" style="fill:url(#puyoUpperGlow);"/>
+        </g>
+        <path d="M15.8,8.8C19.7,11.6 20.4,16.5 17.2,20.2C13,17.5 12.7,12.3 15.8,8.8Z" style="fill:white;fill-opacity:0.42;"/>
+        <ellipse cx="20.4" cy="11.2" rx="2" ry="1.2" transform="rotate(-30 20.4 11.2)" style="fill:white;fill-opacity:0.36;"/>
+      </g>
     </symbol>
     <symbol id="green" viewBox="0 0 48 48">
-      <circle cx="24" cy="24" r="20" style="fill:rgb(0,172,26);"/>
+      <g>
+        <path d="M24,4.4C35.8,3.3 44.4,11.8 44,23.5C43.6,36 34.2,42.5 23.8,43.7C12,45 3.7,37.4 4,24.8C4.3,12.6 12.8,5.4 24,4.4Z" style="fill:url(#greenBody);stroke:#005b14;stroke-width:1.4px;"/>
+        <g clip-path="url(#puyoGreenClip)">
+          <ellipse cx="24" cy="33.5" rx="16.5" ry="9" style="fill:url(#puyoLowerShade);"/>
+          <circle cx="17" cy="14" r="14" style="fill:url(#puyoUpperGlow);"/>
+        </g>
+        <path d="M11.7,15.5C15.7,10.9 21.2,10.4 24.7,12.4C21.9,17.4 16.5,18.4 11.7,15.5Z" style="fill:white;fill-opacity:0.38;"/>
+        <path d="M14.3,20.2C17.7,16.9 22.3,16.7 24.9,18.5C22.1,22.2 17.9,23 14.3,20.2Z" style="fill:white;fill-opacity:0.24;"/>
+      </g>
     </symbol>
     <symbol id="yellow" viewBox="0 0 48 48">
-      <circle cx="24" cy="24" r="20" style="fill:rgb(172,160,0);"/>
+      <g>
+        <path d="M24,4C35.1,3.5 42.7,12.3 43.4,23.3C44.1,34.7 35.6,43.1 24.2,43.7C12.7,44.3 4.1,35.8 4.5,24C4.9,13.3 12.8,4.5 24,4Z" style="fill:url(#yellowBody);stroke:#675700;stroke-width:1.4px;"/>
+        <g clip-path="url(#puyoYellowClip)">
+          <ellipse cx="24" cy="33.5" rx="16.5" ry="9" style="fill:url(#puyoLowerShade);"/>
+          <circle cx="17" cy="14" r="14" style="fill:url(#puyoUpperGlow);"/>
+        </g>
+        <path d="M16,8.4L18.1,13.3L23.4,13.8L19.4,17.3L20.6,22.5L16,19.8L11.4,22.5L12.6,17.3L8.6,13.8L13.9,13.3L16,8.4Z" style="fill:white;fill-opacity:0.34;"/>
+        <path d="M26.6,9.5L27.5,11.6L29.8,11.8L28,13.3L28.5,15.5L26.6,14.4L24.6,15.5L25.1,13.3L23.4,11.8L25.7,11.6L26.6,9.5Z" style="fill:white;fill-opacity:0.28;"/>
+      </g>
     </symbol>
     <symbol id="purple" viewBox="0 0 48 48">
-      <circle cx="24" cy="24" r="20" style="fill:rgb(133,0,172);"/>
+      <g>
+        <path d="M23.1,4.2C34.9,3.8 43.6,11.7 44.1,23.6C44.6,36.4 35.7,43.8 24.4,43.9C12.6,44 4.5,35.9 4,24.4C3.5,12.7 11.3,4.6 23.1,4.2Z" style="fill:url(#purpleBody);stroke:#470065;stroke-width:1.4px;"/>
+        <g clip-path="url(#puyoPurpleClip)">
+          <ellipse cx="24" cy="33.5" rx="16.5" ry="9" style="fill:url(#puyoLowerShade);"/>
+          <circle cx="17" cy="14" r="14" style="fill:url(#puyoUpperGlow);"/>
+          <path d="M33.5,14.8C28.9,15.5 25.6,19.6 26.4,24.3C27.1,28.5 30.7,31.5 34.8,31.8C32.5,34.7 28.3,36.1 24.3,35.1C18.6,33.8 15.1,28 16.4,22.3C17.7,16.7 23.4,13.2 29.1,14.4C30.7,14.8 32.2,15.4 33.5,14.8Z" style="fill:#21002f;fill-opacity:0.18;"/>
+        </g>
+        <path d="M13.3,10.8C17.9,9.4 22,11.2 23.9,14.8C19.8,16.4 15.3,15 13.3,10.8Z" style="fill:white;fill-opacity:0.38;"/>
+        <path d="M18.7,20.6C21.4,18.9 24.6,19.4 26.4,21.6C23.9,23.6 20.8,23.4 18.7,20.6Z" style="fill:white;fill-opacity:0.2;"/>
+      </g>
     </symbol>
     <symbol id="heart" viewBox="0 0 48 48">
       <g>

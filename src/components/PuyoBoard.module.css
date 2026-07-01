@@ -27,9 +27,54 @@
   opacity: 0.8;
 }
 
-.trace {
-  stroke: none;
-  fill: url(#star);
+.traceInk {
+  fill: var(--board-trace-ink);
+  opacity: 0.86;
+}
+
+.traceInkGlint {
+  fill: var(--board-trace-ink-glint);
+  opacity: 0.48;
+}
+
+.tracePath {
+  fill: none;
+  pointer-events: none;
+}
+
+.tracePathHalo,
+.tracePathLine,
+.tracePathGlint {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tracePathHalo {
+  stroke: var(--board-trace-line-halo);
+  stroke-width: 17px;
+  opacity: 0.72;
+}
+
+.tracePathLine {
+  stroke: var(--board-trace-line);
+  stroke-width: 8.8px;
+  opacity: 0.9;
+}
+
+.tracePathGlint {
+  stroke: var(--board-trace-line-glint);
+  stroke-width: 2.2px;
+  opacity: 0.78;
+}
+
+.tracePathEndHalo {
+  fill: var(--board-trace-line-halo);
+  opacity: 0.88;
+}
+
+.tracePathEnd {
+  fill: var(--board-trace-line-end);
+  opacity: 0.98;
 }
 
 .puyo {

@@ -18,6 +18,7 @@ import GridLines from '../board-parts/GridLines';
 import OptimalTrace from '../board-parts/OptimalTrace';
 import PuyoMatrix from '../board-parts/PuyoMatrix';
 import Trace from '../board-parts/Trace';
+import TracePath from '../board-parts/TracePath';
 import { getCursorClass } from '../board-parts/cursors';
 import {
   detectHitInField,
@@ -186,14 +187,6 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
       onPointerUp={onPointerUp}
       onPointerOut={onPointerOut}
     >
-      <defs>
-        <pattern id="star" viewBox="0,0,10,10" width="12.5%" height="12.5%">
-          <polygon
-            points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2"
-            fill="var(--board-trace)"
-          />
-        </pattern>
-      </defs>
       <title>&nbsp;</title>
       <BoardBackground />
       <BoardFrame />
@@ -202,6 +195,7 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
       <g key="innerFrame" transform={`translate(${fw} ${fw})`}>
         <PuyoMatrix nextPuyos={nextPuyos} field={field} />
         <g key="coords">
+          <TracePath coords={traceCoords} />
           {optimalTraceCoords?.map((coord, i) => (
             <OptimalTrace key={String(i)} x={coord.x} y={coord.y} />
           ))}

@@ -17,7 +17,8 @@ const Trace: React.FC<TraceProps> = React.memo((props) => {
 
   return (
     <g transform={outerTransform}>
-      <rect className={styles.trace} x="4" y="4" width="40" height="40" />
+      <circle className={styles.traceInk} cx="24" cy="24" r="4.2" />
+      <circle className={styles.traceInkGlint} cx="22.8" cy="22.6" r="1.05" />
     </g>
   );
 });

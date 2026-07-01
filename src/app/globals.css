@@ -76,7 +76,22 @@
   --board-frame:        oklch(0.96 0.010 290);     /* soft frame */
   --board-grid:         oklch(0.55 0.020 290 / 0.45);
   --board-optimal-trace: oklch(0.98 0.005 290);
-  --board-trace:        oklch(0.30 0.030 290);     /* user-trace star pattern */
+  --board-trace:        oklch(0.30 0.030 290);
+  --board-trace-fill:   oklch(0.90 0.055 290 / 0.30);
+  --board-trace-glow:   oklch(1.00 0.010 290 / 0.38);
+  --board-trace-shadow: oklch(0.50 0.075 290 / 0.20);
+  --board-trace-cast:   oklch(0.20 0.030 290 / 0.16);
+  --board-trace-rim:    oklch(0.90 0.045 290 / 0.42);
+  --board-trace-rim-light: oklch(1.00 0.006 290 / 0.56);
+  --board-trace-rim-dark: oklch(0.40 0.070 290 / 0.22);
+  --board-trace-spark:  oklch(1.00 0.004 290 / 0.62);
+  --board-trace-spark-fade: oklch(1.00 0.004 290 / 0.10);
+  --board-trace-line-halo: oklch(0.78 0.090 290 / 0.32);
+  --board-trace-line:   oklch(0.98 0.025 290 / 0.68);
+  --board-trace-line-glint: oklch(1.00 0.004 290 / 0.8);
+  --board-trace-line-end: oklch(1.00 0.004 290 / 0.92);
+  --board-trace-ink:    oklch(0.14 0.030 290 / 0.62);
+  --board-trace-ink-glint: oklch(1.00 0.006 290 / 0.55);
 
   /* --- Fonts --- */
   --font-sans: 'Inter', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
@@ -148,6 +163,21 @@
   --board-grid:         oklch(0.55 0.020 290 / 0.40);
   --board-optimal-trace: oklch(0.96 0.008 290);
   --board-trace:        oklch(0.78 0.030 290);
+  --board-trace-fill:   oklch(0.82 0.060 290 / 0.28);
+  --board-trace-glow:   oklch(1.00 0.010 290 / 0.34);
+  --board-trace-shadow: oklch(0.42 0.080 290 / 0.24);
+  --board-trace-cast:   oklch(0.08 0.020 290 / 0.28);
+  --board-trace-rim:    oklch(0.88 0.045 290 / 0.42);
+  --board-trace-rim-light: oklch(1.00 0.006 290 / 0.52);
+  --board-trace-rim-dark: oklch(0.34 0.070 290 / 0.28);
+  --board-trace-spark:  oklch(1.00 0.004 290 / 0.56);
+  --board-trace-spark-fade: oklch(1.00 0.004 290 / 0.08);
+  --board-trace-line-halo: oklch(0.72 0.100 290 / 0.34);
+  --board-trace-line:   oklch(0.98 0.025 290 / 0.62);
+  --board-trace-line-glint: oklch(1.00 0.004 290 / 0.72);
+  --board-trace-line-end: oklch(1.00 0.004 290 / 0.88);
+  --board-trace-ink:    oklch(0.10 0.030 290 / 0.68);
+  --board-trace-ink-glint: oklch(1.00 0.006 290 / 0.48);
 
   --sidebar:                    var(--surface);
   --sidebar-foreground:         oklch(0.965 0.008 290);
