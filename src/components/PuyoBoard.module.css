@@ -11,6 +11,13 @@
   fill: var(--board-bg);
 }
 
+/* 単色の下地に馴染む微細グレイン。overlay + 低opacityで質感だけ足す。 */
+.boardGrain {
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .boardFrame {
   stroke: none;
   fill: var(--board-frame);
