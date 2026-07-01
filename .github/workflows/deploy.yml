@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           # Vite 8 (rolldown-vite) requires Node 20.19+ / 22.12+
-          node-version: 22.12.x
+          node-version: 24.18.x
 
       - name: Build
         run: npm ci && npm run build
