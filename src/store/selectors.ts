@@ -1,4 +1,13 @@
+import type { PuyoType } from '@/logics/PuyoType';
 import type { PuyoAppState } from './types';
+
+/** 消えかけ(ポップ演出中)のぷよ1つ分。前ステップの位置で描画する。 */
+export interface PoppingPuyo {
+  id: number;
+  x: number;
+  y: number;
+  type: PuyoType;
+}
 
 /** ステートからアクティブなアニメーションステップを選択する */
 export const selectActiveAnimationStep = (state: PuyoAppState) => {
@@ -36,4 +45,43 @@ export const selectActiveFieldAndNextPuyos = (state: PuyoAppState) => {
     field: simulationData.field,
     nextPuyos: simulationData.nextPuyos
   };
+};
+
+/**
+ * アクティブなステップで「消えた」ぷよを前ステップの位置つきで返す。
+ * 前ステップに居て現ステップに居ない id を消滅とみなす(落下やネクスト取り込みは
+ * id が保持されるので除外される)。ポップのフェード演出用のゴーストとして描画する。
+ */
+export const selectActivePoppingPuyos = (state: PuyoAppState): PoppingPuyo[] => {
+  const { animationSteps, activeAnimationStepIndex } = state;
+  const cur = animationSteps[activeAnimationStepIndex];
+  const prev = animationSteps[activeAnimationStepIndex - 1];
+
+  if (!cur || !prev) {
+    return [];
+  }
+
+  const survivingIds = new Set<number>();
+  for (const row of cur.field) {
+    for (const puyo of row) {
+      if (puyo) {
+        survivingIds.add(puyo.id);
+      }
+    }
+  }
+  for (const puyo of cur.nextPuyos) {
+    if (puyo) {
+      survivingIds.add(puyo.id);
+    }
+  }
+
+  const popping: PoppingPuyo[] = [];
+  for (const [y, row] of prev.field.entries()) {
+    for (const [x, puyo] of row.entries()) {
+      if (puyo && !survivingIds.has(puyo.id)) {
+        popping.push({ id: puyo.id, x, y, type: puyo.type });
+      }
+    }
+  }
+  return popping;
 };

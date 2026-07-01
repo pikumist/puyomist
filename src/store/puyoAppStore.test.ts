@@ -70,7 +70,8 @@ import {
 import {
   selectActiveAnimationStep,
   selectActiveChains,
-  selectActiveFieldAndNextPuyos
+  selectActiveFieldAndNextPuyos,
+  selectActivePoppingPuyos
 } from './selectors';
 import { INITIAL_PUYO_APP_STATE } from './types';
 
@@ -693,5 +694,39 @@ describe('selectors', () => {
     const result = selectActiveFieldAndNextPuyos(getState());
     expect(result.field).toBe(field);
     expect(result.nextPuyos).toBe(nextPuyos);
+  });
+
+  it('selectActivePoppingPuyos は前ステップが無ければ空配列を返す', () => {
+    usePuyoAppStore.setState({
+      animationSteps: [{ field: [], nextPuyos: [] } as never],
+      activeAnimationStepIndex: 0
+    });
+    expect(selectActivePoppingPuyos(getState())).toEqual([]);
+  });
+
+  it('selectActivePoppingPuyos は前に居て今居ない id を位置つきで返す', () => {
+    const prev = {
+      field: [
+        [{ id: 1, type: 1 }, { id: 2, type: 5 }],
+        [{ id: 3, type: 9 }, undefined]
+      ],
+      nextPuyos: [{ id: 10, type: 1 }]
+    };
+    // id:1 は消滅、id:2 は落下(位置変わるが残存)、id:3 はネクスト化して残存、
+    // id:10 は場に取り込まれて残存。→ 消えたのは id:1 のみ。
+    const cur = {
+      field: [
+        [undefined, undefined],
+        [{ id: 2, type: 5 }, { id: 10, type: 1 }]
+      ],
+      nextPuyos: [{ id: 3, type: 9 }, undefined]
+    };
+    usePuyoAppStore.setState({
+      animationSteps: [prev, cur] as never,
+      activeAnimationStepIndex: 1
+    });
+    expect(selectActivePoppingPuyos(getState())).toEqual([
+      { id: 1, x: 0, y: 0, type: 1 }
+    ]);
   });
 });

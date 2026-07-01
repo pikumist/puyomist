@@ -78,10 +78,23 @@
 }
 
 .puyo {
-  /* puyoのkey判定がうまくいっていないので一旦無効 */
-  /*
-  transition: transform 200ms ease;
-  */
+  /* 落下などの移動をアニメーション。尺はコマ間隔に連動(やや短め)。 */
+  transition: transform var(--puyo-anim-duration, 160ms) ease;
+}
+
+/* フィールドぷよの中身。消える瞬間にバースト(拡大しながらフェード)させる。
+   scale をぷよ中心基準にするため fill-box + center を指定。 */
+.puyoBody {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform var(--pop-duration, 120ms) cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity var(--pop-duration, 120ms) ease-out;
+}
+
+.puyoBody.popping {
+  opacity: 0;
+  transform: scale(1.4);
 }
 
 .cursorPointer {

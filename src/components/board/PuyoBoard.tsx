@@ -9,7 +9,10 @@ import {
   tracingCoordAdded,
   usePuyoAppState
 } from '@/store/puyoAppStore';
-import { selectActiveFieldAndNextPuyos } from '@/store/selectors';
+import {
+  selectActiveFieldAndNextPuyos,
+  selectActivePoppingPuyos
+} from '@/store/selectors';
 import styles from '../PuyoBoard.module.css';
 import BoardBackground from '../board-parts/BoardBackground';
 import BoardFrame from '../board-parts/BoardFrame';
@@ -50,6 +53,7 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
     optimalSolutionIndex
   } = state;
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
+  const poppingPuyos = selectActivePoppingPuyos(state);
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
   const optimalTraceCoords =
@@ -175,10 +179,18 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
 
   const viewBox = `0 0 ${W} ${H}`;
 
+  // ぷよの移動アニメの尺はコマ間隔に連動させ、次コマ切替の前に落ち着くよう
+  // わずかに短め(0.8倍)にする。コマ間隔=0 のときは 0ms となり実質無効。
+  const puyoAnimStyle = {
+    '--puyo-anim-duration': `${state.animationDuration * 0.8}ms`,
+    '--pop-duration': `${state.animationDuration * 0.6}ms`
+  } as React.CSSProperties;
+
   return (
     <svg
       ref={svgRef}
       className={`board ${styles.svg} ${cursor} ${className ?? ''}`}
+      style={puyoAnimStyle}
       viewBox={viewBox}
       width={W}
       height={H}
@@ -193,7 +205,11 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
       <GridLines />
       <BoostAreaView coordList={boostAreaCoordList} />
       <g key="innerFrame" transform={`translate(${fw} ${fw})`}>
-        <PuyoMatrix nextPuyos={nextPuyos} field={field} />
+        <PuyoMatrix
+          nextPuyos={nextPuyos}
+          field={field}
+          poppingPuyos={poppingPuyos}
+        />
         <g key="coords">
           <TracePath coords={traceCoords} />
           {optimalTraceCoords?.map((coord, i) => (
