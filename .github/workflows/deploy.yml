@@ -41,8 +41,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # 22.5.0 has a [bug](https://github.com/npm/cli/issues/7657)
-          node-version: 22.4.x
+          # Vite 8 (rolldown-vite) requires Node 20.19+ / 22.12+
+          node-version: 22.12.x
 
       - name: Build
         run: npm ci && npm run build
