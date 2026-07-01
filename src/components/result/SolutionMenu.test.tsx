@@ -1,6 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/store/actions', () => ({
+  solveButtonClicked: vi.fn(),
+  playSolutionButtonClicked: vi.fn()
+}));
+
+import { playSolutionButtonClicked, solveButtonClicked } from '@/store/actions';
 import { usePuyoAppStore } from '@/store/puyoAppStore';
 import SolutionMenu from './SolutionMenu';
 
@@ -37,5 +43,25 @@ describe('SolutionMenu', () => {
     fireEvent.click(screen.getByLabelText('盤面リセット'));
     expect(usePuyoAppStore.getState().activeAnimationStepIndex).toBe(-1);
     expect(usePuyoAppStore.getState().animationSteps).toEqual([]);
+  });
+
+  it('starts a search on click when idle', () => {
+    render(<SolutionMenu solving={false} hasResult={false} />);
+    fireEvent.click(screen.getByLabelText('最適解を探索'));
+    expect(solveButtonClicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels the in-progress search on click', () => {
+    const abortController = new AbortController();
+    usePuyoAppStore.setState({ abortControllerForSolving: abortController });
+    render(<SolutionMenu solving hasResult={false} />);
+    fireEvent.click(screen.getByLabelText('探索をキャンセル'));
+    expect(abortController.signal.aborted).toBe(true);
+  });
+
+  it('plays the solution via the store on click', () => {
+    render(<SolutionMenu solving={false} hasResult />);
+    fireEvent.click(screen.getByLabelText('解でなぞり'));
+    expect(playSolutionButtonClicked).toHaveBeenCalledTimes(1);
   });
 });

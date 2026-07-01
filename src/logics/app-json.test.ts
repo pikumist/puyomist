@@ -41,6 +41,10 @@ describe('app-json board round-trip', () => {
     }
   });
 
+  it('parseBoardJson rejects a JSON that parses to a falsy value', () => {
+    expect(parseBoardJson('null')).toBe('JSONが不正');
+  });
+
   it('parseBoardJson rejects wrong type / missing board', () => {
     expect(parseBoardJson(JSON.stringify({ type: 'nope' }))).toBe(
       'typeがboardでない'
@@ -95,6 +99,20 @@ describe('app-json puyomist round-trip', () => {
       expect(result.type).toBe('puyomist');
       expect(result.boostAreaKeyList).toEqual([boostKey]);
     }
+  });
+
+  it('parsePuyomistJson rejects a JSON that parses to a falsy value', () => {
+    expect(parsePuyomistJson('null')).toBe('JSONが不正');
+  });
+
+  it('parsePuyomistJson surfaces board validation errors', () => {
+    const valid = JSON.parse(
+      toPuyomistJson(makeSimulationData(), [], explorationTarget)
+    );
+    valid.board.nextPuyos = [];
+    expect(parsePuyomistJson(JSON.stringify(valid))).toBe(
+      'nextPuyosが不正'
+    );
   });
 
   it('parsePuyomistJson rejects wrong type / missing board', () => {

@@ -114,4 +114,34 @@ describe('NumberStepper', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(input).toHaveValue('5');
   });
+
+  it('ignores external value updates while the field is focused', () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <NumberStepper ariaLabel="数" value={5} min={1} max={15} onChange={onChange} />
+    );
+    const input = screen.getByLabelText('数');
+    fireEvent.focus(input);
+    // An external value change (e.g. a store reset) must not clobber the draft
+    // while the user is actively editing the field.
+    rerender(
+      <NumberStepper ariaLabel="数" value={9} min={1} max={15} onChange={onChange} />
+    );
+    expect(input).toHaveValue('5');
+  });
+
+  it('reverts the draft and blurs on Escape', () => {
+    const onChange = vi.fn();
+    render(
+      <NumberStepper ariaLabel="数" value={5} min={1} max={15} onChange={onChange} />
+    );
+    const input = screen.getByLabelText('数');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '99' } });
+    expect(input).toHaveValue('99');
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveValue('5');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).not.toHaveFocus();
+  });
 });

@@ -24,4 +24,25 @@ describe('ExplorationPanel', () => {
     render(<ExplorationPanel />);
     expect(screen.getByLabelText('最適解を探索')).toBeInTheDocument();
   });
+
+  it('changes the max trace num in the store', () => {
+    render(<ExplorationPanel />);
+    const before = usePuyoAppStore.getState().simulationData.maxTraceNum;
+    fireEvent.click(screen.getByLabelText('最大なぞり数を増やす'));
+    expect(usePuyoAppStore.getState().simulationData.maxTraceNum).toBe(
+      before + 1
+    );
+  });
+
+  it('changes the solution method from the select', () => {
+    render(<ExplorationPanel />);
+    fireEvent.click(screen.getByLabelText('探索法の選択'));
+    const option = screen.getByRole('option', { name: '全探索マルチWASM' });
+    fireEvent.pointerDown(option, { pointerType: 'mouse' });
+    fireEvent.pointerUp(option, { pointerType: 'mouse' });
+    fireEvent.click(option);
+    expect(usePuyoAppStore.getState().solutionMethod).toBe(
+      'solveAllInParallelByWasm'
+    );
+  });
 });

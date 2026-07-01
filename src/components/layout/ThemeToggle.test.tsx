@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { ThemeProvider } from 'next-themes';
 import { describe, expect, it } from 'vitest';
 
@@ -21,5 +21,11 @@ describe('ThemeToggle', () => {
     expect(
       screen.getByLabelText('ダークモードに切替')
     ).toBeInTheDocument();
+  });
+
+  it('switches to dark mode and updates the label when clicked', () => {
+    renderToggle();
+    fireEvent.click(screen.getByLabelText('ダークモードに切替'));
+    expect(screen.getByLabelText('ライトモードに切替')).toBeInTheDocument();
   });
 });

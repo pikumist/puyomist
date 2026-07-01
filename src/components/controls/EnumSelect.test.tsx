@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { EnumSelect } from './EnumSelect';
 
@@ -46,5 +46,23 @@ describe('EnumSelect', () => {
       />
     );
     expect(screen.getByRole('combobox')).toHaveTextContent('未選択');
+  });
+
+  it('calls onValueChange with the selected value when an option is picked', () => {
+    const onValueChange = vi.fn();
+    render(
+      <EnumSelect<number>
+        ariaLabel="number"
+        value={1}
+        items={items}
+        onValueChange={onValueChange}
+      />
+    );
+    fireEvent.click(screen.getByRole('combobox'));
+    const option = screen.getByRole('option', { name: 'Two' });
+    fireEvent.pointerDown(option, { pointerType: 'mouse' });
+    fireEvent.pointerUp(option, { pointerType: 'mouse' });
+    fireEvent.click(option);
+    expect(onValueChange).toHaveBeenCalledWith(2);
   });
 });

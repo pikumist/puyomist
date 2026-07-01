@@ -42,12 +42,13 @@ export default defineConfig({
         '**/*.stories.tsx'
       ],
       thresholds: {
-        // Current actuals captured to prevent regression without forcing an
-        // immediate spike; the plan's 90% target applies to statements/lines.
-        statements: 89,
-        lines: 89,
-        branches: 80,
-        functions: 88
+        // Current actuals (statements/lines/functions ~99.9%, branches ~95%)
+        // captured to prevent regression, with a couple points of head-room
+        // for minor incidental fluctuation.
+        statements: 97,
+        lines: 97,
+        branches: 93,
+        functions: 97
       }
     }
   }

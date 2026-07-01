@@ -13,6 +13,7 @@ import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
 import { TraceMode } from '../logics/TraceMode';
+import { customBoardId } from '../logics/boards';
 import { SolutionMethod, type SolveResult } from '../logics/solution';
 import { createSimulationData } from './internal/createSimulationData';
 import {
@@ -161,6 +162,20 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
     expect(getState().animationSteps).toEqual([]);
     expect(getState().activeAnimationStepIndex).toBe(-1);
   });
+
+  it('boardResetButtonClicked は特殊盤面のとき盤面をネクストとともに再生成する', () => {
+    usePuyoAppStore.setState({
+      boardId: 'chainSeed1/1',
+      nextSelection: 'red',
+      animationSteps: [{} as never],
+      activeAnimationStepIndex: 0
+    });
+    boardResetButtonClicked();
+    expect(getState().simulationData.field).toHaveLength(PuyoCoord.YNum);
+    expect(getState().simulationData.nextPuyos[0]?.type).toBe(PuyoType.Red);
+    expect(getState().animationSteps).toEqual([]);
+    expect(getState().activeAnimationStepIndex).toBe(-1);
+  });
 });
 
 describe('puyoAppStore - 連鎖系', () => {
@@ -213,6 +228,13 @@ describe('puyoAppStore - 連鎖系', () => {
     });
     chainAnimationStepForward();
     expect(getState().activeAnimationStepIndex).toBe(-1);
+
+    usePuyoAppStore.setState({
+      animationSteps: [],
+      activeAnimationStepIndex: 5
+    });
+    chainAnimationStepBack();
+    expect(getState().activeAnimationStepIndex).toBe(-1);
   });
 });
 
@@ -258,6 +280,30 @@ describe('puyoAppStore - 設定系', () => {
     expect(getState().simulationData.traceMode).toBe(TraceMode.ToBlue);
   });
 
+  it('traceModeChanged が Normal モードのときは必要ぷよ数を強制しない', () => {
+    usePuyoAppStore.setState({
+      simulationData: {
+        ...getState().simulationData,
+        minimumPuyoNumForPopping: 3
+      }
+    });
+    traceModeChanged(TraceMode.Normal);
+    expect(getState().simulationData.traceMode).toBe(TraceMode.Normal);
+    expect(getState().simulationData.minimumPuyoNumForPopping).toBe(3);
+  });
+
+  it('traceModeChanged は特殊盤面のときカスタム盤面に切り替えてスクリーンショット盤面を保存する', () => {
+    usePuyoAppStore.setState({ boardId: 'chainSeed1/1' });
+    traceModeChanged(TraceMode.ToRed);
+    expect(getState().simulationData.traceMode).toBe(TraceMode.ToRed);
+    expect(getState().boardId).toBe(customBoardId);
+    expect(getState().lastScreenshotBoard).toBeDefined();
+    expect(getState().lastScreenshotBoard?.traceMode).toBeUndefined();
+    expect(getState().lastScreenshotBoard?.nextPuyos).toEqual(
+      getState().simulationData.nextPuyos.map((puyo) => puyo?.type)
+    );
+  });
+
   it('solutionMethodItemSelected は探索法を更新する', () => {
     solutionMethodItemSelected(SolutionMethod.solveAllInSerial);
     expect(getState().solutionMethod).toBe(SolutionMethod.solveAllInSerial);
@@ -267,9 +313,9 @@ describe('puyoAppStore - 設定系', () => {
     const key = [...boostAreaKeyMap.keys()][0];
     boostAreaKeyListChanged([key]);
     expect(getState().boostAreaKeyList).toEqual([key]);
-    expect(
-      getState().simulationData.boostAreaCoordList.length
-    ).toBeGreaterThan(0);
+    expect(getState().simulationData.boostAreaCoordList.length).toBeGreaterThan(
+      0
+    );
   });
 
   it('boardEditingStarted/Ended は編集フラグを切り替える', () => {

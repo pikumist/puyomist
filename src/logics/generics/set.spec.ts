@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   differenceSet,
+  eqSet,
   intersectionSet,
   isSubset,
   isSuperset,
@@ -129,6 +130,35 @@ describe('set', () => {
 
         // Assert
         expect(actual).toEqual(expected);
+      }
+    );
+  });
+
+  describe('eqSet()', () => {
+    it.each([
+      {
+        former: new Set(['A', 'B']),
+        latter: new Set(['A', 'B', 'C']),
+        expected: false
+      },
+      {
+        former: new Set(['A', 'B', 'C']),
+        latter: new Set(['A', 'B', 'D']),
+        expected: false
+      },
+      {
+        former: new Set(['A', 'B', 'C']),
+        latter: new Set(['A', 'B', 'C']),
+        expected: true
+      }
+    ])(
+      'should return true if and only if the former and the latter sets have exactly the same elements',
+      ({ former, latter, expected }) => {
+        // Actual
+        const actual = eqSet(former, latter);
+
+        // Assert
+        expect(actual).toBe(expected);
       }
     );
   });

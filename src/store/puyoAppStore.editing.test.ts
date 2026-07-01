@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HowToEditBoard } from '../logics/BoardEditMode';
 import { boostAreaKeyMap } from '../logics/BoostArea';
-import { customBoardId } from '../logics/boards';
 import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
-import { getPuyoAttr, PuyoType } from '../logics/PuyoType';
+import { PuyoType, getPuyoAttr } from '../logics/PuyoType';
 import type { PuyomistJson } from '../logics/app-json';
+import { customBoardId } from '../logics/boards';
 import {
   boardDetected,
   boardIdChanged,
@@ -81,6 +81,62 @@ describe('puyoAppStore - 盤面編集系', () => {
     });
     puyoEdited({ fieldCoord: PuyoCoord.xyToCoord(1, 1)! });
     expect(getState().lastScreenshotBoard?.field[1][1]).toBe(PuyoType.Heart);
+  });
+
+  it('puyoEdited ignores edits on an empty next puyo slot unless switching to a custom type', () => {
+    // nextSelection を未知の値にして next ぷよを空にする
+    usePuyoAppStore.setState({ nextSelection: '' });
+    boardIdChanged('chainSeed1/1');
+    usePuyoAppStore.setState({
+      boardEditMode: { howToEdit: HowToEditBoard.ToRed }
+    });
+    expect(getState().simulationData.nextPuyos[0]).toBeUndefined();
+    const before = getState().boardId;
+    puyoEdited({ nextX: 0 });
+    // 何も変更されず、カスタム盤面にも切り替わらない
+    expect(getState().boardId).toBe(before);
+  });
+
+  it('puyoEdited creates a fresh screenshot board when starting from a blank custom board', () => {
+    usePuyoAppStore.setState({
+      boardId: customBoardId,
+      lastScreenshotBoard: undefined,
+      boardEditMode: {
+        howToEdit: HowToEditBoard.ToCustomType,
+        customType: PuyoType.Red
+      }
+    });
+    const coord = PuyoCoord.xyToCoord(0, 0)!;
+    puyoEdited({ fieldCoord: coord });
+    expect(getState().boardId).toBe(customBoardId);
+    expect(getState().lastScreenshotBoard?.field[0][0]).toBe(PuyoType.Red);
+    expect(getState().lastScreenshotBoard?.nextPuyos).toHaveLength(
+      PuyoCoord.XNum
+    );
+
+    // 既に lastScreenshotBoard がある状態でもう一度編集しても再生成されない
+    const secondCoord = PuyoCoord.xyToCoord(1, 0)!;
+    puyoEdited({ fieldCoord: secondCoord });
+    expect(getState().lastScreenshotBoard?.field[0][0]).toBe(PuyoType.Red);
+    expect(getState().lastScreenshotBoard?.field[0][1]).toBe(PuyoType.Red);
+  });
+
+  it.each([
+    [HowToEditBoard.ClearEnhance, PuyoAttr.Red],
+    [HowToEditBoard.AddChance, PuyoAttr.Red],
+    [HowToEditBoard.AddPlus, PuyoAttr.Red],
+    [HowToEditBoard.ToGreen, PuyoAttr.Green],
+    [HowToEditBoard.ToYellow, PuyoAttr.Yellow],
+    [HowToEditBoard.ToPurple, PuyoAttr.Purple]
+  ])('puyoEdited applies %s edit mode', (howToEdit, expectedAttr) => {
+    boardIdChanged('chainSeed1/1');
+    usePuyoAppStore.setState({
+      boardEditMode: { howToEdit }
+    });
+    const coord = PuyoCoord.xyToCoord(0, 0)!;
+    puyoEdited({ fieldCoord: coord });
+    const cell = getState().lastScreenshotBoard?.field[0][0];
+    expect(getPuyoAttr(cell as PuyoType)).toBe(expectedAttr);
   });
 });
 

@@ -3,6 +3,7 @@ import { createNextPuyosAsSameType } from '../store/internal/createNextPuyos';
 import { createSimulationData } from '../store/internal/createSimulationData';
 import type { Chain } from './Chain';
 import {
+  CountingBonusType,
   ExplorationCategory,
   type ExplorationTarget,
   PreferenceKind
@@ -33,6 +34,7 @@ import {
   better_solution_by_more_prism_pop,
   better_solution_by_no_all_clear,
   better_solution_by_no_chance_pop,
+  better_solution_by_no_heart_pop,
   better_solution_by_no_ojama_pop,
   better_solution_by_no_prism_pop,
   better_solution_by_ojama_pop,
@@ -41,7 +43,8 @@ import {
   better_solution_by_smaller_value,
   mergeResultIfRankedIn,
   solveAllTraces,
-  solveIncludingTraceIndex
+  solveIncludingTraceIndex,
+  solveWithPrefix
 } from './solution-explorer';
 
 describe('solution-explorer', () => {
@@ -339,6 +342,32 @@ describe('solution-explorer', () => {
         'should return the better one or undefined',
         ({ s1, s2, expected }) => {
           const actual = better_solution_by_no_all_clear(s1, s2);
+          expect(actual).toBe({ s1, s2 }[expected]);
+        }
+      );
+    });
+
+    describe('better_solution_by_no_heart_pop()', () => {
+      it.each([
+        {
+          s1: { ...S, popped_heart_num: 0 },
+          s2: { ...S, popped_heart_num: 1 },
+          expected: 's1'
+        },
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 0 },
+          expected: 's2'
+        },
+        {
+          s1: { ...S, popped_heart_num: 1 },
+          s2: { ...S, popped_heart_num: 2 },
+          expected: ''
+        }
+      ])(
+        'should return the better one or undefined',
+        ({ s1, s2, expected }) => {
+          const actual = better_solution_by_no_heart_pop(s1, s2);
           expect(actual).toBe({ s1, s2 }[expected]);
         }
       );
@@ -925,6 +954,38 @@ describe('solution-explorer', () => {
   });
 
   describe('mergeResultIfRankedIn()', () => {
+    it('does nothing when optimal_solution_count is 0', () => {
+      // Arrange
+      const explorationTarget: ExplorationTarget = {
+        category: ExplorationCategory.Damage,
+        main_attr: PuyoAttr.Red,
+        preference_priorities: [PreferenceKind.BiggerValue],
+        optimal_solution_count: 0
+      };
+      const optimalSolutions: SolutionResult[] = [];
+      const solutionResult: SolutionResult = {
+        trace_coords: [PuyoCoord.indexToCoord(0)!],
+        chains: [],
+        value: 100,
+        popped_chance_num: 0,
+        popped_prism_num: 0,
+        popped_heart_num: 0,
+        popped_ojama_num: 0,
+        popped_kata_num: 0,
+        is_all_cleared: false
+      };
+
+      // Act
+      mergeResultIfRankedIn(
+        explorationTarget,
+        solutionResult,
+        optimalSolutions
+      );
+
+      // Assert
+      expect(optimalSolutions).toEqual([]);
+    });
+
     it('issues/52', () => {
       // Arrange
       const explorationTarget: ExplorationTarget = {
@@ -1704,6 +1765,266 @@ describe('solution-explorer', () => {
           expect(csp).toBe(expected.csp);
         }
       );
+    });
+
+    describe('solveWithPrefix()', () => {
+      // 盤面 (index):
+      //  0  1  2  3  4  5  6  7
+      //  8  9 10 11 12 13 14 15
+      // 16 17 18 19 20 21 22 23
+      // 24 25 26 27 28 29 30 31
+      // 32 33 34 35 36 37 38 39
+      // 40 41 42 43 44 45 46 47
+      // R R E E E E E E
+      // R R E E E E E E
+      // E E E E E E E E
+      // E E E E E E E E
+      // E E E E E E E E
+      // R E E E E E E E
+      const buildSimulator = (maxTraceNum: number) => {
+        const simulationData = createSimulationData({
+          nextPuyos: [E, E, E, E, E, E, E, E],
+          field: [
+            [R, R, E, E, E, E, E, E],
+            [R, R, E, E, E, E, E, E],
+            [E, E, E, E, E, E, E, E],
+            [E, E, E, E, E, E, E, E],
+            [E, E, E, E, E, E, E, E],
+            [R, E, E, E, E, E, E, E]
+          ],
+          minimumPuyoNumForPopping: 4,
+          maxTraceNum,
+          traceMode: TraceMode.Normal,
+          poppingLeverage: 1.0,
+          chainLeverage: 1.0
+        });
+        return new Simulator(simulationData);
+      };
+
+      const damageTarget: ExplorationTarget = {
+        category: ExplorationCategory.Damage,
+        preference_priorities: [PreferenceKind.BiggerValue],
+        optimal_solution_count: 5,
+        main_attr: PuyoAttr.Red
+      };
+
+      it('returns an empty result when the prefix is empty', () => {
+        // Arrange
+        const simulator = buildSimulator(5);
+
+        // Act
+        const actual = solveWithPrefix(simulator, damageTarget, [], false);
+
+        // Assert
+        expect(actual).toEqual({ candidates_num: 0, optimal_solutions: [] });
+      });
+
+      it('returns an empty result when the prefix is longer than the actual max trace num', () => {
+        // Arrange
+        const simulator = buildSimulator(1);
+
+        // Act
+        const actual = solveWithPrefix(simulator, damageTarget, [0, 1], false);
+
+        // Assert
+        expect(actual).toEqual({ candidates_num: 0, optimal_solutions: [] });
+      });
+
+      it('returns an empty result when the first coord of the prefix is not traceable', () => {
+        // Arrange
+        const simulator = buildSimulator(5);
+
+        // Act (index 2 is an empty cell)
+        const actual = solveWithPrefix(simulator, damageTarget, [2], false);
+
+        // Assert
+        expect(actual).toEqual({ candidates_num: 0, optimal_solutions: [] });
+      });
+
+      it('returns an empty result when a later coord of the prefix is not traceable', () => {
+        // Arrange
+        const simulator = buildSimulator(5);
+
+        // Act (index 0 is traceable but index 2 is an empty cell)
+        const actual = solveWithPrefix(simulator, damageTarget, [0, 2], false);
+
+        // Assert
+        expect(actual).toEqual({ candidates_num: 0, optimal_solutions: [] });
+      });
+
+      it('returns an empty result when a later coord of the prefix is traceable but not addable', () => {
+        // Arrange
+        const simulator = buildSimulator(5);
+
+        // Act (index 40 is traceable but is not adjacent to index 0's trace)
+        const actual = solveWithPrefix(simulator, damageTarget, [0, 40], false);
+
+        // Assert
+        expect(actual).toEqual({ candidates_num: 0, optimal_solutions: [] });
+      });
+
+      // 既存の solveAllTraces()/solveIncludingTraceIndex() のテストと同じ盤面。
+      // trace_coords = [(5,2), (6,2)] (index 21, 22) が最適解であることが
+      // 既に確認されているので、その prefix を使って recurse=false / true の
+      // 挙動を検証する。
+      const buildGreenSimulator = () => {
+        const board = getSpecialBoard('specialRule1/1');
+        const nextPuyos = createNextPuyosAsSameType(PuyoType.Green);
+        const simulationData = createSimulationData(board, {
+          maxTraceNum: 5,
+          poppingLeverage: 1.0,
+          nextPuyos
+        });
+        return new Simulator(simulationData);
+      };
+      const greenPrefix = [
+        PuyoCoord.xyToCoord(5, 2)!.index,
+        PuyoCoord.xyToCoord(6, 2)!.index
+      ];
+
+      it('evaluates exactly the prefix trace and does not expand further when recurse is false', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.Damage,
+          preference_priorities: [
+            PreferenceKind.BiggerValue,
+            PreferenceKind.ChancePop,
+            PreferenceKind.PrismPop,
+            PreferenceKind.AllClear,
+            PreferenceKind.SmallerTraceNum
+          ],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green
+        };
+
+        // Act
+        const actual = solveWithPrefix(simulator, target, greenPrefix, false);
+
+        // Assert: 既知の最適解と一致する (candidates_num は prefix 自身の1件のみ)
+        expect(actual.candidates_num).toBe(1);
+        expect(actual.optimal_solutions).toHaveLength(1);
+        expect(actual.optimal_solutions[0].trace_coords).toEqual([
+          PuyoCoord.xyToCoord(5, 2),
+          PuyoCoord.xyToCoord(6, 2)
+        ]);
+        expect(actual.optimal_solutions[0].value).toBeCloseTo(109.0);
+      });
+
+      it('computes the SkillPuyoCount value from the actual pop counts of the prefix trace', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.SkillPuyoCount,
+          preference_priorities: [PreferenceKind.BiggerValue],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green
+        };
+
+        // Act
+        const actual = solveWithPrefix(simulator, target, greenPrefix, false);
+
+        // Assert
+        const solution = actual.optimal_solutions[0];
+        expect(solution.value).toBe(16);
+        expect(
+          Simulator.calcTotalCountOfTargetAttr(solution.chains!, PuyoAttr.Green)
+        ).toBe(solution.value);
+      });
+
+      it('applies a non-repeating step counting bonus on top of the raw count', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.SkillPuyoCount,
+          preference_priorities: [PreferenceKind.BiggerValue],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green,
+          counting_bonus: {
+            bonus_type: CountingBonusType.Step,
+            target_attrs: [PuyoAttr.Green],
+            step_height: 5,
+            bonus_count: 10,
+            repeat: false
+          }
+        };
+
+        // Act
+        const actual = solveWithPrefix(simulator, target, greenPrefix, false);
+
+        // Assert: 16 個の緑ぷよで floor(16/5) = 3 段登れるが、repeat: false
+        // なので1段分のボーナスのみ加算される
+        expect(actual.optimal_solutions[0].value).toBe(16 + 10);
+      });
+
+      it('applies a repeating step counting bonus for every step reached', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.SkillPuyoCount,
+          preference_priorities: [PreferenceKind.BiggerValue],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green,
+          counting_bonus: {
+            bonus_type: CountingBonusType.Step,
+            target_attrs: [PuyoAttr.Green],
+            step_height: 5,
+            bonus_count: 10,
+            repeat: true
+          }
+        };
+
+        // Act
+        const actual = solveWithPrefix(simulator, target, greenPrefix, false);
+
+        // Assert: floor(16/5) = 3 段、repeat: true なので3段分のボーナスが加算される
+        expect(actual.optimal_solutions[0].value).toBe(16 + 10 * 3);
+      });
+
+      it('computes the value for PuyotsukaiCount category', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.PuyotsukaiCount,
+          preference_priorities: [PreferenceKind.BiggerValue],
+          optimal_solution_count: 1
+        };
+
+        // Act
+        const actual = solveWithPrefix(simulator, target, greenPrefix, false);
+
+        // Assert
+        const solution = actual.optimal_solutions[0];
+        expect(solution.value).toBe(52);
+        expect(Simulator.calcTotalPuyoTsukaiCount(solution.chains!)).toBe(
+          solution.value
+        );
+      });
+
+      it('expands every trace descending from the prefix when recurse is true, matching solveIncludingTraceIndex', () => {
+        // Arrange
+        const simulator = buildGreenSimulator();
+        const target: ExplorationTarget = {
+          category: ExplorationCategory.Damage,
+          preference_priorities: [
+            PreferenceKind.BiggerValue,
+            PreferenceKind.ChancePop,
+            PreferenceKind.PrismPop,
+            PreferenceKind.AllClear,
+            PreferenceKind.SmallerTraceNum
+          ],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green
+        };
+
+        // Act: prefix=[21] からの全展開は、index=21を起点にした全探索と等価
+        const viaPrefix = solveWithPrefix(simulator, target, [21], true);
+        const viaIndex = solveIncludingTraceIndex(simulator, target, 21);
+
+        // Assert: 既に検証済みの solveIncludingTraceIndex() の結果と完全に一致する
+        expect(viaPrefix.candidates_num).toBe(539);
+        expect(viaPrefix).toEqual(viaIndex);
+      });
     });
   });
 });

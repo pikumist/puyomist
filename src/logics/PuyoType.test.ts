@@ -155,6 +155,10 @@ describe('PuyoType helpers', () => {
       PuyoType.Padding
     );
     expect(convertPuyoType(PuyoType.Ojama, PuyoAttr.Red)).toBe(PuyoType.Red);
+    // non-colored -> heart hits the final switch's Heart case directly
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Heart)).toBe(
+      PuyoType.Heart
+    );
   });
 
   it('getPuyoRgb returns a color for every attribute', () => {
@@ -163,5 +167,11 @@ describe('PuyoType helpers', () => {
     }
     expect(getPuyoRgb(PuyoType.Red)).toBe('#c00');
     expect(getPuyoRgb(PuyoType.Prism)).toBe('#fff');
+  });
+
+  it('getPuyoRgb throws for an unknown puyo type', () => {
+    expect(() => getPuyoRgb(0 as PuyoType)).toThrow(
+      'The attr of puyo is unknown.'
+    );
   });
 });

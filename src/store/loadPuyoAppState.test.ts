@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Board } from '../logics/Board';
+import { boostAreaKeyMap } from '../logics/BoostArea';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
 import { customBoardId } from '../logics/boards';
@@ -60,5 +61,25 @@ describe('loadPuyoAppState', () => {
     s.setBoostAreaKeyList([]);
     const state = loadPuyoAppState(s);
     expect(state.boostAreaKeyList).toEqual([]);
+  });
+
+  it('resolves the boost area coord list from persisted boost area keys', () => {
+    const s = makeSession();
+    const key = [...boostAreaKeyMap.keys()][0];
+    s.setBoostAreaKeyList([key]);
+    const state = loadPuyoAppState(s);
+    expect(state.boostAreaKeyList).toEqual([key]);
+    expect(state.simulationData.boostAreaCoordList.length).toBeGreaterThan(0);
+    expect(state.simulationData.boostAreaCoordList[0]).toBeInstanceOf(
+      PuyoCoord
+    );
+  });
+
+  it('uses the default session when no session is given', () => {
+    localStorage.clear();
+    const state = loadPuyoAppState();
+    expect(state.boardId).toBe('chainSeed1/1');
+    expect(state.nextSelection).toBe('random');
+    expect(state.simulationData.field).toHaveLength(PuyoCoord.YNum);
   });
 });

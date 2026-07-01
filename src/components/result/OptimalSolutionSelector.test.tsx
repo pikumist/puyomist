@@ -62,4 +62,19 @@ describe('OptimalSolutionSelector', () => {
     expect(screen.getAllByText(/1: 12 \(/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/12\.35/)).not.toBeInTheDocument();
   });
+
+  it('updates the selected solution index in the store', () => {
+    render(
+      <OptimalSolutionSelector
+        result={makeResult(ExplorationCategory.Damage)}
+        index={0}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('解の選択'));
+    const option = screen.getByRole('option', { name: /^2:/ });
+    fireEvent.pointerDown(option, { pointerType: 'mouse' });
+    fireEvent.pointerUp(option, { pointerType: 'mouse' });
+    fireEvent.click(option);
+    expect(usePuyoAppStore.getState().optimalSolutionIndex).toBe(1);
+  });
 });

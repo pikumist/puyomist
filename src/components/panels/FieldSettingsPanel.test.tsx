@@ -25,6 +25,26 @@ describe('FieldSettingsPanel', () => {
     expect(screen.getAllByRole('option').length).toBeGreaterThan(1);
   });
 
+  it('changes the trace mode from the select', () => {
+    render(<FieldSettingsPanel />);
+    fireEvent.click(screen.getByLabelText('なぞりモードの選択'));
+    const option = screen.getByRole('option', { name: '赤ぷよに変える' });
+    fireEvent.pointerDown(option, { pointerType: 'mouse' });
+    fireEvent.pointerUp(option, { pointerType: 'mouse' });
+    fireEvent.click(option);
+    expect(usePuyoAppStore.getState().simulationData.traceMode).toBe(1);
+  });
+
+  it('decrements the minimum popping puyo number', () => {
+    render(<FieldSettingsPanel />);
+    const before =
+      usePuyoAppStore.getState().simulationData.minimumPuyoNumForPopping;
+    fireEvent.click(screen.getByLabelText('ひっつき最小数を減らす'));
+    expect(
+      usePuyoAppStore.getState().simulationData.minimumPuyoNumForPopping
+    ).toBe(before - 1);
+  });
+
   it('updates popping / chain leverage and animation duration', () => {
     render(<FieldSettingsPanel />);
     const sim = () => usePuyoAppStore.getState().simulationData;
