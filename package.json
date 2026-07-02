@@ -17,7 +17,8 @@
     "coverage": "vitest run --coverage",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "server": "tsx server/cli.ts"
+    "server": "tsx server/cli.ts",
+    "solver-server": "cd packages/solver-wasm; RUSTFLAGS=\"-C target-cpu=native\" cargo run --release --features server --bin solver-server"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

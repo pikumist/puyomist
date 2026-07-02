@@ -218,7 +218,13 @@ export enum SolutionMethod {
   /** 全探索(シングルスレッド) WASM版 */
   solveAllInSerialByWasm = 'solveAllInSerialByWasm',
   /** 全探索(マルチスレッド) WASM版 */
-  solveAllInParallelByWasm = 'solveAllInParallelByWasm'
+  solveAllInParallelByWasm = 'solveAllInParallelByWasm',
+  /**
+   * 全探索 Rustネイティブバックエンド版。
+   * localhost限定で起動するローカルWebSocketサーバー (solver-server) に委譲する。
+   * 外部通信は一切発生しない。
+   */
+  solveAllByRustBackend = 'solveAllByRustBackend'
 }
 
 /** 探索法と説明のマップ */
@@ -228,3 +234,10 @@ export const solutionMethodDescriptionMap = new Map<SolutionMethod, string>([
   // [SolutionMethod.solveAllInSerialByWasm, '全探索シングルWASM'],
   [SolutionMethod.solveAllInParallelByWasm, '全探索マルチWASM']
 ]);
+
+/**
+ * Rustネイティブバックエンド探索法の説明。
+ * localhost限定でのみUIに表示するため、solutionMethodDescriptionMap には含めない
+ * (公開サイトでは選択肢として出さない)。
+ */
+export const rustBackendSolutionMethodDescription = '全探索Rustバックエンド';

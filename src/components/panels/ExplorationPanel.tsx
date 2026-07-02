@@ -7,7 +7,8 @@ import SolutionMenu from '@/components/result/SolutionMenu';
 import SolutionResultView from '@/components/result/SolutionResultView';
 import { Progress } from '@/components/ui/progress';
 import {
-  type SolutionMethod,
+  SolutionMethod,
+  rustBackendSolutionMethodDescription,
   solutionMethodDescriptionMap
 } from '@/logics/solution';
 import {
@@ -17,9 +18,19 @@ import {
 } from '@/store/puyoAppStore';
 import ExplorationTargetSetting from './ExplorationTargetSetting';
 
-const methodItems = [...solutionMethodDescriptionMap] as ReadonlyArray<
-  readonly [SolutionMethod, string]
->;
+// Rustネイティブバックエンドはlocalhost限定 (README「外部通信なし」維持のため、公開サイトでは
+// 選択肢に出さない。ローカル専用のsolver-serverへ接続する探索法のため)。
+const methodItems = (
+  window.location.hostname === 'localhost'
+    ? [
+        ...solutionMethodDescriptionMap,
+        [
+          SolutionMethod.solveAllByRustBackend,
+          rustBackendSolutionMethodDescription
+        ] as const
+      ]
+    : [...solutionMethodDescriptionMap]
+) as ReadonlyArray<readonly [SolutionMethod, string]>;
 
 /**
  * Exploration panel: settings + solve menu + progress + result. Shared between

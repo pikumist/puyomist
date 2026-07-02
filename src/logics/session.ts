@@ -122,6 +122,17 @@ export class Session {
     const solutionMethod =
       this.storage.getItem(Session.solutionMethodKey) ||
       SolutionMethod.solveAllInParallelByWasm;
+
+    // Rustネイティブバックエンドはlocalhost限定 (README「外部通信なし」維持のため)。
+    // localhost以外で永続化された値が読み込まれた場合 (別ホストでの復元など) は、
+    // 公開サイトで選択不可能な探索法が選ばれてしまわないようWASM版へフォールバックする。
+    if (
+      solutionMethod === SolutionMethod.solveAllByRustBackend &&
+      window.location.hostname !== 'localhost'
+    ) {
+      return SolutionMethod.solveAllInParallelByWasm;
+    }
+
     return solutionMethod as SolutionMethod;
   }
 

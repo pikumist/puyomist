@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Board } from '../logics/Board';
 import { boostAreaKeyMap } from '../logics/BoostArea';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
 import { customBoardId } from '../logics/boards';
 import { Session } from '../logics/session';
+import { SolutionMethod } from '../logics/solution';
 import { loadPuyoAppState } from './loadPuyoAppState';
 
 const makeSession = () => {
@@ -81,5 +82,31 @@ describe('loadPuyoAppState', () => {
     expect(state.boardId).toBe('chainSeed1/1');
     expect(state.nextSelection).toBe('random');
     expect(state.simulationData.field).toHaveLength(PuyoCoord.YNum);
+  });
+
+  it('keeps a persisted Rust backend solution method on localhost', () => {
+    const s = makeSession();
+    s.setSolutionMethod(SolutionMethod.solveAllByRustBackend);
+    const state = loadPuyoAppState(s);
+    expect(state.solutionMethod).toBe(SolutionMethod.solveAllByRustBackend);
+  });
+
+  describe('off localhost', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('falls back a persisted Rust backend solution method to parallel wasm', () => {
+      const s = makeSession();
+      s.setSolutionMethod(SolutionMethod.solveAllByRustBackend);
+      vi.stubGlobal('location', {
+        ...window.location,
+        hostname: 'example.com'
+      });
+      const state = loadPuyoAppState(s);
+      expect(state.solutionMethod).toBe(
+        SolutionMethod.solveAllInParallelByWasm
+      );
+    });
   });
 });

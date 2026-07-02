@@ -1,4 +1,5 @@
 import { SolutionMethod, type SolveResult } from '../../logics/solution';
+import { createSolveAllByRustBackend } from '../../logics/solution-rust-backend';
 import {
   createSolveAllInParallel,
   createSolveAllInParallelByWasm,
@@ -43,6 +44,12 @@ export const solveButtonClicked = (): void => {
       break;
     case SolutionMethod.solveAllInParallelByWasm:
       solve = createSolveAllInParallelByWasm(
+        state.simulationData,
+        state.explorationTarget
+      );
+      break;
+    case SolutionMethod.solveAllByRustBackend:
+      solve = createSolveAllByRustBackend(
         state.simulationData,
         state.explorationTarget
       );

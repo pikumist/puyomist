@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Board } from './Board';
 import { HowToEditBoard } from './BoardEditMode';
 import {
@@ -6,8 +6,8 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
-import { Session, session } from './session';
 import { TraceMode } from './TraceMode';
+import { Session, session } from './session';
 import { SolutionMethod } from './solution';
 
 describe('Session', () => {
@@ -89,11 +89,21 @@ describe('Session', () => {
   });
 
   it('solutionMethod falls back to parallel wasm and round-trips', () => {
-    expect(s.getSolutionMethod()).toBe(
-      SolutionMethod.solveAllInParallelByWasm
-    );
+    expect(s.getSolutionMethod()).toBe(SolutionMethod.solveAllInParallelByWasm);
     s.setSolutionMethod(SolutionMethod.solveAllInSerial);
     expect(s.getSolutionMethod()).toBe(SolutionMethod.solveAllInSerial);
+  });
+
+  it('solutionMethod keeps the Rust backend on localhost', () => {
+    s.setSolutionMethod(SolutionMethod.solveAllByRustBackend);
+    expect(s.getSolutionMethod()).toBe(SolutionMethod.solveAllByRustBackend);
+  });
+
+  it('solutionMethod falls back from the Rust backend to parallel wasm off localhost', () => {
+    vi.stubGlobal('location', { ...window.location, hostname: 'example.com' });
+    s.setSolutionMethod(SolutionMethod.solveAllByRustBackend);
+    expect(s.getSolutionMethod()).toBe(SolutionMethod.solveAllInParallelByWasm);
+    vi.unstubAllGlobals();
   });
 
   it('lastScreenshotBoard returns undefined when absent/empty and round-trips', () => {
