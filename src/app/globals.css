@@ -369,8 +369,8 @@
    ───────────────────────────────────────────────────────────── */
 :root {
   --topbar-h: 3rem;
-  --sidebar-min: 280px;
-  --sidebar-max: 320px;
+  --sidebar-min: 300px;
+  --sidebar-max: 360px;
   /* fixed label column for SettingRow so stacked controls share a left edge */
   --setting-label-w: 7.5rem;
   /* board grows with the viewport (see .board-fluid); cap widens per breakpoint */

@@ -121,7 +121,7 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
 
           {boardEditMode?.howToEdit === HowToEditBoard.ToCustomType ? (
             <RadioGroup
-              className="grid grid-cols-4 gap-2"
+              className="grid grid-cols-4 gap-3"
               value={
                 boardEditMode?.customType
                   ? String(boardEditMode.customType)
@@ -144,7 +144,9 @@ const BoardEditPopover: React.FC<IProps> = (props) => {
                     <Label key={String(type)} className="gap-1">
                       <RadioGroupItem value={String(type)} />
                       {type !== emptyKey ? (
-                        <PuyoIcon type={type as PuyoType} size={20} />
+                        <span className="inline-flex rounded-md bg-muted p-0.5">
+                          <PuyoIcon type={type as PuyoType} size={26} />
+                        </span>
                       ) : (
                         <span className="text-sm">空</span>
                       )}
