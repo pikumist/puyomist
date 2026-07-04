@@ -45,6 +45,7 @@
 ### Changed
 
 - Node.js を v24 系 (24.18.0) に更新
+- Rust を 1.96.1、wasm-pack を 0.15.0 に更新し、rust-toolchain.toml と CI でバージョンを固定
 - 技術スタックを刷新 (Chakra UI + Redux + React 18 → Tailwind CSS v4 + shadcn/ui + zustand + React 19、Vite 8 / Vitest 4 / Storybook を導入)
 - UI を 3 ペイン (モバイルファースト・レスポンシブ) に一新
 - パステル (ラベンダーミスト) テーマ化し、すりガラスの質感と余白のゆとりを追加
