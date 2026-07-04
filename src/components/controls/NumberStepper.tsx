@@ -25,6 +25,82 @@ function decimalsFromStep(step: number): number {
   return i === -1 ? 0 : s.length - i - 1;
 }
 
+const HOLD_INITIAL_DELAY_MS = 400;
+const HOLD_REPEAT_INTERVAL_MS = 80;
+
+/**
+ * Wires up press-and-hold auto-repeat for a stepper button, mimicking the
+ * browser-native `<input type=number>` spinner. A single click/tap/keyboard
+ * activation still fires exactly once via `onClick`; a held pointer fires
+ * once immediately and then repeats after an initial delay.
+ */
+function useHoldToRepeat(
+  onStep: () => void,
+  atLimit: () => boolean,
+  disabled: boolean | undefined
+) {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const heldByPointerRef = useRef(false);
+
+  const clearTimers = () => {
+    clearTimeout(timeoutRef.current);
+    clearInterval(intervalRef.current);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(timeoutRef.current);
+      clearInterval(intervalRef.current);
+      clearTimeout(releaseTimeoutRef.current);
+    };
+  }, []);
+
+  // If the button becomes disabled mid-hold (e.g. an external state change,
+  // not just reaching min/max), pointerup/leave/cancel may never fire on it.
+  useEffect(() => {
+    if (disabled) {
+      clearTimeout(timeoutRef.current);
+      clearInterval(intervalRef.current);
+    }
+  }, [disabled]);
+
+  return {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      heldByPointerRef.current = true;
+      onStep();
+      if (atLimit()) return;
+      timeoutRef.current = setTimeout(() => {
+        intervalRef.current = setInterval(() => {
+          onStep();
+          if (atLimit()) clearTimers();
+        }, HOLD_REPEAT_INTERVAL_MS);
+      }, HOLD_INITIAL_DELAY_MS);
+    },
+    onPointerUp: () => {
+      clearTimers();
+      // A genuine click's `click` event fires synchronously right after
+      // `pointerup`, so it resets the flag itself before this runs. If the
+      // pointer was released off-element (no `click` follows), this is what
+      // clears the flag so it doesn't swallow the next keyboard activation.
+      releaseTimeoutRef.current = setTimeout(() => {
+        heldByPointerRef.current = false;
+      }, 0);
+    },
+    onPointerLeave: clearTimers,
+    onPointerCancel: clearTimers,
+    onClick: () => {
+      if (heldByPointerRef.current) {
+        heldByPointerRef.current = false;
+        return;
+      }
+      onStep();
+    }
+  };
+}
+
 /**
  * Numeric stepper input replacing Chakra's `NumberInput`. Built from the
  * shadcn `Input` + two `Button`s so it inherits design tokens and 44px-ish
@@ -57,6 +133,10 @@ export function NumberStepper({
 
   const [draft, setDraft] = useState(() => format(value));
   const editingRef = useRef(false);
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   // Reflect external value changes (buttons, store resets) into the field while
   // the user isn't actively editing it.
@@ -78,10 +158,22 @@ export function NumberStepper({
   };
 
   const stepBy = (delta: number) => {
-    const snapped = snap(clamp(value + delta));
+    const snapped = snap(clamp(valueRef.current + delta));
+    valueRef.current = snapped;
     onChange(snapped);
     setDraft(format(snapped));
   };
+
+  const decrementHold = useHoldToRepeat(
+    () => stepBy(-step),
+    () => valueRef.current <= min,
+    disabled
+  );
+  const incrementHold = useHoldToRepeat(
+    () => stepBy(step),
+    () => valueRef.current >= max,
+    disabled
+  );
 
   return (
     <div className={cn('inline-flex items-center gap-1.5', className)}>
@@ -91,7 +183,7 @@ export function NumberStepper({
         size="icon"
         disabled={disabled || value <= min}
         aria-label={ariaLabel ? `${ariaLabel}を減らす` : 'decrement'}
-        onClick={() => stepBy(-step)}
+        {...decrementHold}
       >
         <MinusIcon />
       </Button>
@@ -127,7 +219,7 @@ export function NumberStepper({
         size="icon"
         disabled={disabled || value >= max}
         aria-label={ariaLabel ? `${ariaLabel}を増やす` : 'increment'}
-        onClick={() => stepBy(step)}
+        {...incrementHold}
       >
         <PlusIcon />
       </Button>
