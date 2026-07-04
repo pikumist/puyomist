@@ -2,7 +2,7 @@ import type * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface SettingRowProps {
+interface SettingRowProps {
   label: React.ReactNode;
   children: React.ReactNode;
   className?: string;

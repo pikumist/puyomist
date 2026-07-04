@@ -31,7 +31,7 @@ import { createNextPuyos } from './internal/createNextPuyos';
 import { createSimulationData } from './internal/createSimulationData';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './types';
 
-export interface PuyoAppActions {
+interface PuyoAppActions {
   /// システム系
   hydrate: (payload: PuyoAppState) => void;
 
@@ -110,7 +110,7 @@ export interface PuyoAppActions {
   puyomistJsonDetected: (puyomist: PuyomistJson) => void;
 }
 
-export type PuyoAppStore = PuyoAppState & PuyoAppActions;
+type PuyoAppStore = PuyoAppState & PuyoAppActions;
 
 export const usePuyoAppStore = create<PuyoAppStore>()(
   immer((set) => ({

@@ -90,7 +90,7 @@ export const getPuyoTypeName = (puyoType: PuyoType | undefined): string => {
 };
 
 /** 色ぷよの型 (プリズムは含まない) */
-export type ColoredPuyoType =
+type ColoredPuyoType =
   | PuyoType.Red
   | PuyoType.RedPlus
   | PuyoType.RedChance

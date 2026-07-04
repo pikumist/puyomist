@@ -4,21 +4,21 @@ import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import { rgbToHsv } from './generics/rgbToHsv';
 
-export interface Rect {
+interface Rect {
   left: number;
   top: number;
   right: number;
   bottom: number;
 }
 
-export interface BoardMeta {
+interface BoardMeta {
   fieldRect: Rect;
   unitWidth: number;
   unitHeight: number;
   isChanceMode: boolean;
 }
 
-export const getPixel = (
+const getPixel = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number
@@ -27,7 +27,7 @@ export const getPixel = (
   return [...color];
 };
 
-export const isWhite = (rgb: number[]) => {
+const isWhite = (rgb: number[]) => {
   return rgb[0] === 255 && rgb[1] === 255 && rgb[2] === 255;
 };
 

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
-export interface EnumSelectProps<T> {
+interface EnumSelectProps<T> {
   /** Currently selected value. */
   value: T;
   /** Called with the newly selected value. */

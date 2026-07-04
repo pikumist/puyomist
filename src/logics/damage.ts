@@ -14,7 +14,7 @@ export const calcDamageTerm = (
 };
 
 /** calcPoppintFactor() のオプション */
-export interface CalcPoppingFactorOptions {
+interface CalcPoppingFactorOptions {
   /** ぷよが消えるのに必要な個数 */
   minimumPuyoNumForPopping?: number;
   /** 同時消し係数 (通常攻撃は 0.15, スキル砲は 0.30) */

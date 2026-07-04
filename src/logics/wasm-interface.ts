@@ -31,14 +31,7 @@ export interface WasmSimulationEnvironment {
   chain_leverage: number;
 }
 
-export type WasmBlock = Map<WasmPuyoCoord, WasmPuyo>;
-
-export interface WasmBlockWithAttr {
-  attr: PuyoAttr;
-  block: WasmBlock;
-}
-
-export type WasmAttributeChain = AttributeChain;
+type WasmAttributeChain = AttributeChain;
 
 export interface WasmChain {
   chain_num: number;

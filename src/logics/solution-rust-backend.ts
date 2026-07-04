@@ -25,7 +25,7 @@ import {
 } from './wasm-serialize';
 
 /** Rustネイティブバックエンド (solver-server) のデフォルト待受先。 */
-export const DEFAULT_RUST_BACKEND_URL = 'ws://localhost:3011';
+const DEFAULT_RUST_BACKEND_URL = 'ws://localhost:3011';
 
 /** サーバーからの部分結果通知 (完了タスクごと)。 */
 interface ServerPartialMessage {

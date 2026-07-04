@@ -11,7 +11,7 @@
 import { type AnimationStep, cloneFieldAndNext } from './AnimationStep';
 import type { AttributeChain, Chain } from './Chain';
 import { type Puyo, generatePuyoId } from './Puyo';
-import { PuyoAttr, coloredPuyoAttrList, isColoredPuyoAttr } from './PuyoAttr';
+import { PuyoAttr, isColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import {
   PuyoType,
@@ -27,7 +27,6 @@ import { calcChainFactor, calcDamageTerm, calcPoppingFactor } from './damage';
 
 /** 連鎖シミュレーター */
 export class Simulator {
-  static readonly colorAttrs: ReadonlyArray<PuyoAttr> = coloredPuyoAttrList;
   static readonly specialAttrs: ReadonlyArray<PuyoAttr> = [
     PuyoAttr.Heart,
     PuyoAttr.Prism,
@@ -37,7 +36,6 @@ export class Simulator {
 
   static readonly defaultMinimumPuyoNumForPopping = 4;
   static readonly defaultMaxTraceNum = 5;
-  static readonly defaultAnimationDuration = 200;
 
   /** フィールドは 8x6 のぷよ行列 */
   private readonly field: (Puyo | undefined)[][];

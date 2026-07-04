@@ -110,7 +110,7 @@ export const preferenceKindDescriptionMap: ReadonlyMap<PreferenceKind, string> =
   ]);
 
 /** 探索共通設定 */
-export interface ExplorationTargetCommon {
+interface ExplorationTargetCommon {
   /** 各好みの優先度リスト。インデックスの小さい要素の方を優先する。 */
   preference_priorities: PreferenceKind[];
   /** 求める解の数 */
