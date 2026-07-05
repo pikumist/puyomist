@@ -1,0 +1,13 @@
+@import "./globals.css";
+
+/* Exclude the local-dev-only labeler shell (src/label, built separately via
+   vite.label.config.ts / `npm run dev:label` | `build:label`) from Tailwind's
+   automatic content scan for the *public* app entry. Tailwind v4 auto-detects
+   utility classes across the whole project by default, so without this the
+   public `npm run build` CSS bundle would pick up (and byte-diff on)
+   label-only utility classes. This exclusion must live here rather than in
+   `globals.css` itself, since `globals.css` is also imported by the labeler
+   entry (`src/label/main.tsx`), which needs the full, unexcluded scan so its
+   own label-only utility classes get generated.
+   https://tailwindcss.com/docs/detecting-classes-in-source-files#excluding-paths */
+@source not "../label";
