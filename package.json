@@ -6,9 +6,11 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
+    "dev:label": "vite --config vite.label.config.ts",
     "build": "npm run build:wasm && npm run build:vite",
     "build:wasm": "wasm-pack build packages/solver-wasm --target web",
     "build:vite": "tsc && vite build",
+    "build:label": "npm run build:wasm && vite build --config vite.label.config.ts",
     "lint": "biome lint .",
     "preview": "vite preview",
     "test": "vitest",
