@@ -19,6 +19,10 @@ const firstCharMap = new Map<
   ['K', PuyoType.Kata],
   ['Z', PuyoType.Padding],
   ['_', empty],
+  // '?' は puyoquess の Next 専用「不明/隠れ」トークン (labels.py)。main アプリ側に
+  // 「不明」型は無いので空セル扱いにする。未マップだと Padding(壁) に化けて
+  // nextPuyos が黙って壊れる (パースエラーも出ない) ため、明示的に空へ倒す。
+  ['?', empty],
   [undefined, empty]
 ]);
 

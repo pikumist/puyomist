@@ -57,6 +57,8 @@ export interface PuyoAppState {
   screenshotInfo: ScreenshotInfo | undefined;
   /** スクリーンショット解析時のエラーメッセージ */
   screenshotErrorMessage: string | undefined;
+  /** ボードブリッジから受け取ったプレビュー画像 */
+  bridgePreview: ScreenshotInfo | undefined;
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
@@ -105,5 +107,6 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   solveResult: undefined,
   optimalSolutionIndex: -1,
   screenshotInfo: undefined,
-  screenshotErrorMessage: undefined
+  screenshotErrorMessage: undefined,
+  bridgePreview: undefined
 };

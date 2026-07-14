@@ -108,6 +108,8 @@ interface PuyoAppActions {
     board?: Board | undefined;
   }) => void;
   puyomistJsonDetected: (puyomist: PuyomistJson) => void;
+  /** ボードブリッジから受け取ったプレビュー画像がセットされたとき */
+  bridgePreviewReceived: (preview: ScreenshotInfo | undefined) => void;
 }
 
 type PuyoAppStore = PuyoAppState & PuyoAppActions;
@@ -728,6 +730,15 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         state.screenshotInfo = screenshotInfo;
       }),
 
+    /** ボードブリッジから受け取ったプレビュー画像がセットされたとき */
+    bridgePreviewReceived: (preview) =>
+      set((state) => {
+        if (state.bridgePreview?.blobUrl) {
+          URL.revokeObjectURL(state.bridgePreview.blobUrl);
+        }
+        state.bridgePreview = preview;
+      }),
+
     /** 盤面判定が完了したとき */
     boardDetected: (payload) =>
       set((state) => {
@@ -836,7 +847,8 @@ export const {
   /// スクリーンショット系
   screenshotReceived,
   boardDetected,
-  puyomistJsonDetected
+  puyomistJsonDetected,
+  bridgePreviewReceived
 } = usePuyoAppStore.getState();
 
 /** ストア全体を購読するフック（旧 useSelector((s) => s.puyoApp) 相当） */

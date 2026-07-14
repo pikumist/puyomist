@@ -3,6 +3,7 @@ import '@/hooks/dispatchWhenScreenshotReceivedViaWebSocket';
 import PuyoBoard from '@/components/board/PuyoBoard';
 import FieldController from '@/components/board/FieldController';
 import TopBar from '@/components/layout/TopBar';
+import BridgePreview from '@/components/panels/BridgePreview';
 import ExplorationPanel from '@/components/panels/ExplorationPanel';
 import FieldSettingsPanel from '@/components/panels/FieldSettingsPanel';
 import TracingResultView from '@/components/result/TracingResultView';
@@ -33,6 +34,7 @@ export function App() {
 
   return (
     <div className="app-shell">
+      <BridgePreview />
       <TopBar />
 
       {/* Desktop-only left field panel */}
