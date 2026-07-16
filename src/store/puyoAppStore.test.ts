@@ -141,7 +141,7 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
 
   it('tracingCoordAdded は最初の座標がなぞれないぷよなら追加しない', () => {
     const sim = makeRedSimulationData();
-    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Padding };
+    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Question };
     usePuyoAppStore.setState({ simulationData: sim });
 
     tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
@@ -150,7 +150,7 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
 
   it('tracingCoordAdded は隣接座標がなぞれないぷよなら追加しない', () => {
     const sim = makeRedSimulationData();
-    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Padding };
+    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Question };
     usePuyoAppStore.setState({ simulationData: sim });
 
     tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);

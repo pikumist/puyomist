@@ -18,8 +18,8 @@ export enum PuyoAttr {
   Ojama = 8,
   /** 固 */
   Kata = 9,
-  /** パディング */
-  Padding = 10
+  /** ? (不明) */
+  Question = 10
 }
 
 /** 色付きぷよの属性 */

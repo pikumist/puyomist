@@ -641,7 +641,7 @@ export class Simulator {
       }
 
       // 固ぷよブロックの場合
-      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Padding) {
+      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Question) {
         // カウントしない
         return m;
       }
@@ -675,7 +675,7 @@ export class Simulator {
       }
 
       // 固ぷよブロックの場合
-      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Padding) {
+      if (block.attr === PuyoAttr.Kata || block.attr === PuyoAttr.Question) {
         // カウントしない
         return m;
       }
@@ -769,14 +769,14 @@ export class Simulator {
       const initialY = PuyoCoord.YNum - 1 - colPuyoNum;
       const nextPuyo = this.nextPuyos[x] ?? {
         id: generatePuyoId(),
-        type: PuyoType.Padding
+        type: PuyoType.Question
       };
 
       for (let y = initialY; y >= 0; y--) {
         this.field[y][x] =
           y === initialY
             ? nextPuyo
-            : { id: generatePuyoId(), type: PuyoType.Padding };
+            : { id: generatePuyoId(), type: PuyoType.Question };
       }
 
       this.nextPuyos[x] = undefined;

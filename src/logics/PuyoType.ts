@@ -50,8 +50,8 @@ export enum PuyoType {
   Ojama = 23,
   /** 固ぷよ */
   Kata = 24,
-  /** パディングぷよ (連鎖をとめるための消せないぷよ) */
-  Padding = 25
+  /** ?ぷよ (何が来るか不明なため、なぞれず消えず連鎖もとめるぷよ) */
+  Question = 25
 }
 
 export const puyoTypeMap: ReadonlyMap<PuyoType, string> = new Map<
@@ -82,7 +82,7 @@ export const puyoTypeMap: ReadonlyMap<PuyoType, string> = new Map<
   [PuyoType.Prism, 'プリズム'],
   [PuyoType.Ojama, 'おじゃま'],
   [PuyoType.Kata, '固'],
-  [PuyoType.Padding, 'パティング']
+  [PuyoType.Question, '?']
 ]);
 
 export const getPuyoTypeName = (puyoType: PuyoType | undefined): string => {
@@ -202,7 +202,7 @@ export const isTraceablePuyo = (
   switch (puyoType) {
     case PuyoType.Ojama:
     case PuyoType.Kata:
-    case PuyoType.Padding:
+    case PuyoType.Question:
       return false;
     default:
       return true;
@@ -256,8 +256,8 @@ export const getPuyoAttr = (
     case PuyoType.Kata:
       return PuyoAttr.Kata;
 
-    case PuyoType.Padding:
-      return PuyoAttr.Padding;
+    case PuyoType.Question:
+      return PuyoAttr.Question;
   }
 };
 
@@ -350,7 +350,7 @@ export const convertPuyoType = (
   puyoType: PuyoType,
   toAttr: PuyoAttr
 ): PuyoType => {
-  if (puyoType === PuyoType.Padding) {
+  if (puyoType === PuyoType.Question) {
     return puyoType;
   }
 
@@ -414,8 +414,8 @@ export const convertPuyoType = (
       return PuyoType.Ojama;
     case PuyoAttr.Kata:
       return PuyoType.Kata;
-    case PuyoAttr.Padding:
-      return PuyoType.Padding;
+    case PuyoAttr.Question:
+      return PuyoType.Question;
   }
 };
 
@@ -442,7 +442,7 @@ export const getPuyoRgb = (type: PuyoType) => {
       return '#666';
     case PuyoAttr.Kata:
       return '#333';
-    case PuyoAttr.Padding:
+    case PuyoAttr.Question:
       return '#000';
     default:
       throw new Error('The attr of puyo is unknown.');

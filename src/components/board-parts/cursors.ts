@@ -20,8 +20,8 @@ export const getCursorClass = (type: PuyoType | undefined) => {
       return 'cursorOjama';
     case PuyoType.Kata:
       return 'cursorKata';
-    case PuyoType.Padding:
-      return 'cursorPadding';
+    case PuyoType.Question:
+      return 'cursorQuestion';
     default:
       return '';
   }

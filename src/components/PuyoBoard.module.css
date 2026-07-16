@@ -220,6 +220,6 @@
   cursor: url($cursors/kata.svg) 18 18, auto;
 }
 
-.cursorPadding {
-  cursor: url($cursors/padding.svg) 18 18, auto;
+.cursorQuestion {
+  cursor: url($cursors/question.svg) 18 18, auto;
 }

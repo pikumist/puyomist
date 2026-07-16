@@ -52,7 +52,7 @@ pub struct BitBoards {
     /** 固ぷよのビットボード */
     kata: u64,
     /** パディングのビットボード */
-    padding: u64,
+    question: u64,
     /** プラス属性のビットボード */
     plus: u64,
     /** チャンス属性のビットボード */
@@ -65,7 +65,7 @@ impl BitBoards {
         occ |= self.prism;
         occ |= self.ojama;
         occ |= self.kata;
-        occ |= self.padding;
+        occ |= self.question;
         occ &= FIELD_MASK;
         return occ == 0;
     }
@@ -138,7 +138,7 @@ impl<'a> SimulatorBB<'a> {
             prism: 0,
             ojama: 0,
             kata: 0,
-            padding: 0,
+            question: 0,
             plus: 0,
             chance: 0,
         };
@@ -162,7 +162,7 @@ impl<'a> SimulatorBB<'a> {
                 PuyoAttr::Prism => boards.prism |= bit,
                 PuyoAttr::Ojama => boards.ojama |= bit,
                 PuyoAttr::Kata => boards.kata |= bit,
-                PuyoAttr::Padding => boards.padding |= bit,
+                PuyoAttr::Question => boards.question |= bit,
             }
         }
 
@@ -503,7 +503,7 @@ impl<'a> SimulatorBB<'a> {
             | boards.prism
             | boards.ojama
             | boards.kata
-            | boards.padding)
+            | boards.question)
             & FIELD_MASK;
 
         if occ == FIELD_MASK {
@@ -528,8 +528,8 @@ impl<'a> SimulatorBB<'a> {
         boards.prism = Self::pext_and_pdep(boards.prism, occ, restore) | (boards.prism & NEXT_MASK);
         boards.ojama = Self::pext_and_pdep(boards.ojama, occ, restore) | (boards.ojama & NEXT_MASK);
         boards.kata = Self::pext_and_pdep(boards.kata, occ, restore) | (boards.kata & NEXT_MASK);
-        boards.padding =
-            Self::pext_and_pdep(boards.padding, occ, restore) | (boards.padding & NEXT_MASK);
+        boards.question =
+            Self::pext_and_pdep(boards.question, occ, restore) | (boards.question & NEXT_MASK);
         boards.plus = Self::pext_and_pdep(boards.plus, occ, restore) | (boards.plus & NEXT_MASK);
         boards.chance =
             Self::pext_and_pdep(boards.chance, occ, restore) | (boards.chance & NEXT_MASK);
@@ -548,7 +548,7 @@ impl<'a> SimulatorBB<'a> {
             | boards.prism
             | boards.ojama
             | boards.kata
-            | boards.padding;
+            | boards.question;
 
         let mut restore: u64 = 0;
         restore |= (1 << (occ & COL_MASK).count_ones()) - 1;
@@ -573,7 +573,7 @@ impl<'a> SimulatorBB<'a> {
         boards.prism = Self::pext_and_pdep(boards.prism, occ, restore);
         boards.ojama = Self::pext_and_pdep(boards.ojama, occ, restore);
         boards.kata = Self::pext_and_pdep(boards.kata, occ, restore);
-        boards.padding = Self::pext_and_pdep(boards.padding, occ, restore);
+        boards.question = Self::pext_and_pdep(boards.question, occ, restore);
         boards.plus = Self::pext_and_pdep(boards.plus, occ, restore);
         boards.chance = Self::pext_and_pdep(boards.chance, occ, restore);
 
@@ -1500,7 +1500,7 @@ mod tests {
         assert_eq!(actual.prism, 0);
         assert_eq!(actual.ojama, 0);
         assert_eq!(actual.kata, 0);
-        assert_eq!(actual.padding, 0);
+        assert_eq!(actual.question, 0);
         assert_eq!(actual.plus, 0);
         assert_eq!(actual.chance, 0);
     }

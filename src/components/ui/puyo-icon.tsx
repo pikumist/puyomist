@@ -35,7 +35,7 @@ function PuyoIcon({
   className,
   ...props
 }: PuyoIconProps) {
-  const attr = getPuyoAttr(type) || attrProp || PuyoAttr.Padding;
+  const attr = getPuyoAttr(type) || attrProp || PuyoAttr.Question;
   const isChance = type ? isChancePuyo(type) : false;
   const isPlus = type ? isPlusPuyo(type) : false;
 

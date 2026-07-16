@@ -33,7 +33,7 @@ pub enum PuyoType {
     Prism = 22,
     Ojama = 23,
     Kata = 24,
-    Padding = 25,
+    Question = 25,
 }
 
 pub fn is_colored_type(puyo_type: PuyoType) -> bool {
@@ -98,7 +98,7 @@ pub fn is_traceable_type(puyo_type: PuyoType) -> bool {
     match puyo_type {
         PuyoType::Ojama => false,
         PuyoType::Kata => false,
-        PuyoType::Padding => false,
+        PuyoType::Question => false,
         _ => true,
     }
 }
@@ -129,7 +129,7 @@ pub fn get_attr(puyo_type: PuyoType) -> PuyoAttr {
         PuyoType::Prism => PuyoAttr::Prism,
         PuyoType::Ojama => PuyoAttr::Ojama,
         PuyoType::Kata => PuyoAttr::Kata,
-        PuyoType::Padding => PuyoAttr::Padding,
+        PuyoType::Question => PuyoAttr::Question,
     }
 }
 
@@ -153,7 +153,7 @@ pub fn convert_type(puyo_type: PuyoType, attr: PuyoAttr) -> PuyoType {
             PuyoAttr::Purple => {
                 PuyoType::from_i32(PuyoType::Purple.to_i32().unwrap() + enhance).unwrap()
             }
-            _ => PuyoType::Padding,
+            _ => PuyoType::Question,
         };
     }
     return match attr {
@@ -161,8 +161,8 @@ pub fn convert_type(puyo_type: PuyoType, attr: PuyoAttr) -> PuyoType {
         PuyoAttr::Prism => PuyoType::Prism,
         PuyoAttr::Ojama => PuyoType::Ojama,
         PuyoAttr::Kata => PuyoType::Kata,
-        PuyoAttr::Padding => PuyoType::Padding,
-        _ => PuyoType::Padding,
+        PuyoAttr::Question => PuyoType::Question,
+        _ => PuyoType::Question,
     };
 }
 
@@ -196,7 +196,7 @@ mod tests {
         assert_eq!(is_colored_type(PuyoType::Prism), false);
         assert_eq!(is_colored_type(PuyoType::Ojama), false);
         assert_eq!(is_colored_type(PuyoType::Kata), false);
-        assert_eq!(is_colored_type(PuyoType::Padding), false);
+        assert_eq!(is_colored_type(PuyoType::Question), false);
     }
 
     #[test]
@@ -225,7 +225,7 @@ mod tests {
         assert_eq!(is_plus_type(PuyoType::Prism), false);
         assert_eq!(is_plus_type(PuyoType::Ojama), false);
         assert_eq!(is_plus_type(PuyoType::Kata), false);
-        assert_eq!(is_plus_type(PuyoType::Padding), false);
+        assert_eq!(is_plus_type(PuyoType::Question), false);
     }
 
     #[test]
@@ -254,7 +254,7 @@ mod tests {
         assert_eq!(is_chance_type(PuyoType::Prism), false);
         assert_eq!(is_chance_type(PuyoType::Ojama), false);
         assert_eq!(is_chance_type(PuyoType::Kata), false);
-        assert_eq!(is_chance_type(PuyoType::Padding), false);
+        assert_eq!(is_chance_type(PuyoType::Question), false);
     }
 
     #[test]
@@ -283,7 +283,7 @@ mod tests {
         assert_eq!(is_traceable_type(PuyoType::Prism), true);
         assert_eq!(is_traceable_type(PuyoType::Ojama), false);
         assert_eq!(is_traceable_type(PuyoType::Kata), false);
-        assert_eq!(is_traceable_type(PuyoType::Padding), false);
+        assert_eq!(is_traceable_type(PuyoType::Question), false);
     }
 
     #[test]
@@ -312,7 +312,7 @@ mod tests {
         assert_eq!(get_attr(PuyoType::Prism), PuyoAttr::Prism);
         assert_eq!(get_attr(PuyoType::Ojama), PuyoAttr::Ojama);
         assert_eq!(get_attr(PuyoType::Kata), PuyoAttr::Kata);
-        assert_eq!(get_attr(PuyoType::Padding), PuyoAttr::Padding);
+        assert_eq!(get_attr(PuyoType::Question), PuyoAttr::Question);
     }
 
     #[test]

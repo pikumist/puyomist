@@ -12,7 +12,7 @@ const symbolIdMap: ReadonlyMap<PuyoAttr, string> = new Map([
   [PuyoAttr.Prism, 'prism'],
   [PuyoAttr.Ojama, 'ojama'],
   [PuyoAttr.Kata, 'kata'],
-  [PuyoAttr.Padding, 'padding']
+  [PuyoAttr.Question, 'question']
 ]);
 
 export const getAttrSymbolReference = (attr: PuyoAttr) => {

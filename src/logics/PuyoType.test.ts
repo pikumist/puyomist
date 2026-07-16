@@ -34,7 +34,7 @@ describe('PuyoType helpers', () => {
     expect(isColoredPuyoType(PuyoType.PurpleChancePlus)).toBe(true);
     expect(isColoredPuyoType(PuyoType.Heart)).toBe(false);
     expect(isColoredPuyoType(PuyoType.Prism)).toBe(false);
-    expect(isColoredPuyoType(PuyoType.Padding)).toBe(false);
+    expect(isColoredPuyoType(PuyoType.Question)).toBe(false);
   });
 
   it('isPlusPuyo detects plus variants', () => {
@@ -52,11 +52,11 @@ describe('PuyoType helpers', () => {
     expect(isChancePuyo(PuyoType.Heart)).toBe(false);
   });
 
-  it('isTraceablePuyo is false for ojama/kata/padding/undefined', () => {
+  it('isTraceablePuyo is false for ojama/kata/question/undefined', () => {
     expect(isTraceablePuyo(undefined)).toBe(false);
     expect(isTraceablePuyo(PuyoType.Ojama)).toBe(false);
     expect(isTraceablePuyo(PuyoType.Kata)).toBe(false);
-    expect(isTraceablePuyo(PuyoType.Padding)).toBe(false);
+    expect(isTraceablePuyo(PuyoType.Question)).toBe(false);
     expect(isTraceablePuyo(PuyoType.Red)).toBe(true);
     expect(isTraceablePuyo(PuyoType.Heart)).toBe(true);
     expect(isTraceablePuyo(PuyoType.Prism)).toBe(true);
@@ -72,7 +72,7 @@ describe('PuyoType helpers', () => {
     expect(getPuyoAttr(PuyoType.Prism)).toBe(PuyoAttr.Prism);
     expect(getPuyoAttr(PuyoType.Ojama)).toBe(PuyoAttr.Ojama);
     expect(getPuyoAttr(PuyoType.Kata)).toBe(PuyoAttr.Kata);
-    expect(getPuyoAttr(PuyoType.Padding)).toBe(PuyoAttr.Padding);
+    expect(getPuyoAttr(PuyoType.Question)).toBe(PuyoAttr.Question);
     expect(getPuyoAttr(undefined)).toBeUndefined();
     for (const t of allTypes) {
       expect(getPuyoAttr(t)).toBeDefined();
@@ -132,9 +132,9 @@ describe('PuyoType helpers', () => {
     expect(toPlusColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
   });
 
-  it('convertPuyoType keeps padding and converts colored/non-colored', () => {
-    expect(convertPuyoType(PuyoType.Padding, PuyoAttr.Red)).toBe(
-      PuyoType.Padding
+  it('convertPuyoType keeps question and converts colored/non-colored', () => {
+    expect(convertPuyoType(PuyoType.Question, PuyoAttr.Red)).toBe(
+      PuyoType.Question
     );
     // colored -> colored preserves plus/chance terms
     expect(convertPuyoType(PuyoType.RedChancePlus, PuyoAttr.Blue)).toBe(
@@ -171,8 +171,8 @@ describe('PuyoType helpers', () => {
       PuyoType.Ojama
     );
     expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Kata)).toBe(PuyoType.Kata);
-    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Padding)).toBe(
-      PuyoType.Padding
+    expect(convertPuyoType(PuyoType.Heart, PuyoAttr.Question)).toBe(
+      PuyoType.Question
     );
     expect(convertPuyoType(PuyoType.Ojama, PuyoAttr.Red)).toBe(PuyoType.Red);
     // non-colored -> heart hits the final switch's Heart case directly

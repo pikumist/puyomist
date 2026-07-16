@@ -27,9 +27,9 @@ describe('PuyoIcon', () => {
     expect(uses.some((href) => href?.includes('#chance'))).toBe(true);
   });
 
-  it('falls back to the padding attribute when neither type nor attr is given', () => {
+  it('falls back to the question attribute when neither type nor attr is given', () => {
     const { container } = render(<PuyoIcon />);
     const use = container.querySelector('use');
-    expect(use?.getAttribute('xlink:href')).toContain('#padding');
+    expect(use?.getAttribute('xlink:href')).toContain('#question');
   });
 });

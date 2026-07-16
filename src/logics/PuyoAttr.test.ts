@@ -8,7 +8,7 @@ describe('PuyoAttr helpers', () => {
   });
 
   it('getPuyoAttrName returns an empty string when unmapped or undefined', () => {
-    expect(getPuyoAttrName(PuyoAttr.Padding)).toBe('');
+    expect(getPuyoAttrName(PuyoAttr.Question)).toBe('');
     expect(getPuyoAttrName(undefined)).toBe('');
   });
 

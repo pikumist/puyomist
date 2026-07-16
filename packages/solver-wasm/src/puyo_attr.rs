@@ -25,7 +25,7 @@ pub enum PuyoAttr {
     Prism = 7,
     Ojama = 8,
     Kata = 9,
-    Padding = 10,
+    Question = 10,
 }
 
 pub const COLOR_ATTRS: [PuyoAttr; 5] = [
@@ -77,6 +77,6 @@ mod tests {
         assert_eq!(is_colored_attr(PuyoAttr::Prism), false);
         assert_eq!(is_colored_attr(PuyoAttr::Ojama), false);
         assert_eq!(is_colored_attr(PuyoAttr::Kata), false);
-        assert_eq!(is_colored_attr(PuyoAttr::Padding), false);
+        assert_eq!(is_colored_attr(PuyoAttr::Question), false);
     }
 }

@@ -30,10 +30,10 @@ describe('board-csv', () => {
       { cell: 'W', type: PuyoType.Prism },
       { cell: 'O', type: PuyoType.Ojama },
       { cell: 'K', type: PuyoType.Kata },
-      { cell: 'Z', type: PuyoType.Padding },
+      { cell: '?', type: PuyoType.Question },
       { cell: '_', type: undefined },
       { cell: '', type: undefined },
-      { cell: '不正', type: PuyoType.Padding }
+      { cell: '不正', type: PuyoType.Question }
     ])('should return a proper PuyoType or undefined', ({ cell, type }) => {
       expect(parseBoardCsvCell(cell)).toBe(type);
     });

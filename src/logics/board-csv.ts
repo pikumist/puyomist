@@ -17,19 +17,15 @@ const firstCharMap = new Map<
   ['W', PuyoType.Prism],
   ['O', PuyoType.Ojama],
   ['K', PuyoType.Kata],
-  ['Z', PuyoType.Padding],
   ['_', empty],
-  // '?' は puyoquess の Next 専用「不明/隠れ」トークン (labels.py)。main アプリ側に
-  // 「不明」型は無いので空セル扱いにする。未マップだと Padding(壁) に化けて
-  // nextPuyos が黙って壊れる (パースエラーも出ない) ため、明示的に空へ倒す。
-  ['?', empty],
+  ['?', PuyoType.Question],
   [undefined, empty]
 ]);
 
 export const parseBoardCsvCell = (cell: string): PuyoType | undefined => {
   const head = firstCharMap.get(cell[0]);
   if (!head) {
-    return PuyoType.Padding;
+    return PuyoType.Question;
   }
   if (head === empty) {
     return undefined;
@@ -108,7 +104,7 @@ const puyoTypeToStringMap = new Map<PuyoType | undefined, string>([
   [PuyoType.Prism, 'W'],
   [PuyoType.Ojama, 'O'],
   [PuyoType.Kata, 'K'],
-  [PuyoType.Padding, 'Z'],
+  [PuyoType.Question, '?'],
   [undefined, '_']
 ]);
 

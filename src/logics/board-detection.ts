@@ -232,7 +232,7 @@ const detectPuyoAttr = (rgb: number[]) => {
     return PuyoAttr.Purple;
   }
 
-  return PuyoAttr.Padding;
+  return PuyoAttr.Question;
 };
 
 const detectPrism = (rgbList: number[][]) => {
@@ -243,7 +243,7 @@ const detectPrism = (rgbList: number[][]) => {
   if (attrSet.size >= 3) {
     return PuyoAttr.Prism;
   }
-  return PuyoAttr.Padding;
+  return PuyoAttr.Question;
 };
 
 /**
@@ -257,14 +257,14 @@ const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
 
   let puyoAttr = detectPuyoAttr(rgb1);
 
-  if (puyoAttr === PuyoAttr.Padding) {
+  if (puyoAttr === PuyoAttr.Question) {
     if (isChanceMode) {
       return undefined;
     }
     puyoAttr = detectPrism([rgb3, rgb4, rgb5, rgb6, rgb7]);
   }
 
-  if (puyoAttr === PuyoAttr.Padding) {
+  if (puyoAttr === PuyoAttr.Question) {
     const [r1, g1, b1] = rgb1;
     const [r8, g8, b8] = rgb8;
     const { h: h1, s: s1, v: v1 } = rgbToHsv(r1, g1, b1);
@@ -284,8 +284,8 @@ const detectFieldPuyoType = (rgbList: number[][], isChanceMode: boolean) => {
         return PuyoType.Heart;
       case PuyoAttr.Prism:
         return PuyoType.Prism;
-      case PuyoAttr.Padding: {
-        return PuyoType.Padding;
+      case PuyoAttr.Question: {
+        return PuyoType.Question;
       }
     }
   }
@@ -316,8 +316,8 @@ const detectNextPuyoType = (rgbList: number[][]) => {
   const [rgb1, rgb2] = rgbList;
 
   const puyoAttr = detectPuyoAttr(rgb1);
-  if (puyoAttr === PuyoAttr.Padding) {
-    return PuyoType.Padding;
+  if (puyoAttr === PuyoAttr.Question) {
+    return PuyoType.Question;
   }
   if (puyoAttr === PuyoAttr.Heart) {
     return PuyoType.Heart;
