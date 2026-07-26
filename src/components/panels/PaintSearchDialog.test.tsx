@@ -4,10 +4,66 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PuyoAttr } from '@/logics/PuyoAttr';
 import { PuyoCoord } from '@/logics/PuyoCoord';
 import { PuyoType } from '@/logics/PuyoType';
+import {
+  type PaintSearchResult,
+  enumeratePaintableCoords,
+  paintSearchSignatureOf
+} from '@/logics/paint-search';
 import { SolutionMethod } from '@/logics/solution';
 import { usePuyoAppStore } from '@/store/puyoAppStore';
 import { INITIAL_PUYO_APP_STATE } from '@/store/types';
 import PaintSearchDialog from './PaintSearchDialog';
+
+// 実際の探索は WASM ワーカーを起こすので、ここでは差し替えてダイアログの振る舞い
+// だけを見る。探索そのものの担保は Rust 側 (split_evaluation_matches_sequential_search)。
+vi.mock('@/store/actions', () => ({
+  paintSearchButtonClicked: () => {
+    const state = usePuyoAppStore.getState();
+    state.paintSearchStarted();
+    state.paintSearched(fakeResult());
+  }
+}));
+
+/** 塗り案3件と「塗らない」1件を持つ、今の状態に対して有効な結果 */
+const fakeResult = (): PaintSearchResult => {
+  const state = usePuyoAppStore.getState();
+  const { color, showExpectedValue } = state.paintSearchSettings;
+  const candidates = enumeratePaintableCoords(state.simulationData, color);
+  const solution = {
+    trace_coords: [],
+    chains: [],
+    value: 0,
+    popped_chance_num: 0,
+    popped_heart_num: 0,
+    popped_prism_num: 0,
+    popped_ojama_num: 0,
+    popped_kata_num: 0,
+    is_all_cleared: false
+  };
+
+  const plans = [0, 1, 2].map((i) => ({
+    coords: candidates.slice(i, i + 2),
+    value: 240 - i * 6,
+    expectedValue: showExpectedValue ? 280 - i * 6 : undefined,
+    solution: { ...solution, value: 240 - i * 6 }
+  }));
+  plans.push({
+    coords: [],
+    value: 96,
+    expectedValue: showExpectedValue ? 118 : undefined,
+    solution: { ...solution, value: 96 }
+  });
+
+  return {
+    plans,
+    elapsedTime: 1000,
+    signature: paintSearchSignatureOf(
+      state.simulationData,
+      state.explorationTarget,
+      state.paintSearchSettings
+    )
+  };
+};
 
 /** 塗り候補が十分ある盤面 (全マス青) を仕込む */
 const setBlueField = () => {
@@ -223,6 +279,25 @@ describe('PaintSearchDialog', () => {
     expect(
       await screen.findByText(`期待値 ${plan.expectedValue}`)
     ).toBeInTheDocument();
+  });
+
+  it('offers a cancel button while searching, and aborts with it', () => {
+    const controller = new AbortController();
+    usePuyoAppStore.setState({
+      paintSearching: true,
+      paintSearchProgressPercent: 30,
+      abortControllerForPaintSearch: controller
+    });
+    renderDialog();
+
+    fireEvent.click(screen.getByRole('button', { name: '中断' }));
+
+    expect(controller.signal.aborted).toBe(true);
+  });
+
+  it('hides the cancel button when no search is running', () => {
+    renderDialog();
+    expect(screen.queryByRole('button', { name: '中断' })).toBeNull();
   });
 
   it('cannot apply the "no paint" plan', async () => {

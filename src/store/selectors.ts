@@ -57,7 +57,9 @@ export const selectActiveFieldAndNextPuyos = (state: PuyoAppState) => {
  * 前ステップに居て現ステップに居ない id を消滅とみなす(落下やネクスト取り込みは
  * id が保持されるので除外される)。ポップのフェード演出用のゴーストとして描画する。
  */
-export const selectActivePoppingPuyos = (state: PuyoAppState): PoppingPuyo[] => {
+export const selectActivePoppingPuyos = (
+  state: PuyoAppState
+): PoppingPuyo[] => {
   const { animationSteps, activeAnimationStepIndex } = state;
   const cur = animationSteps[activeAnimationStepIndex];
   const prev = animationSteps[activeAnimationStepIndex - 1];

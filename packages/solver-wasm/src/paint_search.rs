@@ -913,4 +913,127 @@ mod tests {
             beam = expanded.into_iter().take(10).collect();
         }
     }
+
+    /// wasm 側 (JS) がやる「展開 → 評価を分割 → 元の順に組み直す → 上位選抜」が、
+    /// 逐次版と完全に同じ塗り案を返すこと。
+    ///
+    /// 分割の仕方 (ワーカー数) によって結果が変わらないことも同時に見る。
+    /// 順序を崩すと同点の並びが変わり、ネイティブと食い違う。
+    #[test]
+    fn split_evaluation_matches_sequential_search() {
+        let field = plain_field();
+        let next = next_puyos();
+        let env = environment();
+        let target = exploration_target();
+        let boost_area: HashSet<PuyoCoord> = HashSet::new();
+        let eval = PaintEvalContext {
+            exploration_target: &target,
+            environment: &env,
+            boost_area: &boost_area,
+            field: &field,
+            next_puyos: &next,
+        };
+        let mut params = PaintSearchParams::new(PuyoAttr::Red, 4);
+        params.result_num = 8;
+        let (beam_width, verify_num) = (20, 60);
+
+        let sequential = search_paint_plans_with(&eval, &params, beam_width, verify_num);
+
+        for worker_num in [1usize, 3, 7] {
+            let split = search_paint_plans_split(&eval, &params, beam_width, verify_num, worker_num);
+
+            assert_eq!(
+                split.len(),
+                sequential.len(),
+                "ワーカー{}分割で件数が変わった",
+                worker_num
+            );
+            for (x, y) in split.iter().zip(sequential.iter()) {
+                assert_eq!(x.coords, y.coords, "ワーカー{}分割で塗り案が変わった", worker_num);
+                assert_eq!(x.value, y.value);
+            }
+        }
+    }
+
+    /// 評価を `worker_num` 個に分けて回し、元の順に組み直す JS 側の手順の再現。
+    fn search_paint_plans_split(
+        eval: &PaintEvalContext,
+        params: &PaintSearchParams,
+        beam_width: usize,
+        verify_num: usize,
+        worker_num: usize,
+    ) -> Vec<PaintPlan> {
+        let context = PaintBeamContext::new(
+            eval.field,
+            eval.next_puyos,
+            params,
+            eval.environment.minimum_puyo_num_for_popping,
+        );
+
+        // 分割して評価し、渡した順に戻す。
+        let evaluate = |paint_sets: &[Vec<usize>],
+                        max_trace_num: u32,
+                        with_solution: bool,
+                        unknown_fills: &[UnknownFill]| {
+            let chunk_size = paint_sets.len().div_ceil(worker_num.max(1)).max(1);
+            paint_sets
+                .chunks(chunk_size)
+                .map(|chunk| {
+                    evaluate_paint_sets(
+                        eval,
+                        &context,
+                        chunk,
+                        max_trace_num,
+                        with_solution,
+                        unknown_fills,
+                    )
+                })
+                .collect::<Vec<_>>()
+                .concat()
+        };
+
+        let mut all: Vec<Vec<usize>> = vec![Vec::new()];
+        let mut all_scores: Vec<f64> = vec![f64::NEG_INFINITY];
+        let mut beam: Vec<Vec<usize>> = vec![Vec::new()];
+
+        for _ in 0..params.max_paint_num {
+            let expanded = expand_beam(&context, &beam);
+            if expanded.is_empty() {
+                break;
+            }
+            let evaluations = evaluate(&expanded, params.surrogate_trace_num, false, &[]);
+            let scores: Vec<f64> = evaluations.iter().map(|e| e.value).collect();
+            let top = select_top(&scores, beam_width);
+
+            beam = top.iter().map(|&i| expanded[i].clone()).collect();
+            for &i in &top {
+                all.push(expanded[i].clone());
+                all_scores.push(scores[i]);
+            }
+        }
+
+        let mut verify = select_top(&all_scores, verify_num);
+        if !verify.contains(&0) {
+            verify.insert(0, 0);
+        }
+        let verify_sets: Vec<Vec<usize>> = verify.iter().map(|&i| all[i].clone()).collect();
+        let unknown_fills = params
+            .uncertainty
+            .as_ref()
+            .map(make_unknown_fills)
+            .unwrap_or_default();
+        let evaluations = evaluate(
+            &verify_sets,
+            eval.environment.max_trace_num,
+            true,
+            &unknown_fills,
+        );
+
+        build_plans(
+            eval.exploration_target,
+            &verify_sets,
+            &evaluations,
+            params.result_num as usize,
+        )
+    }
 }

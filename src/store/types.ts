@@ -69,6 +69,10 @@ export interface PuyoAppState {
   paintSearchSettings: PaintSearchSettings;
   /** ぷよ塗り探索中かどうか */
   paintSearching: boolean;
+  /** ぷよ塗り探索の進捗率 (%) */
+  paintSearchProgressPercent: number;
+  /** ぷよ塗り探索の中断コントローラー */
+  abortControllerForPaintSearch: AbortController | undefined;
   /** ぷよ塗り探索の結果 */
   paintSearchResult: PaintSearchResult | undefined;
   /** 盤面上にハイライト表示する塗りマス (塗り案にホバーしている間だけ入る) */
@@ -130,6 +134,8 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   bridgePreview: undefined,
   paintSearchSettings: { ...defaultPaintSearchSettings },
   paintSearching: false,
+  paintSearchProgressPercent: 0,
+  abortControllerForPaintSearch: undefined,
   paintSearchResult: undefined,
   paintHighlightCoords: undefined,
   paintUndo: undefined

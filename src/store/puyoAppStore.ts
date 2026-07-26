@@ -123,8 +123,10 @@ interface PuyoAppActions {
   /// ぷよ塗り探索系
   paintSearchSettingsChanged: (settings: Partial<PaintSearchSettings>) => void;
   paintSearchStarted: () => void;
+  paintSearchProgress: (percent: number) => void;
   paintSearched: (result: PaintSearchResult) => void;
   paintSearchFailed: () => void;
+  paintSearchCancelButtonClicked: () => void;
   paintSearchCleared: () => void;
   paintPlanHovered: (coords: PuyoCoord[] | undefined) => void;
   paintPlanApplied: (coords: PuyoCoord[]) => void;
@@ -809,27 +811,46 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     paintSearchStarted: () =>
       set((state) => {
         state.paintSearching = true;
+        state.paintSearchProgressPercent = 0;
+        state.abortControllerForPaintSearch = new AbortController();
         state.paintSearchResult = undefined;
         state.paintHighlightCoords = undefined;
+      }),
+
+    /** ぷよ塗り探索の進捗 */
+    paintSearchProgress: (percent) =>
+      set((state) => {
+        state.paintSearchProgressPercent = percent;
       }),
 
     /** ぷよ塗り探索が完了したとき */
     paintSearched: (result) =>
       set((state) => {
         state.paintSearching = false;
+        state.abortControllerForPaintSearch = undefined;
         // 探索中に盤面や設定が変わっていたら、返ってきた結果はもう別物の答え。
         // 取り込むと「今の色で古い座標を塗る」ような食い違いが起きる。
-        if (result.signature !== currentPaintSignature(state as unknown as PuyoAppState)) {
+        if (
+          result.signature !==
+          currentPaintSignature(state as unknown as PuyoAppState)
+        ) {
           return;
         }
         state.paintSearchResult = result;
       }),
 
-    /** ぷよ塗り探索が失敗したとき */
+    /** ぷよ塗り探索が失敗した/中断されたとき */
     paintSearchFailed: () =>
       set((state) => {
         state.paintSearching = false;
+        state.abortControllerForPaintSearch = undefined;
         state.paintSearchResult = undefined;
+      }),
+
+    /** ぷよ塗り探索の中断ボタンがクリックされたとき */
+    paintSearchCancelButtonClicked: () =>
+      set((state) => {
+        state.abortControllerForPaintSearch?.abort();
       }),
 
     /** ぷよ塗り探索の結果を破棄するとき */
@@ -852,7 +873,10 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         // 結果が出たあとに盤面が変わっている場合に備え、今の盤面で塗れるマスだけに
         // 絞る。プリズムなど、その結果を出した時点では候補外だったマスを塗らない。
         const paintable = coords.filter((coord) =>
-          isPaintableType(state.simulationData.field[coord.y][coord.x]?.type, color)
+          isPaintableType(
+            state.simulationData.field[coord.y][coord.x]?.type,
+            color
+          )
         );
 
         if (paintable.length === 0) {
@@ -900,7 +924,9 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
 
         // 塗ったあとに盤面が変わっているなら、戻すとその変更まで巻き戻る。
         // 控えを捨てるだけにして盤面には触らない。
-        if (undo.boardSignature !== boardSignatureOf(state.simulationData as any)) {
+        if (
+          undo.boardSignature !== boardSignatureOf(state.simulationData as any)
+        ) {
           return;
         }
 
@@ -1036,8 +1062,10 @@ export const {
   /// ぷよ塗り探索系
   paintSearchSettingsChanged,
   paintSearchStarted,
+  paintSearchProgress,
   paintSearched,
   paintSearchFailed,
+  paintSearchCancelButtonClicked,
   paintSearchCleared,
   paintPlanHovered,
   paintPlanApplied,

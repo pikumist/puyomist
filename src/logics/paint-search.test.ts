@@ -12,7 +12,6 @@ import {
   PaintPrecision,
   boardSignatureOf,
   clampPaintPrecision,
-  createMockPaintSearchResult,
   defaultPaintSearchSettings,
   enumeratePaintableCoords,
   isPaintableType,
@@ -107,92 +106,6 @@ describe('enumeratePaintableCoords', () => {
 });
 
 const target = INITIAL_PUYO_APP_STATE.explorationTarget;
-
-describe('createMockPaintSearchResult', () => {
-  const simulationData = createSimulationDataOf(PuyoType.Blue, [
-    [0, 0, PuyoType.Red],
-    [3, 2, PuyoType.Heart],
-    [7, 5, PuyoType.Ojama]
-  ]);
-
-  it('is deterministic for the same board and settings', () => {
-    const a = createMockPaintSearchResult(
-      simulationData,
-      target,
-      defaultPaintSearchSettings
-    );
-    const b = createMockPaintSearchResult(
-      simulationData,
-      target,
-      defaultPaintSearchSettings
-    );
-    expect(a.plans.map((p) => p.coords)).toEqual(b.plans.map((p) => p.coords));
-  });
-
-  it('never paints more cells than the limit', () => {
-    const result = createMockPaintSearchResult(simulationData, target, {
-      ...defaultPaintSearchSettings,
-      maxPaintNum: 5
-    });
-    for (const plan of result.plans) {
-      expect(plan.coords.length).toBeLessThanOrEqual(5);
-    }
-  });
-
-  it('only paints cells that can be repainted', () => {
-    const candidates = new Set(
-      enumeratePaintableCoords(simulationData, defaultPaintSearchSettings.color)
-    );
-    const result = createMockPaintSearchResult(
-      simulationData,
-      target,
-      defaultPaintSearchSettings
-    );
-    for (const plan of result.plans) {
-      for (const coord of plan.coords) {
-        expect(candidates.has(coord)).toBe(true);
-      }
-    }
-  });
-
-  it('always offers the "no paint" plan, ordered last', () => {
-    const result = createMockPaintSearchResult(
-      simulationData,
-      target,
-      defaultPaintSearchSettings
-    );
-    expect(result.plans.at(-1)!.coords).toEqual([]);
-  });
-
-  it('omits the expected value unless it is asked for', () => {
-    const without = createMockPaintSearchResult(simulationData, target, {
-      ...defaultPaintSearchSettings,
-      showExpectedValue: false
-    });
-    const with_ = createMockPaintSearchResult(simulationData, target, {
-      ...defaultPaintSearchSettings,
-      showExpectedValue: true
-    });
-
-    expect(without.plans.every((p) => p.expectedValue === undefined)).toBe(
-      true
-    );
-    expect(with_.plans.every((p) => typeof p.expectedValue === 'number')).toBe(
-      true
-    );
-  });
-
-  it('falls back to the "no paint" plan when nothing can be painted', () => {
-    const painted = createSimulationDataOf(PuyoType.Red);
-    const result = createMockPaintSearchResult(
-      painted,
-      target,
-      defaultPaintSearchSettings
-    );
-    expect(result.plans).toHaveLength(1);
-    expect(result.plans[0].coords).toEqual([]);
-  });
-});
 
 describe('boardSignatureOf', () => {
   it('changes when a puyo changes', () => {

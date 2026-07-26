@@ -12,10 +12,19 @@ import { PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { PuyoType } from './PuyoType';
 import type { WasmSolutionResult } from './wasm-interface';
+import { PaintPrecision, defaultPaintSearchSettings } from './paint-search';
+import {
+  WasmPaintFilter,
+  WasmPaintPrecision,
+  type WasmPaintPlan,
+  WasmUnknownFillPolicy
+} from './wasm-interface';
 import {
   toJsOptimalSolution,
+  toJsPaintPlan,
   toWasmEnvironmentFieldNextPuyos,
-  toWasmExplorationTarget
+  toWasmExplorationTarget,
+  toWasmPaintSearchParams
 } from './wasm-serialize';
 
 describe('toWasmExplorationTarget', () => {
@@ -219,5 +228,92 @@ describe('toJsOptimalSolution', () => {
     expect(result.chains[0].attributes).toEqual({
       [PuyoAttr.Red]: { strength: 1, popped_count: 4, separated_blocks_num: 1 }
     });
+  });
+});
+
+describe('toWasmPaintSearchParams', () => {
+  it('carries the settings and the fixed search knobs', () => {
+    const params = toWasmPaintSearchParams({
+      ...defaultPaintSearchSettings,
+      color: PuyoAttr.Green,
+      maxPaintNum: 10,
+      precision: PaintPrecision.High
+    });
+
+    expect(params.target).toBe(PuyoAttr.Green);
+    expect(params.max_paint_num).toBe(10);
+    expect(params.precision).toBe(WasmPaintPrecision.High);
+    // 実測に基づく固定値。絞り込みなし / 代理はなぞり4
+    expect(params.filter).toBe(WasmPaintFilter.All);
+    expect(params.surrogate_trace_num).toBe(4);
+  });
+
+  it('asks for the expected value only when it is shown', () => {
+    expect(
+      toWasmPaintSearchParams({
+        ...defaultPaintSearchSettings,
+        showExpectedValue: false
+      }).uncertainty
+    ).toBeUndefined();
+
+    expect(
+      toWasmPaintSearchParams({
+        ...defaultPaintSearchSettings,
+        showExpectedValue: true
+      }).uncertainty
+    ).toEqual({
+      policy: WasmUnknownFillPolicy.ChainAverse,
+      samples: 20,
+      max_refills: 2
+    });
+  });
+
+  it('maps every precision to the rust one', () => {
+    for (const [precision, expected] of [
+      [PaintPrecision.Standard, WasmPaintPrecision.Standard],
+      [PaintPrecision.High, WasmPaintPrecision.High],
+      [PaintPrecision.Ultra, WasmPaintPrecision.Ultra]
+    ] as const) {
+      expect(
+        toWasmPaintSearchParams({ ...defaultPaintSearchSettings, precision })
+          .precision
+      ).toBe(expected);
+    }
+  });
+});
+
+describe('toJsPaintPlan', () => {
+  it('converts the coords and the solution', () => {
+    const plan: WasmPaintPlan = {
+      coords: [
+        { x: 0, y: 0 },
+        { x: 3, y: 4 }
+      ],
+      value: 240,
+      expected_value: 280,
+      solution: {
+        trace_coords: [{ x: 1, y: 1 }],
+        chains: [],
+        value: 240,
+        popped_chance_num: 0,
+        popped_heart_num: 0,
+        popped_prism_num: 0,
+        popped_ojama_num: 0,
+        popped_kata_num: 0,
+        is_all_cleared: false
+      }
+    };
+
+    const converted = toJsPaintPlan(plan);
+
+    expect(converted.coords).toEqual([
+      PuyoCoord.xyToCoord(0, 0),
+      PuyoCoord.xyToCoord(3, 4)
+    ]);
+    expect(converted.value).toBe(240);
+    expect(converted.expectedValue).toBe(280);
+    expect(converted.solution.trace_coords).toEqual([
+      PuyoCoord.xyToCoord(1, 1)
+    ]);
   });
 });

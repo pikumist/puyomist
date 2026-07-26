@@ -23,6 +23,7 @@ extern crate console_error_panic_hook;
 extern crate num_derive;
 
 use exploration_target::ExplorationTarget;
+use paint_search::{PaintBeamContext, PaintEvalContext, PaintEvaluation, PaintSearchParams};
 use puyo::{Field, NextPuyos};
 use puyo_coord::PuyoCoord;
 use simulation_environment::SimulationEnvironment;
@@ -192,4 +193,150 @@ pub fn solve_traces_with_prefix(
         Ok(result) => Ok(result),
         Err(e) => Err(JsError::new(&e.to_string())),
     }
+}
+
+///
+/// 前段「ぷよ塗り」探索。
+///
+/// 1関数で完結させると wasm の単スレッドでは幅300でも約19秒かかり、その間 UI が
+/// 固まる。そこで段ごとに分けて公開し、重い評価だけを JS が複数ワーカーへ配れる
+/// ようにしてある (`docs/paint-search.md`)。JS 側は
+/// 「展開 → 評価を分割 → 上位選抜」を深さ分だけ回し、最後に本番評価して
+/// `paint_build_plans` へ渡す。
+///
+/// **分割した評価結果は必ず元の順序で組み直すこと**。順序が崩れると同点の並びが
+/// 変わり、Rustネイティブバックエンドと違う結果になる。
+///
+
+fn de<T>(js_value: JsValue) -> Result<T, JsError>
+where
+    T: serde::de::DeserializeOwned,
+{
+    from_value(js_value).map_err(|e| JsError::new(&e.to_string()))
+}
+
+fn ser<T>(value: &T) -> Result<JsValue, JsError>
+where
+    T: serde::ser::Serialize + ?Sized,
+{
+    to_value(value).map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// ビームを1段展開する。塗り集合(セルインデックスの配列)の配列を返す。
+///
+/// 空のビーム (空集合1件) を渡すと深さ1の全候補が返る。空が返ったら打ち切ること。
+/// 軽い処理なので分割せずメインスレッドで呼んでよい。
+#[wasm_bindgen]
+pub fn paint_expand_beam(
+    js_field: JsValue,
+    js_next_puyos: JsValue,
+    js_params: JsValue,
+    minimum_puyo_num_for_popping: u32,
+    js_beam: JsValue,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let field: Field = de(js_field)?;
+    let next_puyos: NextPuyos = de(js_next_puyos)?;
+    let params: PaintSearchParams = de(js_params)?;
+    let beam: Vec<Vec<usize>> = de(js_beam)?;
+
+    let context =
+        PaintBeamContext::new(&field, &next_puyos, &params, minimum_puyo_num_for_popping);
+
+    ser(&paint_search::expand_beam(&context, &beam))
+}
+
+/// 塗り集合をまとめて評価する。**ここだけが重いので、JS がワーカーへ分割する**。
+///
+/// - `max_trace_num`: 代理評価なら小さい値 (`params.surrogate_trace_num`)、本番評価なら環境の値
+/// - `with_solution`: 後段の最適解も返すか。最終評価のときだけ true
+/// - `with_uncertainty`: `params.uncertainty` があるとき期待値も求めるか。最終評価のときだけ true
+///
+/// 返る評価は渡した塗り集合と同じ順序。分割したときは呼び出し側で元の順に戻すこと。
+#[wasm_bindgen]
+pub fn paint_evaluate_sets(
+    js_exploration_target: JsValue,
+    js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
+    js_field: JsValue,
+    js_next_puyos: JsValue,
+    js_params: JsValue,
+    js_paint_sets: JsValue,
+    max_trace_num: u32,
+    with_solution: bool,
+    with_uncertainty: bool,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let exploration_target: ExplorationTarget = de(js_exploration_target)?;
+    let environment: SimulationEnvironment = de(js_environment)?;
+    let boost_area_coord_set: HashSet<PuyoCoord> = de(js_boost_area_coord_set)?;
+    let field: Field = de(js_field)?;
+    let next_puyos: NextPuyos = de(js_next_puyos)?;
+    let params: PaintSearchParams = de(js_params)?;
+    let paint_sets: Vec<Vec<usize>> = de(js_paint_sets)?;
+
+    let context = PaintBeamContext::new(
+        &field,
+        &next_puyos,
+        &params,
+        environment.minimum_puyo_num_for_popping,
+    );
+    let eval = PaintEvalContext {
+        exploration_target: &exploration_target,
+        environment: &environment,
+        boost_area: &boost_area_coord_set,
+        field: &field,
+        next_puyos: &next_puyos,
+    };
+
+    // 期待値のサンプル列は全候補で共通にする (共通乱数法)。分割しても同じ列になるよう、
+    // ワーカーごとに作らず params から毎回作り直す。
+    let unknown_fills = match (with_uncertainty, params.uncertainty.as_ref()) {
+        (true, Some(uncertainty)) => paint_search::make_unknown_fills(uncertainty),
+        _ => Vec::new(),
+    };
+
+    let evaluations = paint_search::evaluate_paint_sets(
+        &eval,
+        &context,
+        &paint_sets,
+        max_trace_num,
+        with_solution,
+        &unknown_fills,
+    );
+
+    ser(&evaluations)
+}
+
+/// スコアの大きい順に上位 `count` 件の添字を返す。
+///
+/// JS 側で並べ替えるとタイブレークが Rust と食い違い得るので、ここを通すこと。
+#[wasm_bindgen]
+pub fn paint_select_top(js_scores: JsValue, count: u32) -> Result<JsValue, JsError> {
+    let scores: Vec<f64> = de(js_scores)?;
+    ser(&paint_search::select_top(&scores, count as usize))
+}
+
+/// 評価済みの塗り集合を、好みの優先度に従って良い順に並べて塗り案にする。
+#[wasm_bindgen]
+pub fn paint_build_plans(
+    js_exploration_target: JsValue,
+    js_paint_sets: JsValue,
+    js_evaluations: JsValue,
+    result_num: u32,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let exploration_target: ExplorationTarget = de(js_exploration_target)?;
+    let paint_sets: Vec<Vec<usize>> = de(js_paint_sets)?;
+    let evaluations: Vec<PaintEvaluation> = de(js_evaluations)?;
+
+    ser(&paint_search::build_plans(
+        &exploration_target,
+        &paint_sets,
+        &evaluations,
+        result_num as usize,
+    ))
 }

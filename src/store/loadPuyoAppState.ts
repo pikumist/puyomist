@@ -87,6 +87,8 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     bridgePreview: undefined,
     paintSearchSettings: { ...defaultPaintSearchSettings },
     paintSearching: false,
+    paintSearchProgressPercent: 0,
+    abortControllerForPaintSearch: undefined,
     paintSearchResult: undefined,
     paintHighlightCoords: undefined,
     paintUndo: undefined

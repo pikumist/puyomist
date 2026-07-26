@@ -16,12 +16,22 @@ import type { ColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import type { SimulationData } from './SimulationData';
 import type { SolutionResult } from './solution';
-import type {
-  WasmExplorationTarget,
-  WasmPuyo,
-  WasmSimulationEnvironment,
-  WasmSolutionResult,
-  WasmStepCountingBonus
+import {
+  type PaintPlan,
+  PaintPrecision,
+  type PaintSearchSettings
+} from './paint-search';
+import {
+  type WasmExplorationTarget,
+  WasmPaintFilter,
+  type WasmPaintPlan,
+  WasmPaintPrecision,
+  type WasmPaintSearchParams,
+  WasmUnknownFillPolicy,
+  type WasmPuyo,
+  type WasmSimulationEnvironment,
+  type WasmSolutionResult,
+  type WasmStepCountingBonus
 } from './wasm-interface';
 
 export const toWasmExplorationTarget = (
@@ -106,3 +116,44 @@ export const toJsOptimalSolution = (s: WasmSolutionResult): SolutionResult => {
     })
   } as unknown as SolutionResult;
 };
+
+/** ぷよ塗り探索の設定を Rust 側のパラメータに変換する */
+export const toWasmPaintSearchParams = (
+  settings: PaintSearchSettings
+): WasmPaintSearchParams => ({
+  target: settings.color,
+  max_paint_num: settings.maxPaintNum,
+  // 絞り込みは実測で最大 22.9% 取りこぼす一方、コストは 1.4 倍にしかならない。
+  // 変えないこと (docs/paint-search.md §3)。
+  filter: WasmPaintFilter.All,
+  precision: toWasmPaintPrecision(settings.precision),
+  // 代理評価のなぞり数。3 だと品質が頭打ちになるので 4 が下限。
+  surrogate_trace_num: 4,
+  result_num: 20,
+  // 期待値は「探索は決定論のまま、最終選抜だけ期待値」で使う (最大 +3.8%)。
+  uncertainty: settings.showExpectedValue
+    ? {
+        policy: WasmUnknownFillPolicy.ChainAverse,
+        samples: 20,
+        max_refills: 2
+      }
+    : undefined
+});
+
+const paintPrecisionMap: Record<PaintPrecision, WasmPaintPrecision> = {
+  [PaintPrecision.Standard]: WasmPaintPrecision.Standard,
+  [PaintPrecision.High]: WasmPaintPrecision.High,
+  [PaintPrecision.Ultra]: WasmPaintPrecision.Ultra
+};
+
+export const toWasmPaintPrecision = (
+  precision: PaintPrecision
+): WasmPaintPrecision => paintPrecisionMap[precision];
+
+/** Rust 側の塗り案を JS 側の型に変換する */
+export const toJsPaintPlan = (plan: WasmPaintPlan): PaintPlan => ({
+  coords: plan.coords.map((c) => PuyoCoord.xyToCoord(c.x, c.y)!),
+  value: plan.value,
+  expectedValue: plan.expected_value,
+  solution: toJsOptimalSolution(plan.solution)
+});

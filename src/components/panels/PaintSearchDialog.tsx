@@ -26,16 +26,15 @@ import {
 import {
   type PaintPlan,
   type PaintPrecision,
-  createMockPaintSearchResult,
   paintPrecisionDescriptionMap,
   paintPrecisionListFor
 } from '@/logics/paint-search';
+import { paintSearchButtonClicked } from '@/store/actions';
 import {
   paintPlanApplied,
   paintPlanHovered,
+  paintSearchCancelButtonClicked,
   paintSearchSettingsChanged,
-  paintSearchStarted,
-  paintSearched,
   usePuyoAppState
 } from '@/store/puyoAppStore';
 import { selectPaintSearchResult } from '@/store/selectors';
@@ -81,11 +80,10 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
   const { open, onOpenChange } = props;
   const state = usePuyoAppState();
   const {
-    simulationData,
-    explorationTarget,
     solutionMethod,
     paintSearchSettings,
-    paintSearching
+    paintSearching,
+    paintSearchProgressPercent
   } = state;
   // 盤面や設定が変わったあとの古い結果は選択の段階で捨てられる
   const paintSearchResult = selectPaintSearchResult(state);
@@ -96,17 +94,6 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
   const precisionItems = paintPrecisionListFor(solutionMethod).map(
     (p) => [p, paintPrecisionDescriptionMap.get(p)!] as const
   );
-
-  const onSearchClick = () => {
-    paintSearchStarted();
-    // TODO: モックの見た目確認用。WASM / Rustバックエンドが入ったら差し替える。
-    const result = createMockPaintSearchResult(
-      simulationData,
-      explorationTarget,
-      paintSearchSettings
-    );
-    setTimeout(() => paintSearched(result), 300);
-  };
 
   // 行にホバーしたまま Escape で閉じると mouseleave が来ないので、
   // 閉じるときは必ずハイライトを消す。
@@ -199,12 +186,26 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
         </div>
 
         <div>
-          <Button onClick={onSearchClick} disabled={paintSearching}>
-            {paintSearching ? '塗り探索中…' : '塗り探索'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => paintSearchButtonClicked()}
+              disabled={paintSearching}
+            >
+              {paintSearching ? '塗り探索中…' : '塗り探索'}
+            </Button>
+            {paintSearching && (
+              <Button
+                variant="outline"
+                onClick={() => paintSearchCancelButtonClicked()}
+              >
+                中断
+              </Button>
+            )}
+          </div>
+          {/* 標準精度でも十数秒かかるので、進捗を見せる */}
           <Progress
             className="mt-2"
-            value={paintSearching ? null : 0}
+            value={paintSearchProgressPercent || null}
             style={{ visibility: paintSearching ? 'visible' : 'hidden' }}
           />
         </div>
