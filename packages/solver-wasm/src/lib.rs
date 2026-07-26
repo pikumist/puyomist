@@ -222,6 +222,24 @@ where
     to_value(value).map_err(|e| JsError::new(&e.to_string()))
 }
 
+/// 塗り集合の中身が盤面のセル範囲に収まっているか確かめる。
+///
+/// これらの関数は JS から直接呼べるので、範囲外の値が来ると内部の配列添字で
+/// panic (= wasm トラップ) する。JsError にして返した方が原因が分かる。
+fn validate_paint_sets(paint_sets: &[Vec<usize>]) -> Result<(), JsError> {
+    for cells in paint_sets {
+        for &index in cells {
+            if index >= paint::CELL_NUM {
+                return Err(JsError::new(&format!(
+                    "塗りマスの添字が範囲外です: {index} (0..{})",
+                    paint::CELL_NUM
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// ビームを1段展開する。塗り集合(セルインデックスの配列)の配列を返す。
 ///
 /// 空のビーム (空集合1件) を渡すと深さ1の全候補が返る。空が返ったら打ち切ること。
@@ -240,6 +258,7 @@ pub fn paint_expand_beam(
     let next_puyos: NextPuyos = de(js_next_puyos)?;
     let params: PaintSearchParams = de(js_params)?;
     let beam: Vec<Vec<usize>> = de(js_beam)?;
+    validate_paint_sets(&beam)?;
 
     let context =
         PaintBeamContext::new(&field, &next_puyos, &params, minimum_puyo_num_for_popping);
@@ -276,6 +295,7 @@ pub fn paint_evaluate_sets(
     let next_puyos: NextPuyos = de(js_next_puyos)?;
     let params: PaintSearchParams = de(js_params)?;
     let paint_sets: Vec<Vec<usize>> = de(js_paint_sets)?;
+    validate_paint_sets(&paint_sets)?;
 
     let context = PaintBeamContext::new(
         &field,
@@ -332,6 +352,17 @@ pub fn paint_build_plans(
     let exploration_target: ExplorationTarget = de(js_exploration_target)?;
     let paint_sets: Vec<Vec<usize>> = de(js_paint_sets)?;
     let evaluations: Vec<PaintEvaluation> = de(js_evaluations)?;
+    validate_paint_sets(&paint_sets)?;
+
+    // 塗り集合と評価は1対1で対応している前提 (評価をワーカーで分割しても順序と件数は
+    // 保つ)。食い違ったまま進むと添字で panic するので、ここで断る。
+    if paint_sets.len() != evaluations.len() {
+        return Err(JsError::new(&format!(
+            "塗り集合と評価の件数が一致しません: {} vs {}",
+            paint_sets.len(),
+            evaluations.len()
+        )));
+    }
 
     ser(&paint_search::build_plans(
         &exploration_target,

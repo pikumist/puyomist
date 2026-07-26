@@ -140,6 +140,28 @@ describe('paintSearchButtonClicked', () => {
     expect(usePuyoAppStore.getState().paintSearchResult).toBeUndefined();
   });
 
+  it('ignores a result that arrives after the search was cancelled', async () => {
+    let finish: ((result: PaintSearchResult) => void) | undefined;
+    searchMock.mockImplementation(
+      () =>
+        new Promise<PaintSearchResult>((resolve) => {
+          finish = resolve;
+        })
+    );
+
+    paintSearchButtonClicked();
+    await vi.waitFor(() => expect(finish).toBeDefined());
+
+    usePuyoAppStore.getState().paintSearchCancelButtonClicked();
+    // 中断したあとに、間に合わなかった探索が結果を返してくる
+    finish!(emptyResult());
+    await vi.waitFor(() =>
+      expect(usePuyoAppStore.getState().paintSearching).toBe(false)
+    );
+
+    expect(usePuyoAppStore.getState().paintSearchResult).toBeUndefined();
+  });
+
   it('marks the search as failed when the driver throws', async () => {
     searchMock.mockRejectedValue(new Error('boom'));
 

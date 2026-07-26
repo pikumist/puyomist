@@ -851,6 +851,11 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     paintSearchCancelButtonClicked: () =>
       set((state) => {
         state.abortControllerForPaintSearch?.abort();
+        // 打ち切った時点で探索は終わったものとして扱う。走っていた探索があとから
+        // 結果を返してきても、コントローラーが入れ替わっているので取り込まれない。
+        state.abortControllerForPaintSearch = undefined;
+        state.paintSearching = false;
+        state.paintSearchProgressPercent = 0;
       }),
 
     /** ぷよ塗り探索の結果を破棄するとき */

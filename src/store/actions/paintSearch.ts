@@ -29,24 +29,35 @@ export const paintSearchButtonClicked = (): void => {
 
   state.paintSearchStarted();
 
+  // この探索の身元。中断や次の探索で差し替わったら、こちらの結果も進捗も捨てる。
+  // 中断は結果の指紋を変えないので、指紋の照合だけでは弾けない。
+  const controller = usePuyoAppStore.getState().abortControllerForPaintSearch!;
+  const isCurrent = () =>
+    !controller.signal.aborted &&
+    usePuyoAppStore.getState().abortControllerForPaintSearch === controller;
+
   (async () => {
     try {
-      const signal =
-        usePuyoAppStore.getState().abortControllerForPaintSearch!.signal;
       const result = await search(
         simulationData,
         explorationTarget,
         paintSearchSettings,
         {
-          signal,
+          signal: controller.signal,
           onProgress: (percent) => {
-            usePuyoAppStore.getState().paintSearchProgress(percent);
+            if (isCurrent()) {
+              usePuyoAppStore.getState().paintSearchProgress(percent);
+            }
           }
         }
       );
-      usePuyoAppStore.getState().paintSearched(result);
+      if (isCurrent()) {
+        usePuyoAppStore.getState().paintSearched(result);
+      }
     } catch (_) {
-      usePuyoAppStore.getState().paintSearchFailed();
+      if (isCurrent()) {
+        usePuyoAppStore.getState().paintSearchFailed();
+      }
     }
   })();
 };

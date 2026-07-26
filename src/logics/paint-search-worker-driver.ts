@@ -57,7 +57,9 @@ export const searchPaintPlansByWasm = async (
     options.concurrency ?? window.navigator.hardwareConcurrency ?? 1
   );
 
-  const pool = [...new Array(concurrency)].map(() => createWorker());
+  // ワーカーは try の中で1つずつ足す。途中の生成が失敗しても、それまでに
+  // 起こしたぶんは finally が確実に始末できる。
+  const pool: ReturnType<typeof createWorker>[] = [];
   const exitAll = () => {
     for (const worker of pool) {
       try {
@@ -71,6 +73,31 @@ export const searchPaintPlansByWasm = async (
     if (signal?.aborted) {
       throw new Error('aborted');
     }
+  };
+
+  /**
+   * ワーカー呼び出しを中断と競わせる。
+   *
+   * wasm の評価は同期的に走りきるので、`await` の前後で中断を見るだけでは、押した
+   * あともチャンク1つ分 (数秒〜十数秒) 計算し続けてしまう。中断が先に決着したら
+   * ここで抜け、`finally` の terminate がワーカーごと計算を落とす。
+   */
+  const raceWithAbort = <T>(work: Promise<T>): Promise<T> => {
+    if (!signal) {
+      return work;
+    }
+    return Promise.race([
+      work,
+      new Promise<never>((_, reject) => {
+        if (signal.aborted) {
+          reject(new Error('aborted'));
+          return;
+        }
+        signal.addEventListener('abort', () => reject(new Error('aborted')), {
+          once: true
+        });
+      })
+    ]);
   };
 
   /**
@@ -91,16 +118,18 @@ export const searchPaintPlansByWasm = async (
       chunks.push(paintSets.slice(i, i + chunkSize));
     }
 
-    const results = await Promise.all(
-      chunks.map((chunk, i) =>
-        pool[i].workerProxy.evaluatePaintSets(
-          simulationData,
-          explorationTarget,
-          params,
-          chunk,
-          maxTraceNum,
-          withSolution,
-          withUncertainty
+    const results = await raceWithAbort(
+      Promise.all(
+        chunks.map((chunk, i) =>
+          pool[i].workerProxy.evaluatePaintSets(
+            simulationData,
+            explorationTarget,
+            params,
+            chunk,
+            maxTraceNum,
+            withSolution,
+            withUncertainty
+          )
         )
       )
     );
@@ -110,6 +139,10 @@ export const searchPaintPlansByWasm = async (
   };
 
   try {
+    for (let i = 0; i < concurrency; i++) {
+      pool.push(createWorker());
+    }
+
     // 添字0は「塗らない」(空集合)。代理評価は掛けず、最後に無条件で検証対象に加える。
     const all: WasmPaintSet[] = [[]];
     const allScores: number[] = [Number.NEGATIVE_INFINITY];
@@ -121,11 +154,10 @@ export const searchPaintPlansByWasm = async (
     for (let depth = 0; depth < settings.maxPaintNum; depth++) {
       throwIfAborted();
 
-      const expanded = await pool[0].workerProxy.expandPaintBeam(
-        simulationData,
-        params,
-        beam
+      const expanded = await raceWithAbort(
+        pool[0].workerProxy.expandPaintBeam(simulationData, params, beam)
       );
+      throwIfAborted();
       if (expanded.length === 0) {
         break;
       }
@@ -137,10 +169,10 @@ export const searchPaintPlansByWasm = async (
         false
       );
       const scores = evaluations.map((e) => e.value);
-      const top = await pool[0].workerProxy.selectTopPaintSets(
-        scores,
-        beamWidth
+      const top = await raceWithAbort(
+        pool[0].workerProxy.selectTopPaintSets(scores, beamWidth)
       );
+      throwIfAborted();
 
       beam = top.map((i) => expanded[i]);
       for (const i of top) {
@@ -153,10 +185,10 @@ export const searchPaintPlansByWasm = async (
 
     // 代理の上位を本番評価する。「塗らない」は代理スコアを持たず上位選抜に残らないが、
     // 塗りがすべて損な盤面ではこれが答えになるので無条件で加える。
-    const verify = await pool[0].workerProxy.selectTopPaintSets(
-      allScores,
-      verifyNum
+    const verify = await raceWithAbort(
+      pool[0].workerProxy.selectTopPaintSets(allScores, verifyNum)
     );
+    throwIfAborted();
     if (!verify.includes(0)) {
       verify.unshift(0);
     }
@@ -169,12 +201,17 @@ export const searchPaintPlansByWasm = async (
       Boolean(params.uncertainty)
     );
 
-    const plans = await pool[0].workerProxy.buildPaintPlans(
-      explorationTarget,
-      verifySets,
-      evaluations,
-      params.result_num
+    const plans = await raceWithAbort(
+      pool[0].workerProxy.buildPaintPlans(
+        explorationTarget,
+        verifySets,
+        evaluations,
+        params.result_num
+      )
     );
+    // 中断されたあとに 100% や結果を返さない。呼び出し側は中断か完了かで
+    // 扱いを変えるので、ここで必ず落とす。
+    throwIfAborted();
 
     onProgress?.(100);
 
