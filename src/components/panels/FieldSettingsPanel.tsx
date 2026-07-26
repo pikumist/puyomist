@@ -4,13 +4,21 @@ import { EnumSelect } from '@/components/controls/EnumSelect';
 import { pastelClassForAttr } from '@/components/controls/puyoColorClass';
 import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 import { TraceMode, traceModeDescriptionMap } from '@/logics/TraceMode';
+import { isDeadCellRuleApplicable } from '@/logics/dead-cells';
 import {
   animationDurationChanged,
   chainLeverageChanged,
   maxTraceNumChanged,
   minimumPuyoNumForPoppingChanged,
   poppingLeverageChanged,
+  showDeadCellsChanged,
   traceModeChanged,
   usePuyoAppState
 } from '@/store/puyoAppStore';
@@ -30,6 +38,7 @@ const FieldSettingsPanel: React.FC = () => {
     simulationData,
     animationDuration,
     boostAreaKeyList,
+    showDeadCells,
     screenshotInfo,
     screenshotErrorMessage
   } = usePuyoAppState();
@@ -40,6 +49,15 @@ const FieldSettingsPanel: React.FC = () => {
     poppingLeverage,
     chainLeverage
   } = simulationData;
+  // なぞり塗りモードや?ぷよのある盤面では判定が成り立たないので、トグルごと無効にする
+  const deadCellRuleApplicable = isDeadCellRuleApplicable(
+    simulationData.field,
+    simulationData.nextPuyos,
+    traceMode
+  );
+  // 無効の理由をツールチップで出し分けるため、なぞりモードのせいかどうかを見る
+  const blockedByQuestionPuyo =
+    !deadCellRuleApplicable && traceMode === TraceMode.Normal;
 
   return (
     <div className="space-y-3">
@@ -99,6 +117,33 @@ const FieldSettingsPanel: React.FC = () => {
           max={19.9}
           step={0.1}
           onChange={(v) => chainLeverageChanged(v)}
+        />
+      </SettingRow>
+      <SettingRow
+        label={
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span className="cursor-help underline decoration-dotted underline-offset-2" />
+              }
+            >
+              ひっつかないぷよ
+            </TooltipTrigger>
+            <TooltipContent className="max-w-64">
+              {deadCellRuleApplicable
+                ? '今の盤面ではひっつき消し (連鎖やダメージになる消え方) が起こせないぷよに×を付けます。なぞれば直接消せますし、連鎖で補充ぷよが降れば繋がることもあります。'
+                : blockedByQuestionPuyo
+                  ? '?ぷよがある盤面では色が分からないため判定できません。'
+                  : 'なぞり塗りモードでは、なぞりが任意のぷよを塗り替えるため判定できません。'}
+            </TooltipContent>
+          </Tooltip>
+        }
+      >
+        <Switch
+          aria-label="ひっつかないぷよに印を付ける"
+          checked={showDeadCells && deadCellRuleApplicable}
+          disabled={!deadCellRuleApplicable}
+          onCheckedChange={(checked) => showDeadCellsChanged(checked)}
         />
       </SettingRow>
       <BoostAreaSetting boostAreaKeyList={boostAreaKeyList} />

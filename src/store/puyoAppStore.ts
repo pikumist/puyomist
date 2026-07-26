@@ -99,6 +99,7 @@ interface PuyoAppActions {
   boardEditingEnded: () => void;
   howToEditBoardChanged: (howToEdit: HowToEditBoard) => void;
   boardEditCustomTypeChanged: (customType: PuyoType | undefined) => void;
+  showDeadCellsChanged: (show: boolean) => void;
 
   /// 最適解探索系
   solvingStarted: () => void;
@@ -621,6 +622,12 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         );
       }),
 
+    /** そのままでは消せないぷよの表示が切り替えられたとき */
+    showDeadCellsChanged: (show) =>
+      set((state) => {
+        state.showDeadCells = show;
+      }),
+
     /** ブーストエリアのキーリストが変更されたとき */
     boostAreaKeyListChanged: (keyList) =>
       set((state) => {
@@ -1050,6 +1057,7 @@ export const {
   boardEditingEnded,
   howToEditBoardChanged,
   boardEditCustomTypeChanged,
+  showDeadCellsChanged,
   /// 最適解探索系
   solvingStarted,
   solvingProgress,

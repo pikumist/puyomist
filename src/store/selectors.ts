@@ -1,4 +1,6 @@
+import type { PuyoCoord } from '@/logics/PuyoCoord';
 import type { PuyoType } from '@/logics/PuyoType';
+import { enumerateDeadCells } from '@/logics/dead-cells';
 import {
   type PaintSearchResult,
   boardSignatureOf,
@@ -91,6 +93,30 @@ export const selectActivePoppingPuyos = (
     }
   }
   return popping;
+};
+
+/**
+ * 盤面に「ひっつき消しできない」印を付けるマスを選ぶ。
+ *
+ * 判定は**画面に出ている盤面**に対して行う。連鎖アニメーション中やコマ送り中は
+ * `simulationData` となぞり後の盤面がずれるので、そこを取り違えると出ていない盤面の
+ * 判定を重ねてしまう。表示がオフのときと、判定が成り立たない条件では空。
+ *
+ * 呼び出しごとに新しい配列を返す。ストア全体を購読する `usePuyoAppState()` から
+ * 使う前提で、`usePuyoAppStore(selectDeadCellCoords)` のような購読に使わないこと
+ * (参照が毎回変わって再レンダーが止まらなくなる)。
+ */
+export const selectDeadCellCoords = (state: PuyoAppState): PuyoCoord[] => {
+  if (!state.showDeadCells) {
+    return [];
+  }
+  const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
+  return enumerateDeadCells(
+    field,
+    nextPuyos,
+    state.simulationData.minimumPuyoNumForPopping,
+    state.simulationData.traceMode
+  );
 };
 
 /**

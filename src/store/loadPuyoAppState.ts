@@ -19,6 +19,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const boostAreaKeyList = s.getBoostAreaKeyList();
   const boardEditMode = s.getBoardEditMode();
   const paintSearchSettings = s.getPaintSearchSettings();
+  const showDeadCells = s.getShowDeadCells();
 
   const traceMode = s.getTraceMode();
   const maxTraceNum = s.getMaxTraceNum();
@@ -85,6 +86,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined,
     bridgePreview: undefined,
+    showDeadCells,
     paintSearchSettings,
     paintSearching: false,
     paintSearchProgressPercent: 0,

@@ -65,6 +65,8 @@ export interface PuyoAppState {
   screenshotErrorMessage: string | undefined;
   /** ボードブリッジから受け取ったプレビュー画像 */
   bridgePreview: ScreenshotInfo | undefined;
+  /** そのままでは消せないぷよに印を付けるかどうか */
+  showDeadCells: boolean;
   /** ぷよ塗り探索の設定 */
   paintSearchSettings: PaintSearchSettings;
   /** ぷよ塗り探索中かどうか */
@@ -132,6 +134,7 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined,
   bridgePreview: undefined,
+  showDeadCells: false,
   paintSearchSettings: { ...defaultPaintSearchSettings },
   paintSearching: false,
   paintSearchProgressPercent: 0,

@@ -34,6 +34,25 @@
   opacity: 0.8;
 }
 
+/* そのままでは消せないぷよの印。暗いぷよの上でも読めるよう二重線にする。 */
+.deadCellMark {
+  pointer-events: none;
+}
+
+.deadCellMarkHalo {
+  stroke: var(--board-dead-mark-halo);
+  stroke-width: 4px;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.deadCellMarkLine {
+  stroke: var(--board-dead-mark);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  fill: none;
+}
+
 /* 塗り案のハイライト。塗り色を薄く敷いて縁取り、下のぷよが透けて見えるようにする。 */
 .paintHighlight {
   stroke-width: 2.5px;

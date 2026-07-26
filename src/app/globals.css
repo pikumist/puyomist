@@ -76,6 +76,8 @@
   --board-frame:        oklch(0.96 0.010 290);     /* soft frame */
   --board-grid:         oklch(0.55 0.020 290 / 0.45);
   --board-optimal-trace: oklch(0.98 0.005 290);
+  --board-dead-mark:    oklch(0.98 0.005 290 / 0.92);
+  --board-dead-mark-halo: oklch(0.20 0.020 290 / 0.75);
   --board-trace:        oklch(0.30 0.030 290);
   --board-trace-fill:   oklch(0.90 0.055 290 / 0.30);
   --board-trace-glow:   oklch(1.00 0.010 290 / 0.38);

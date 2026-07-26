@@ -11,7 +11,8 @@ import {
 } from '@/store/puyoAppStore';
 import {
   selectActiveFieldAndNextPuyos,
-  selectActivePoppingPuyos
+  selectActivePoppingPuyos,
+  selectDeadCellCoords
 } from '@/store/selectors';
 import styles from '../PuyoBoard.module.css';
 import BoardBackground from '../board-parts/BoardBackground';
@@ -19,6 +20,7 @@ import BoardFrame from '../board-parts/BoardFrame';
 import BoostAreaView from '../board-parts/BooastAreaView';
 import GridLines from '../board-parts/GridLines';
 import OptimalTrace from '../board-parts/OptimalTrace';
+import DeadCellMark from '../board-parts/DeadCellMark';
 import PaintHighlight from '../board-parts/PaintHighlight';
 import PuyoMatrix from '../board-parts/PuyoMatrix';
 import Trace from '../board-parts/Trace';
@@ -57,6 +59,7 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
   } = state;
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
   const poppingPuyos = selectActivePoppingPuyos(state);
+  const deadCellCoords = selectDeadCellCoords(state);
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
   const optimalTraceCoords =
@@ -228,6 +231,10 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
           ))}
           {traceCoords.map((coord, i) => (
             <Trace key={String(i)} x={coord.x} y={coord.y} />
+          ))}
+          {/* 塗り案のハイライトに覆われないよう、重ねるものの最後に置く */}
+          {deadCellCoords.map((coord) => (
+            <DeadCellMark key={String(coord.index)} x={coord.x} y={coord.y} />
           ))}
         </g>
       </g>

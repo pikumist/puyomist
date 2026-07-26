@@ -27,6 +27,7 @@ export class Session {
   private static readonly boostAreaKeyListKey = 'boostAreaKeys';
   private static readonly boardEditModeKey = 'boardEidtMode';
   private static readonly paintSearchSettingsKey = 'paintSearchSettings';
+  private static readonly showDeadCellsKey = 'showDeadCells';
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
     category: ExplorationCategory.PuyotsukaiCount,
@@ -187,6 +188,15 @@ export class Session {
       };
     }
     return JSON.parse(boardEditModeStr);
+  }
+
+  /** そのままでは消せないぷよに印を付けるかどうか。既定はオフ。 */
+  getShowDeadCells(): boolean {
+    return this.storage.getItem(Session.showDeadCellsKey) === 'true';
+  }
+
+  setShowDeadCells(show: boolean): void {
+    this.storage.setItem(Session.showDeadCellsKey, String(show));
   }
 
   /**
