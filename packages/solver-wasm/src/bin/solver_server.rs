@@ -44,6 +44,10 @@ use solver::how_many_traces::count_candidates_num_for_each_indexes;
 use solver::puyo::{Field, NextPuyos};
 use solver::puyo_coord::PuyoCoord;
 use solver::simulation_environment::SimulationEnvironment;
+use solver::paint_search::{
+    build_plans, evaluate_paint_set, expand_beam, make_unknown_fills, select_top, PaintBeamContext,
+    PaintEvalContext, PaintEvaluation, PaintPlan, PaintSearchParams,
+};
 use solver::solution::{ExplorationResult, SolutionResult};
 use solver::solution_explorer::SolutionExplorer;
 
@@ -102,6 +106,15 @@ enum ClientMessage {
         field: Field,
         next_puyos: NextPuyos,
     },
+    /// 前段「ぷよ塗り」探索。`params` は `PaintSearchParams` (精度→幅の対応は Rust 側で決める)。
+    Paint {
+        exploration_target: ExplorationTarget,
+        environment: SimulationEnvironment,
+        boost_area_coords: Vec<PuyoCoord>,
+        field: Field,
+        next_puyos: NextPuyos,
+        params: PaintSearchParams,
+    },
     Abort,
 }
 
@@ -113,6 +126,14 @@ enum ServerMessage<'a> {
         optimal_solutions: &'a [SolutionResult],
         ideal_share: f64,
     },
+    /// ぷよ塗り探索の進捗 (0..100)。
+    PaintProgress {
+        percent: f64,
+    },
+    /// ぷよ塗り探索の結果。良い順の塗り案。
+    PaintResult {
+        plans: &'a [PaintPlan],
+    },
     Done,
     Error {
         message: String,
@@ -123,6 +144,16 @@ enum ServerMessage<'a> {
 struct PartialUpdate {
     result: ExplorationResult,
     ideal_share: f64,
+}
+
+/// ワーカースレッドから接続スレッドへ流す更新。
+///
+/// なぞり探索とぷよ塗り探索で1本のチャネルを共有する。実行中の探索は常に1件で、
+/// 新しい依頼が来たら種類を問わず前のものを打ち切るため、束ねておく方が扱いやすい。
+enum Update {
+    Solve(PartialUpdate),
+    PaintProgress(f64),
+    PaintResult(Vec<PaintPlan>),
 }
 
 //
@@ -195,7 +226,7 @@ fn handle_connection(stream: TcpStream) {
     // 打ち切られた側のタスク自身は (専用スレッドプールの上で) バックグラウンドで動き続けるが、
     // 新しい探索とワーカースレッドを奪い合わないよう、探索ごとに専用の rayon ThreadPool を使う
     // (run_solve 参照)。
-    let mut current: Option<(Arc<AtomicBool>, mpsc::Receiver<PartialUpdate>)> = None;
+    let mut current: Option<(Arc<AtomicBool>, mpsc::Receiver<Update>)> = None;
 
     'conn: loop {
         // 1. 完了タスクの部分結果を吐き出す。
@@ -203,7 +234,7 @@ fn handle_connection(stream: TcpStream) {
             loop {
                 match rx.try_recv() {
                     Ok(update) => {
-                        if send_partial(&mut websocket, &update).is_err() {
+                        if send_update(&mut websocket, &update).is_err() {
                             break 'conn;
                         }
                     }
@@ -247,6 +278,37 @@ fn handle_connection(stream: TcpStream) {
                             &boost_area_coord_set,
                             &field,
                             &next_puyos,
+                            &thread_abort_flag,
+                            tx,
+                        );
+                    });
+                    current = Some((abort_flag, rx));
+                }
+                Ok(ClientMessage::Paint {
+                    exploration_target,
+                    environment,
+                    boost_area_coords,
+                    field,
+                    next_puyos,
+                    params,
+                }) => {
+                    // なぞり探索と同じく、実行中のものは種類を問わず打ち切って置き換える。
+                    if let Some((old_flag, _old_rx)) = current.take() {
+                        old_flag.store(true, Ordering::Relaxed);
+                    }
+                    let boost_area_coord_set: HashSet<PuyoCoord> =
+                        boost_area_coords.into_iter().collect();
+                    let abort_flag = Arc::new(AtomicBool::new(false));
+                    let thread_abort_flag = Arc::clone(&abort_flag);
+                    let (tx, rx) = mpsc::channel();
+                    thread::spawn(move || {
+                        run_paint(
+                            &exploration_target,
+                            &environment,
+                            &boost_area_coord_set,
+                            &field,
+                            &next_puyos,
+                            &params,
                             &thread_abort_flag,
                             tx,
                         );
@@ -303,18 +365,26 @@ fn handle_connection(stream: TcpStream) {
     eprintln!("[solver-server] client disconnected: {:?}", peer);
 }
 
-fn send_partial(
+fn send_update(
     websocket: &mut WebSocket<TcpStream>,
-    update: &PartialUpdate,
+    update: &Update,
 ) -> tungstenite::Result<()> {
-    send_message(
-        websocket,
-        &ServerMessage::Partial {
-            candidates_num: update.result.candidates_num,
-            optimal_solutions: &update.result.optimal_solutions,
-            ideal_share: update.ideal_share,
-        },
-    )
+    match update {
+        Update::Solve(partial) => send_message(
+            websocket,
+            &ServerMessage::Partial {
+                candidates_num: partial.result.candidates_num,
+                optimal_solutions: &partial.result.optimal_solutions,
+                ideal_share: partial.ideal_share,
+            },
+        ),
+        Update::PaintProgress(percent) => {
+            send_message(websocket, &ServerMessage::PaintProgress { percent: *percent })
+        }
+        Update::PaintResult(plans) => {
+            send_message(websocket, &ServerMessage::PaintResult { plans })
+        }
+    }
 }
 
 fn send_message(
@@ -433,7 +503,7 @@ fn run_solve(
     field: &Field,
     next_puyos: &NextPuyos,
     abort_flag: &AtomicBool,
-    tx: Sender<PartialUpdate>,
+    tx: Sender<Update>,
 ) {
     let explorer = SolutionExplorer::new(
         exploration_target,
@@ -492,7 +562,7 @@ fn run_tasks(
     tasks: &[Task],
     explorer: &SolutionExplorer,
     abort_flag: &AtomicBool,
-    tx: Sender<PartialUpdate>,
+    tx: Sender<Update>,
 ) {
     tasks.par_iter().for_each_with(tx, |tx, task| {
         if abort_flag.load(Ordering::Relaxed) {
@@ -508,12 +578,220 @@ fn run_tasks(
             if abort_flag.load(Ordering::Relaxed) {
                 return;
             }
-            let _ = tx.send(PartialUpdate {
+            let _ = tx.send(Update::Solve(PartialUpdate {
                 result,
                 ideal_share: task.ideal_share,
-            });
+            }));
         }
     });
+}
+
+//
+// 前段「ぷよ塗り」探索
+//
+// 重いのは塗り集合の評価だけで、そこは要素ごとに完全に独立している。wasm 版は
+// これを Web Worker へ配り、ここでは rayon で回す (docs/paint-search.md)。
+//
+// **評価結果は必ず元の順序で組み直すこと**。`par_iter().map().collect()` は入力順を
+// 保つのでそのまま使える。順序が崩れると同点の並びが変わり、wasm 版と違う結果になる。
+//
+
+/// 塗り集合をまとめて評価する。入力順のまま返る。
+fn evaluate_paint_sets_parallel(
+    eval: &PaintEvalContext,
+    context: &PaintBeamContext,
+    paint_sets: &[Vec<usize>],
+    max_trace_num: u32,
+    with_solution: bool,
+    unknown_fills: &[solver::simulator_bb::UnknownFill],
+    abort_flag: &AtomicBool,
+) -> Vec<PaintEvaluation> {
+    paint_sets
+        .par_iter()
+        .map(|cells| {
+            if abort_flag.load(Ordering::Relaxed) {
+                // 打ち切られたら結果は捨てられるので、評価せず空の値で埋めて早く畳む。
+                return PaintEvaluation {
+                    value: 0.0,
+                    expected_value: None,
+                    solution: None,
+                };
+            }
+            evaluate_paint_set(
+                eval,
+                context,
+                cells,
+                max_trace_num,
+                with_solution,
+                unknown_fills,
+            )
+        })
+        .collect()
+}
+
+/// ビームサーチを回して塗り案を返す。深さが1段進むごとに `on_progress` を呼ぶ。
+///
+/// 逐次版 (`solver::paint_search::search_paint_plans_with`) と同じ手順で、評価だけを
+/// 並列にしたもの。幅と検証件数を引数に取るのはテストのためで、**本番は
+/// `params.precision` から導いた値を渡すこと** (バックエンド間で幅が食い違わないように)。
+fn paint_plans_parallel(
+    eval: &PaintEvalContext,
+    params: &PaintSearchParams,
+    beam_width: usize,
+    verify_num: usize,
+    abort_flag: &AtomicBool,
+    on_progress: &dyn Fn(f64),
+) -> Vec<PaintPlan> {
+    let context = PaintBeamContext::new(
+        eval.field,
+        eval.next_puyos,
+        params,
+        eval.environment.minimum_puyo_num_for_popping,
+    );
+
+    // 添字0は「塗らない」(空集合)。代理評価は掛けず、最後に無条件で検証対象に加える。
+    let mut all: Vec<Vec<usize>> = vec![Vec::new()];
+    let mut all_scores: Vec<f64> = vec![f64::NEG_INFINITY];
+    let mut beam: Vec<Vec<usize>> = vec![Vec::new()];
+
+    // 深さぶんの展開に加えて、最後の本番評価が1段ある。
+    let total_steps = (params.max_paint_num + 1) as f64;
+
+    for depth in 0..params.max_paint_num {
+        if abort_flag.load(Ordering::Relaxed) {
+            return Vec::new();
+        }
+        let expanded = expand_beam(&context, &beam);
+        if expanded.is_empty() {
+            break;
+        }
+        let evaluations = evaluate_paint_sets_parallel(
+            eval,
+            &context,
+            &expanded,
+            params.surrogate_trace_num,
+            false,
+            &[],
+            abort_flag,
+        );
+        let scores: Vec<f64> = evaluations.iter().map(|e| e.value).collect();
+        let top = select_top(&scores, beam_width);
+
+        beam = top.iter().map(|&i| expanded[i].clone()).collect();
+        for &i in &top {
+            all.push(expanded[i].clone());
+            all_scores.push(scores[i]);
+        }
+
+        on_progress(((depth + 1) as f64 / total_steps) * 100.0);
+    }
+
+    if abort_flag.load(Ordering::Relaxed) {
+        return Vec::new();
+    }
+
+    // 代理の上位を本番評価する。「塗らない」は代理スコアを持たず上位選抜に残らないが、
+    // 塗りがすべて損な盤面ではこれが答えになるので無条件で加える。
+    let mut verify = select_top(&all_scores, verify_num);
+    if !verify.contains(&0) {
+        verify.insert(0, 0);
+    }
+    let verify_sets: Vec<Vec<usize>> = verify.iter().map(|&i| all[i].clone()).collect();
+    let unknown_fills = params
+        .uncertainty
+        .as_ref()
+        .map(make_unknown_fills)
+        .unwrap_or_default();
+    let evaluations = evaluate_paint_sets_parallel(
+        eval,
+        &context,
+        &verify_sets,
+        eval.environment.max_trace_num,
+        true,
+        &unknown_fills,
+        abort_flag,
+    );
+
+    if abort_flag.load(Ordering::Relaxed) {
+        return Vec::new();
+    }
+
+    on_progress(100.0);
+
+    build_plans(
+        eval.exploration_target,
+        &verify_sets,
+        &evaluations,
+        params.result_num as usize,
+    )
+}
+
+/// ぷよ塗り探索を専用スレッドプール上で実行し、進捗と結果を `tx` へ送る。
+#[allow(clippy::too_many_arguments)]
+fn run_paint(
+    exploration_target: &ExplorationTarget,
+    environment: &SimulationEnvironment,
+    boost_area_coord_set: &HashSet<PuyoCoord>,
+    field: &Field,
+    next_puyos: &NextPuyos,
+    params: &PaintSearchParams,
+    abort_flag: &AtomicBool,
+    tx: Sender<Update>,
+) {
+    let eval = PaintEvalContext {
+        exploration_target,
+        environment,
+        boost_area: boost_area_coord_set,
+        field,
+        next_puyos,
+    };
+
+    let concurrency = rayon::current_num_threads();
+    eprintln!(
+        "[solver-server] paint start: target={:?} max_paint_num={} precision={:?} threads={}",
+        params.target, params.max_paint_num, params.precision, concurrency
+    );
+    let start = Instant::now();
+
+    let progress_tx = tx.clone();
+    let on_progress = move |percent: f64| {
+        let _ = progress_tx.send(Update::PaintProgress(percent));
+    };
+
+    // なぞり探索と同じ理由で、探索ごとの専用プールで走らせる (run_solve のコメント参照)。
+    let run = || {
+        paint_plans_parallel(
+            &eval,
+            params,
+            params.beam_width(),
+            params.verify_num(),
+            abort_flag,
+            &on_progress,
+        )
+    };
+    let plans = match rayon::ThreadPoolBuilder::new()
+        .num_threads(concurrency)
+        .build()
+    {
+        Ok(pool) => pool.install(run),
+        Err(e) => {
+            eprintln!(
+                "[solver-server] failed to build dedicated thread pool: {e}; falling back to ambient pool"
+            );
+            run()
+        }
+    };
+
+    eprintln!(
+        "[solver-server] paint done: plans={} elapsed={:.2}ms aborted={}",
+        plans.len(),
+        start.elapsed().as_secs_f64() * 1000.0,
+        abort_flag.load(Ordering::Relaxed)
+    );
+
+    if !abort_flag.load(Ordering::Relaxed) {
+        let _ = tx.send(Update::PaintResult(plans));
+    }
 }
 
 #[cfg(test)]
@@ -761,5 +1039,94 @@ mod tests {
                 "concurrency={concurrency}: 最良解の値が不一致"
             );
         }
+    }
+
+    /// rayon で評価を並列にしても、逐次版と完全に同じ塗り案が返ること。
+    ///
+    /// 順序が崩れると同点の並びが変わり、wasm 版と食い違う。既定の幅300では
+    /// テストが分単位になるので、幅を直接渡す `search_paint_plans_with` と突き合わせる。
+    #[test]
+    fn paint_parallel_matches_sequential_search() {
+        use solver::paint_search::search_paint_plans_with;
+        use solver::puyo_attr::PuyoAttr;
+
+        let (exploration_target, environment, boost_area_coord_set, field, next_puyos) =
+            build_bench_scenario(5);
+        let eval = PaintEvalContext {
+            exploration_target: &exploration_target,
+            environment: &environment,
+            boost_area: &boost_area_coord_set,
+            field: &field,
+            next_puyos: &next_puyos,
+        };
+        let mut params = PaintSearchParams::new(PuyoAttr::Red, 4);
+        params.result_num = 8;
+        let (beam_width, verify_num) = (20, 60);
+
+        let sequential = search_paint_plans_with(&eval, &params, beam_width, verify_num);
+        let parallel = paint_plans_parallel(
+            &eval,
+            &params,
+            beam_width,
+            verify_num,
+            &AtomicBool::new(false),
+            &|_| {},
+        );
+
+        assert_eq!(parallel.len(), sequential.len());
+        for (x, y) in parallel.iter().zip(sequential.iter()) {
+            assert_eq!(x.coords, y.coords, "並列化で塗り案が変わった");
+            assert_eq!(x.value, y.value);
+        }
+    }
+
+    /// 進捗が単調に増えて 100 で終わること。
+    #[test]
+    fn paint_reports_monotonic_progress() {
+        use solver::puyo_attr::PuyoAttr;
+        use std::sync::Mutex;
+
+        let (exploration_target, environment, boost_area_coord_set, field, next_puyos) =
+            build_bench_scenario(5);
+        let eval = PaintEvalContext {
+            exploration_target: &exploration_target,
+            environment: &environment,
+            boost_area: &boost_area_coord_set,
+            field: &field,
+            next_puyos: &next_puyos,
+        };
+        let mut params = PaintSearchParams::new(PuyoAttr::Red, 3);
+        params.result_num = 3;
+
+        let seen: Mutex<Vec<f64>> = Mutex::new(Vec::new());
+        paint_plans_parallel(&eval, &params, 10, 30, &AtomicBool::new(false), &|percent| {
+            seen.lock().unwrap().push(percent);
+        });
+
+        let seen = seen.into_inner().unwrap();
+        assert!(!seen.is_empty());
+        assert!(seen.windows(2).all(|w| w[0] <= w[1]), "進捗が戻った: {seen:?}");
+        assert_eq!(seen.last().copied(), Some(100.0));
+    }
+
+    /// 打ち切りフラグが立っていたら、結果を返さずに畳むこと。
+    #[test]
+    fn paint_returns_nothing_when_aborted() {
+        use solver::puyo_attr::PuyoAttr;
+
+        let (exploration_target, environment, boost_area_coord_set, field, next_puyos) =
+            build_bench_scenario(5);
+        let eval = PaintEvalContext {
+            exploration_target: &exploration_target,
+            environment: &environment,
+            boost_area: &boost_area_coord_set,
+            field: &field,
+            next_puyos: &next_puyos,
+        };
+        let params = PaintSearchParams::new(PuyoAttr::Red, 4);
+
+        let plans = paint_plans_parallel(&eval, &params, 20, 60, &AtomicBool::new(true), &|_| {});
+
+        assert!(plans.is_empty());
     }
 }

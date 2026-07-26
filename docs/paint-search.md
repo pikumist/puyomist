@@ -377,6 +377,26 @@ JS 側 (`src/logics/paint-search-worker-driver.ts`) が深さごとに
 > (`search_paint_plans_with`) と完全に一致することは、ワーカー数を変えて突き合わせる
 > `split_evaluation_matches_sequential_search` テストで担保している。
 
+## 10.3 Rustネイティブバックエンド
+
+`solver-server` に `{type:"paint"}` を追加した。ワイヤープロトコル:
+
+```
+client -> server: { type: "paint", exploration_target, environment,
+                    boost_area_coords, field, next_puyos, params }
+server -> client: { type: "paint_progress", percent }   (深さ1段ごと)
+server -> client: { type: "paint_result", plans }
+server -> client: { type: "done" }
+```
+
+評価は rayon で並列化する (`par_iter().map().collect()` は**入力順を保つ**ので、
+そのまま逐次版と同じ並びになる)。なぞり探索と同じく探索ごとの専用スレッドプールで
+走らせ、`abort` で打ち切れる。
+
+**幅は `params.precision` からサーバー側が導く**。クライアントは精度しか送らないので、
+wasm とネイティブで幅が食い違う余地がない。逐次版との一致は
+`paint_parallel_matches_sequential_search` テストで担保している。
+
 ## 11. 計測用バイナリ
 
 | バイナリ | 用途 |

@@ -1,15 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PaintSearchResult } from '../../logics/paint-search';
+import { SolutionMethod } from '../../logics/solution';
 import { paintSearchSignatureOf } from '../../logics/paint-search';
 import { usePuyoAppStore } from '../puyoAppStore';
 import { INITIAL_PUYO_APP_STATE } from '../types';
 import { paintSearchButtonClicked } from './paintSearch';
 
 const searchMock = vi.hoisted(() => vi.fn());
+const backendSearchMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../../logics/paint-search-worker-driver', () => ({
   searchPaintPlansByWasm: searchMock
+}));
+vi.mock('../../logics/paint-search-rust-backend', () => ({
+  searchPaintPlansByRustBackend: backendSearchMock
 }));
 
 /** 今の状態に対して有効な、空の結果 */
@@ -30,6 +35,31 @@ describe('paintSearchButtonClicked', () => {
   beforeEach(() => {
     usePuyoAppStore.setState(structuredClone(INITIAL_PUYO_APP_STATE));
     searchMock.mockReset();
+    backendSearchMock.mockReset();
+  });
+
+  it('goes through the rust backend when that method is selected', async () => {
+    backendSearchMock.mockResolvedValue(emptyResult());
+    usePuyoAppStore.setState({
+      solutionMethod: SolutionMethod.solveAllByRustBackend
+    });
+
+    paintSearchButtonClicked();
+
+    await vi.waitFor(() => expect(backendSearchMock).toHaveBeenCalled());
+    expect(searchMock).not.toHaveBeenCalled();
+  });
+
+  it('goes through the wasm workers on the wasm method', async () => {
+    searchMock.mockResolvedValue(emptyResult());
+    usePuyoAppStore.setState({
+      solutionMethod: SolutionMethod.solveAllInParallelByWasm
+    });
+
+    paintSearchButtonClicked();
+
+    await vi.waitFor(() => expect(searchMock).toHaveBeenCalled());
+    expect(backendSearchMock).not.toHaveBeenCalled();
   });
 
   it('runs the search and stores the result', async () => {
