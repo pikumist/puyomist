@@ -57,9 +57,22 @@ export const searchPaintPlansByWasm = async (
     options.concurrency ?? window.navigator.hardwareConcurrency ?? 1
   );
 
-  // ワーカーは try の中で1つずつ足す。途中の生成が失敗しても、それまでに
-  // 起こしたぶんは finally が確実に始末できる。
+  // ワーカーは必要になった時点で1つずつ足す。
+  //
+  // - ワーカーはそれぞれ自前の wasm インスタンスを持つので、起こすだけで起動時間と
+  //   メモリを食う。中断済みの依頼では1つも起こさずに済み、候補マスが少ない盤面では
+  //   分割数ぶんで足りる (ただし候補を絞らない方式上、深さ1段目で候補マス数ぶんの
+  //   分割が出るのが普通なので、多くの盤面では結局コア数ぶん起きる)
+  // - **`workerAt` は必ず try の中から呼ぶこと**。そうすれば途中の生成が失敗しても、
+  //   それまでに起こしたぶんを finally が始末できる
+  // - 添字は 0 から詰めて渡すこと (飛ばすと間のワーカーまで起こしてしまう)
   const pool: ReturnType<typeof createWorker>[] = [];
+  const workerAt = (index: number) => {
+    while (pool.length <= index) {
+      pool.push(createWorker());
+    }
+    return pool[index];
+  };
   const exitAll = () => {
     for (const worker of pool) {
       try {
@@ -112,37 +125,37 @@ export const searchPaintPlansByWasm = async (
   ): Promise<WasmPaintEvaluation[]> => {
     throwIfAborted();
 
-    const chunkSize = Math.max(1, Math.ceil(paintSets.length / pool.length));
+    const chunkSize = Math.max(1, Math.ceil(paintSets.length / concurrency));
     const chunks: WasmPaintSet[][] = [];
     for (let i = 0; i < paintSets.length; i += chunkSize) {
       chunks.push(paintSets.slice(i, i + chunkSize));
     }
 
-    const results = await raceWithAbort(
-      Promise.all(
-        chunks.map((chunk, i) =>
-          pool[i].workerProxy.evaluatePaintSets(
-            simulationData,
-            explorationTarget,
-            params,
-            chunk,
-            maxTraceNum,
-            withSolution,
-            withUncertainty
-          )
-        )
-      )
-    );
+    // ワーカー生成の失敗も Promise.all の中へ落とす。map の途中で throw させると、
+    // それまでに投げた評価が誰にも待たれないまま宙に浮く (terminate 後は永久に
+    // 決着しない) ので、失敗も却下済みの Promise として並べる。
+    const dispatched = chunks.map((chunk, i) => {
+      try {
+        return workerAt(i).workerProxy.evaluatePaintSets(
+          simulationData,
+          explorationTarget,
+          params,
+          chunk,
+          maxTraceNum,
+          withSolution,
+          withUncertainty
+        );
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    });
+    const results = await raceWithAbort(Promise.all(dispatched));
 
     throwIfAborted();
     return results.flat();
   };
 
   try {
-    for (let i = 0; i < concurrency; i++) {
-      pool.push(createWorker());
-    }
-
     // 添字0は「塗らない」(空集合)。代理評価は掛けず、最後に無条件で検証対象に加える。
     const all: WasmPaintSet[] = [[]];
     const allScores: number[] = [Number.NEGATIVE_INFINITY];
@@ -155,7 +168,7 @@ export const searchPaintPlansByWasm = async (
       throwIfAborted();
 
       const expanded = await raceWithAbort(
-        pool[0].workerProxy.expandPaintBeam(simulationData, params, beam)
+        workerAt(0).workerProxy.expandPaintBeam(simulationData, params, beam)
       );
       throwIfAborted();
       if (expanded.length === 0) {
@@ -170,7 +183,7 @@ export const searchPaintPlansByWasm = async (
       );
       const scores = evaluations.map((e) => e.value);
       const top = await raceWithAbort(
-        pool[0].workerProxy.selectTopPaintSets(scores, beamWidth)
+        workerAt(0).workerProxy.selectTopPaintSets(scores, beamWidth)
       );
       throwIfAborted();
 
@@ -186,7 +199,7 @@ export const searchPaintPlansByWasm = async (
     // 代理の上位を本番評価する。「塗らない」は代理スコアを持たず上位選抜に残らないが、
     // 塗りがすべて損な盤面ではこれが答えになるので無条件で加える。
     const verify = await raceWithAbort(
-      pool[0].workerProxy.selectTopPaintSets(allScores, verifyNum)
+      workerAt(0).workerProxy.selectTopPaintSets(allScores, verifyNum)
     );
     throwIfAborted();
     if (!verify.includes(0)) {
@@ -202,7 +215,7 @@ export const searchPaintPlansByWasm = async (
     );
 
     const plans = await raceWithAbort(
-      pool[0].workerProxy.buildPaintPlans(
+      workerAt(0).workerProxy.buildPaintPlans(
         explorationTarget,
         verifySets,
         evaluations,

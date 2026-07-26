@@ -18,8 +18,11 @@ const createdWorkers = vi.hoisted(() => [] as FakeWorker[]);
 interface FakeWorker {
   terminated: boolean;
   released: boolean;
-  /** 受け取った評価チャンクの記録 */
-  chunks: WasmPaintSet[][];
+  /**
+   * 受け取った評価チャンクの記録。`withSolution` でラウンドを見分けられる
+   * (false = 代理評価、true = 本番評価)。
+   */
+  chunks: { sets: WasmPaintSet[]; withSolution: boolean }[];
 }
 
 const scoreOf = (cells: WasmPaintSet): number =>
@@ -57,7 +60,7 @@ vi.mock('./solution-wasm-worker-shim', () => ({
         _maxTraceNum: number,
         withSolution: boolean
       ): Promise<WasmPaintEvaluation[]> => {
-        worker.chunks.push(paintSets);
+        worker.chunks.push({ sets: paintSets, withSolution });
         await evaluateDelay?.();
         return paintSets.map((cells) => ({
           value: scoreOf(cells),
@@ -129,6 +132,18 @@ const explorationTarget: ExplorationTarget = {
 
 const simulationData = createSimulationData({}, { maxTraceNum: 5 });
 
+/** 代理評価ラウンドで各ワーカーが受け取った件数 (受け取ったワーカーのみ) */
+const surrogateChunkSizes = () =>
+  createdWorkers
+    .map((w) => w.chunks.find((c) => !c.withSolution)?.sets.length)
+    .filter((n): n is number => n !== undefined);
+
+/** 本番評価ラウンドで各ワーカーが受け取った件数 (受け取ったワーカーのみ) */
+const verifyChunkSizes = () =>
+  createdWorkers
+    .map((w) => w.chunks.find((c) => c.withSolution)?.sets.length)
+    .filter((n): n is number => n !== undefined);
+
 const search = (options = {}) =>
   searchPaintPlansByWasm(
     simulationData,
@@ -147,9 +162,9 @@ describe('searchPaintPlansByWasm', () => {
   it('splits the evaluation across the pool and keeps the original order', async () => {
     const result = await search();
 
-    // 4件を3ワーカーへ: 2 + 2 (3つ目は空きなので使われない)
-    const chunks = createdWorkers.flatMap((w) => w.chunks);
-    expect(chunks.some((chunk) => chunk.length > 1)).toBe(true);
+    // 展開4件を3ワーカーへ: 2 + 2。1ワーカーに寄せていないこと (寄っていると
+    // 実質シングルスレッドになり、この分割の意味が無くなる) を数で押さえる。
+    expect(surrogateChunkSizes()).toEqual([2, 2]);
 
     // 評価値は塗りマスの添字そのもの。良い順に並ぶ ([3] が最良)
     expect(result.plans.map((p) => p.value)).toEqual([3, 2, 1, 0, 0]);
@@ -177,16 +192,49 @@ describe('searchPaintPlansByWasm', () => {
     expect(createdWorkers.every((w) => w.released)).toBe(true);
   });
 
+  it('only starts as many workers as there is work for', async () => {
+    // このモックが返す塗り集合は最大5件 (本番評価: 展開4件 + 「塗らない」)。
+    // 8ワーカー指定でも5つまでしか起こさない。
+    await search({ concurrency: 8 });
+
+    expect(createdWorkers).toHaveLength(5);
+  });
+
+  it('never hands two chunks of the same round to one worker', async () => {
+    await search({ concurrency: 3 });
+
+    // 1ワーカーが1ラウンドで受け取るチャンクは1つまで。
+    for (const worker of createdWorkers) {
+      const surrogate = worker.chunks.filter((c) => !c.withSolution);
+      const verify = worker.chunks.filter((c) => c.withSolution);
+      expect(surrogate.length).toBeLessThanOrEqual(1);
+      expect(verify.length).toBeLessThanOrEqual(1);
+    }
+
+    // 代理評価は4件を3ワーカーへ (2+2)、本番評価は5件を3ワーカーへ (2+2+1)。
+    expect(surrogateChunkSizes()).toEqual([2, 2]);
+    expect(verifyChunkSizes()).toEqual([2, 2, 1]);
+  });
+
   it('terminates the workers it did create when one fails to start', async () => {
     createWorkerHook = (index) => {
-      if (index === 2) {
+      if (index === 1) {
         throw new Error('worker limit reached');
       }
     };
 
     await expect(search()).rejects.toThrow('worker limit reached');
-    expect(createdWorkers).toHaveLength(2);
+    expect(createdWorkers).toHaveLength(1);
     expect(createdWorkers.every((w) => w.terminated)).toBe(true);
+  });
+
+  it('fails cleanly when the very first worker cannot start', async () => {
+    createWorkerHook = () => {
+      throw new Error('no workers at all');
+    };
+
+    await expect(search()).rejects.toThrow('no workers at all');
+    expect(createdWorkers).toHaveLength(0);
   });
 
   it('gives up promptly when aborted mid-evaluation, and terminates the pool', async () => {
@@ -198,10 +246,14 @@ describe('searchPaintPlansByWasm', () => {
     await vi.waitFor(() =>
       expect(createdWorkers.some((w) => w.chunks.length > 0)).toBe(true)
     );
+    const startedBeforeAbort = createdWorkers.length;
     controller.abort();
 
     await expect(promise).rejects.toThrow('aborted');
     expect(createdWorkers.every((w) => w.terminated)).toBe(true);
+    // 中断後に新しいワーカーを起こさないこと
+    expect(createdWorkers).toHaveLength(startedBeforeAbort);
+    expect(startedBeforeAbort).toBeGreaterThan(0);
   });
 
   it('reports no progress and no result after being aborted', async () => {
@@ -229,6 +281,8 @@ describe('searchPaintPlansByWasm', () => {
     await expect(search({ signal: controller.signal })).rejects.toThrow(
       'aborted'
     );
+    // 遅延生成にした利点。中断済みならワーカーは1つも起こさない
+    expect(createdWorkers).toHaveLength(0);
   });
 
   it('reports progress up to 100 on a normal run', async () => {
