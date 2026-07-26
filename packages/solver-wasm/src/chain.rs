@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::puyo_attr::PuyoAttr;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AttributeChain {
     /// 同時消しや連鎖を考慮した属性攻撃力
     pub strength: f64,
@@ -14,7 +14,7 @@ pub struct AttributeChain {
     pub separated_blocks_num: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Chain {
     /// 何連鎖目かを表す番号 (1-based)
     pub chain_num: u32,

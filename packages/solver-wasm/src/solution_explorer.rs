@@ -1,3 +1,4 @@
+use crate::simulator_bb::UnknownFill;
 use crate::{
     chain::Chain,
     chain_helper::calc_boost_ratio,
@@ -272,7 +273,8 @@ type BetterFn = for<'a> fn(&'a SolutionResult, &'a SolutionResult) -> Option<&'a
 
 static BETTER_METHOD_MAP: OnceLock<HashMap<PreferenceKind, BetterFn>> = OnceLock::new();
 
-fn better_solution<'a>(
+/// 好みの優先度リストに従って、2つの解のうち良い方を返す。
+pub fn better_solution<'a>(
     preference_priorities: &Vec<PreferenceKind>,
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
@@ -386,6 +388,8 @@ pub struct SolutionExplorer<'a> {
     boost_area: u64,
     field: &'a Field,
     boards: BitBoards,
+    /// 不確定ぷよ (ネクストより先に降ってくるぷよ) の扱い。`None` は従来どおり補充しない。
+    unknown_fill: Option<&'a UnknownFill>,
 }
 
 impl<'a> SolutionExplorer<'a> {
@@ -415,7 +419,14 @@ impl<'a> SolutionExplorer<'a> {
             boost_area,
             field,
             boards,
+            unknown_fill: None,
         };
+    }
+
+    /// 不確定ぷよの扱いを指定した探索器を返す。既定 (指定しない場合) は補充しない従来の挙動。
+    pub fn with_unknown_fill(mut self, unknown_fill: &'a UnknownFill) -> SolutionExplorer<'a> {
+        self.unknown_fill = Some(unknown_fill);
+        self
     }
 
     pub fn solve_all_traces(&self) -> ExplorationResult {
@@ -639,6 +650,8 @@ impl<'a> SolutionExplorer<'a> {
         let sim = SimulatorBB {
             environment: self.environment,
             boost_area: self.boost_area,
+            unknown_fill: self.unknown_fill,
+            refills_done: std::cell::Cell::new(0),
         };
         return sim.do_chains_aggregate(
             &mut self.boards.clone(),
@@ -651,6 +664,8 @@ impl<'a> SolutionExplorer<'a> {
         let sim = SimulatorBB {
             environment: self.environment,
             boost_area: self.boost_area,
+            unknown_fill: self.unknown_fill,
+            refills_done: std::cell::Cell::new(0),
         };
         return sim.do_chains(
             &mut self.boards.clone(),

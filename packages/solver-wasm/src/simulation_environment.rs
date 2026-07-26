@@ -1,7 +1,7 @@
 use crate::trace_mode::TraceMode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct SimulationEnvironment {
     pub is_chance_mode: bool,
     pub minimum_puyo_num_for_popping: u32,

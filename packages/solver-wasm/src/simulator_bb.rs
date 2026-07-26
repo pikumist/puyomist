@@ -119,11 +119,71 @@ pub struct ChainsAggregate {
     pub is_all_cleared: bool,
 }
 
+/// ネクストより先に降ってくる**不確定ぷよ**の扱い方。
+///
+/// 既定の [`UnknownFillPolicy::Inert`] は従来どおり「空きは空きのまま」で、不確定ぷよが
+/// 連鎖を伸ばす可能性を一切見ない。実際には色ぷよが降ってくるので、この評価は系統的に
+/// 過小評価になる。逆に一様ランダムで埋めると補充ぷよ同士が固まって勝手に発火し、
+/// 連鎖が伸び続けて過大評価になる。その中間が [`UnknownFillPolicy::ChainAverse`]。
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
+#[repr(u8)]
+pub enum UnknownFillPolicy {
+    /// 補充しない (従来の挙動)。
+    Inert = 0,
+    /// 一様ランダムな色ぷよで埋める。補充ぷよ同士が固まって自力発火し得る。
+    Random = 2,
+    /// ランダムだが、**補充ぷよ同士が隣り合って同色にならない**ように割り当てる。
+    /// 補充だけでは発火せず、既存の塊を伸ばす効果だけが残るので、連鎖しにくい側に倒れる。
+    ChainAverse = 1,
+}
+
+/// 不確定ぷよをどう埋めるかの設定。モンテカルロではサンプルごとに `seed` を変える。
+///
+/// 色は「マス位置」だけでなく「何回目の補充か」も混ぜて `seed` から導出する。
+/// 位置だけで引くと、2回目の補充が1回目と同じ位置に同じ色を置いてしまい、
+/// 「消えた場所に同じ色がまた降ってきて同じ塊を再形成する」軌道が系統的に過剰になる。
+#[derive(Debug, Clone)]
+pub struct UnknownFill {
+    pub policy: UnknownFillPolicy,
+    /// サンプルごとの乱数種。
+    pub seed: u64,
+    /// 補充を許す回数の上限。実際のゲームでは無制限に降ってくるが、評価を有界にするため打ち切る。
+    pub max_refills: u32,
+}
+
+/// 充填専用の決定的な擬似乱数 (SplitMix64)。時刻由来の乱数は使わない。
+struct FillRng(u64);
+
+impl FillRng {
+    fn new(seed: u64) -> FillRng {
+        FillRng(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15).wrapping_add(1))
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        let mut z = self.0;
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^ (z >> 31)
+    }
+
+    /// 0 以上 n 未満の一様乱数。2^64 に対する剰余の偏りは無視できる。
+    fn below(&mut self, n: usize) -> usize {
+        (self.next_u64() % n as u64) as usize
+    }
+}
+
 #[derive(Debug)]
 /// Bitboard を使った Simulator 実装
 pub struct SimulatorBB<'a> {
     pub environment: &'a SimulationEnvironment,
     pub boost_area: u64,
+    /// 不確定ぷよの扱い。`None` は [`UnknownFillPolicy::Inert`] と同じ。
+    pub unknown_fill: Option<&'a UnknownFill>,
+    /// これまでに補充した回数。`unknown_fill` の上限判定に使う。
+    pub refills_done: std::cell::Cell<u32>,
 }
 
 impl<'a> SimulatorBB<'a> {
@@ -577,7 +637,110 @@ impl<'a> SimulatorBB<'a> {
         boards.plus = Self::pext_and_pdep(boards.plus, occ, restore);
         boards.chance = Self::pext_and_pdep(boards.chance, occ, restore);
 
+        self.fill_unknown(boards, restore);
+
         return true;
+    }
+
+    /// 詰めたあとに空いたフィールドのマスを、不確定ぷよとして色ぷよで埋める。
+    /// `restore` は詰めたあとに占有されているビット (列ごとの下位ビット)。
+    ///
+    /// 割り当て順はサンプルと補充回ごとにシャッフルする。固定順で走査すると、
+    /// 先に処理されるマスほど制約が少なくて自由になり、盤面の位置によって色の決まり方が
+    /// 変わってしまう (系統的なズレなのでサンプル数を増やしても消えない)。
+    fn fill_unknown(&self, boards: &mut BitBoards, restore: u64) {
+        let Some(fill) = self.unknown_fill else {
+            return;
+        };
+        if fill.policy == UnknownFillPolicy::Inert {
+            return;
+        }
+        let refill_no = self.refills_done.get();
+        if refill_no >= fill.max_refills {
+            return;
+        }
+        let empty = FIELD_MASK & !restore;
+        if empty == 0 {
+            return;
+        }
+        self.refills_done.set(refill_no + 1);
+
+        // 補充回ごとに別の乱数列にする (同じ位置に同じ色が繰り返し降るのを防ぐ)。
+        let mut rng = FillRng::new(
+            fill.seed ^ (refill_no as u64 + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15),
+        );
+
+        // 対象マスを集めてシャッフルする。
+        let mut cells = [0u8; 64];
+        let mut cell_num = 0usize;
+        let mut remaining = empty;
+        while remaining != 0 {
+            cells[cell_num] = remaining.trailing_zeros() as u8;
+            cell_num += 1;
+            remaining &= remaining - 1;
+        }
+        for i in (1..cell_num).rev() {
+            let j = rng.below(i + 1);
+            cells.swap(i, j);
+        }
+
+        // 割り当て済みの色 (-1 は未割り当て)。ChainAverse で隣接を見るのに使う。
+        let mut assigned = [-1i8; 64];
+
+        for k in 0..cell_num {
+            let i = cells[k] as usize;
+
+            let color = match fill.policy {
+                UnknownFillPolicy::Inert => unreachable!(),
+                UnknownFillPolicy::Random => rng.below(5),
+                UnknownFillPolicy::ChainAverse => {
+                    // 隣接する補充ぷよが使った色を除き、残りから**一様に**選ぶ。
+                    // 「衝突したら次の色にずらす」方式だと (c, c+1) のペアが他の1.6倍出やすくなり、
+                    // 全サンプルが同じ規則を共有するのでサンプル平均の収束先がずれる。
+                    let mut usable = [true; 5];
+                    for n in Self::filler_neighbors(i) {
+                        if let Some(n) = n {
+                            if assigned[n] >= 0 {
+                                usable[assigned[n] as usize] = false;
+                            }
+                        }
+                    }
+                    let mut allowed = [0usize; 5];
+                    let mut allowed_num = 0usize;
+                    for (c, ok) in usable.iter().enumerate() {
+                        if *ok {
+                            allowed[allowed_num] = c;
+                            allowed_num += 1;
+                        }
+                    }
+                    // 4近傍なので最大4色しか塞がらず、必ず1色以上残る。
+                    debug_assert!(allowed_num > 0);
+                    allowed[rng.below(allowed_num)]
+                }
+            };
+
+            assigned[i] = color as i8;
+            boards.colors[color] |= 1u64 << i;
+        }
+    }
+
+    /// 充填対象マスの4近傍 (フィールド内のみ。ネクスト行は対象外)。
+    ///
+    /// 割り当て順をシャッフルするため、前方・後方を問わず4方向すべてを見る必要がある
+    /// (昇順走査なら後方2つは常に未割り当てだが、シャッフルするとそうならない)。
+    fn filler_neighbors(i: usize) -> [Option<usize>; 4] {
+        let row = i % HEIGHT;
+        [
+            if row > 0 { Some(i - 1) } else { None },
+            // フィールドは各列 0..HEIGHT-1 の 6 行。HEIGHT-1 はネクスト行なので除く。
+            if row + 2 < HEIGHT { Some(i + 1) } else { None },
+            if i >= HEIGHT { Some(i - HEIGHT) } else { None },
+            if i + HEIGHT < 8 * HEIGHT {
+                Some(i + HEIGHT)
+            } else {
+                None
+            },
+        ]
     }
 
     /// PEXT命令とPDEP命令を使ってフィールドの隙間を埋める。
@@ -825,6 +988,102 @@ impl<'a> SimulatorBB<'a> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    /// ChainAverse の充填が、補充ぷよ同士を隣り合って同色にしないこと。
+    /// (補充だけでは発火できない = 連鎖しにくい側に倒れていることの担保)
+    #[test]
+    fn chain_averse_fill_never_makes_adjacent_same_color() {
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: crate::trace_mode::TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+
+        // 種を変えて何通りも試す。
+        for seed in 0..200u64 {
+            let fill = UnknownFill {
+                policy: UnknownFillPolicy::ChainAverse,
+                seed,
+                max_refills: 1,
+            };
+            let simulator = SimulatorBB {
+                environment: &environment,
+                boost_area: 0,
+                unknown_fill: Some(&fill),
+                refills_done: std::cell::Cell::new(0),
+            };
+
+            let mut boards = BitBoards {
+                colors: [0; 5],
+                heart: 0,
+                prism: 0,
+                ojama: 0,
+                kata: 0,
+                question: 0,
+                plus: 0,
+                chance: 0,
+            };
+            // フィールドを全部空きにして埋めさせる。
+            simulator.fill_unknown(&mut boards, 0);
+
+            // 埋まった各マスの色を引き当て、4近傍で同色隣接が無いことを確かめる。
+            let color_at = |i: usize| -> Option<usize> {
+                (0..5).find(|&c| boards.colors[c] & (1u64 << i) != 0)
+            };
+            for i in 0..56usize {
+                if i % HEIGHT >= HEIGHT - 1 {
+                    continue; // ネクスト行は埋めない
+                }
+                let Some(c) = color_at(i) else {
+                    panic!("フィールドのマス {} が埋まっていない", i);
+                };
+                // 上下 (同一列内)
+                if i % HEIGHT + 1 < HEIGHT - 1 {
+                    assert_ne!(Some(c), color_at(i + 1), "縦に同色が隣接した (i={})", i);
+                }
+                // 左右 (列は HEIGHT ビットずつ)
+                if i + HEIGHT < 56 {
+                    assert_ne!(Some(c), color_at(i + HEIGHT), "横に同色が隣接した (i={})", i);
+                }
+            }
+        }
+    }
+
+    /// 既定 (unknown_fill: None) では一切充填されないこと。
+    #[test]
+    fn inert_fill_leaves_board_untouched() {
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: crate::trace_mode::TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+        let mut boards = BitBoards {
+            colors: [0; 5],
+            heart: 0,
+            prism: 0,
+            ojama: 0,
+            kata: 0,
+            question: 0,
+            plus: 0,
+            chance: 0,
+        };
+        simulator.fill_unknown(&mut boards, 0);
+        assert_eq!(boards.colors, [0u64; 5]);
+    }
+
     use std::collections::HashSet;
 
     use super::*;
@@ -1562,6 +1821,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
 
         // Act
@@ -1908,6 +2169,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
 
         // Act
@@ -2156,6 +2419,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
 
         // Act
@@ -2316,6 +2581,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: SimulatorBB::coords_to_board(boost_area_coord_set.iter()),
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
         let field = [
             [h, r, r, g, p, b, h, b],
@@ -2434,6 +2701,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
         let field = [
             [e, e, e, y, e, e, e, e],
@@ -2600,6 +2869,8 @@ mod tests {
         let simulator = SimulatorBB {
             environment: &environment,
             boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
         };
         let field = [
             [y, p, r, g, y, g, b, g],

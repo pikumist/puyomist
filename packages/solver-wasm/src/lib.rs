@@ -5,6 +5,8 @@ pub mod chain_helper;
 pub mod damage;
 pub mod exploration_target;
 pub mod how_many_traces;
+pub mod paint;
+pub mod paint_search;
 pub mod puyo;
 pub mod puyo_attr;
 pub mod puyo_coord;
