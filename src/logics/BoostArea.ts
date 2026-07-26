@@ -166,17 +166,6 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
     }
   ],
   [
-    'sig',
-    {
-      name: 'シグ',
-      coordSet: new Set(
-        ['F2', 'G3', 'G4', 'H4', 'F5', 'F6', 'H6'].map(
-          (addr) => PuyoCoord.cellAddrToCoord(addr)!
-        )
-      )
-    }
-  ],
-  [
     'lidelle',
     {
       name: 'リデル',
@@ -259,6 +248,72 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
       name: 'ラフィソル',
       coordSet: new Set(
         ['F2', 'G3', 'D4', 'G4', 'F5', 'G5', 'E6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'accord',
+    {
+      name: 'アコール',
+      coordSet: new Set(
+        ['D2', 'B3', 'A4', 'B4', 'C5', 'A6', 'D6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'satan',
+    {
+      name: 'サタン',
+      coordSet: new Set(
+        ['H2', 'G3', 'F4', 'H4', 'H5', 'G6', 'H6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'ecolo',
+    {
+      name: 'エコロ',
+      coordSet: new Set(
+        ['E2', 'D3', 'E4', 'D5', 'F5', 'C6', 'E6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'summer_collector_witch',
+    {
+      name: 'なつッチ',
+      coordSet: new Set(
+        ['A3', 'E3', 'B4', 'B5', 'D5', 'E5', 'C6', 'D6', 'F6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'roco',
+    {
+      name: 'ロコ',
+      coordSet: new Set(
+        ['A2', 'B3', 'C3', 'D4', 'B5', 'D5', 'A6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'maurice',
+    {
+      name: 'モーリス',
+      coordSet: new Set(
+        ['G2', 'H3', 'G4', 'H4', 'H5', 'F6', 'G6'].map(
           (addr) => PuyoCoord.cellAddrToCoord(addr)!
         )
       )
