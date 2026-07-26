@@ -2,6 +2,7 @@ import { boostAreaKeyMap } from '../logics/BoostArea';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
+import { defaultPaintSearchSettings } from '../logics/paint-search';
 import { unionSet } from '../logics/generics/set';
 import { type Session, session as g_session } from '../logics/session';
 import type { PuyoAppState } from './types';
@@ -83,6 +84,11 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     optimalSolutionIndex: -1,
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined,
-    bridgePreview: undefined
+    bridgePreview: undefined,
+    paintSearchSettings: { ...defaultPaintSearchSettings },
+    paintSearching: false,
+    paintSearchResult: undefined,
+    paintHighlightCoords: undefined,
+    boardBeforePaint: undefined
   };
 };

@@ -34,6 +34,37 @@
   opacity: 0.8;
 }
 
+/* 塗り案のハイライト。塗り色を薄く敷いて縁取り、下のぷよが透けて見えるようにする。 */
+.paintHighlight {
+  stroke-width: 2.5px;
+  pointer-events: none;
+}
+
+.paintHighlightRed {
+  stroke: oklch(0.72 0.19 25);
+  fill: oklch(0.72 0.19 25 / 0.42);
+}
+
+.paintHighlightBlue {
+  stroke: oklch(0.68 0.17 255);
+  fill: oklch(0.68 0.17 255 / 0.42);
+}
+
+.paintHighlightGreen {
+  stroke: oklch(0.76 0.19 145);
+  fill: oklch(0.76 0.19 145 / 0.42);
+}
+
+.paintHighlightYellow {
+  stroke: oklch(0.87 0.17 95);
+  fill: oklch(0.87 0.17 95 / 0.42);
+}
+
+.paintHighlightPurple {
+  stroke: oklch(0.62 0.2 305);
+  fill: oklch(0.62 0.2 305 / 0.42);
+}
+
 .traceInk {
   fill: var(--board-trace-ink);
   opacity: 0.86;

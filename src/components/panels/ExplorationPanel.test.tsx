@@ -99,6 +99,51 @@ describe('ExplorationPanel', () => {
   });
 });
 
+describe('ExplorationPanel — ぷよ塗り探索', () => {
+  beforeEach(() => {
+    usePuyoAppStore.setState(structuredClone(INITIAL_PUYO_APP_STATE));
+  });
+
+  it('hides the paint search while a JS method is selected', () => {
+    usePuyoAppStore.setState({ solutionMethod: 'solveAllInParallel' as never });
+    render(<ExplorationPanel />);
+    expect(
+      screen.queryByRole('button', { name: '塗探索' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the paint search on the wasm method', () => {
+    usePuyoAppStore.setState({
+      solutionMethod: 'solveAllInParallelByWasm' as never
+    });
+    render(<ExplorationPanel />);
+    expect(screen.getByRole('button', { name: '塗探索' })).toBeInTheDocument();
+  });
+
+  it('opens the paint search dialog', () => {
+    usePuyoAppStore.setState({
+      solutionMethod: 'solveAllInParallelByWasm' as never
+    });
+    render(<ExplorationPanel />);
+    fireEvent.click(screen.getByRole('button', { name: '塗探索' }));
+    expect(screen.getByText('ぷよ塗り探索')).toBeInTheDocument();
+  });
+
+  it('offers the undo only after a paint has been applied', () => {
+    const { rerender } = render(<ExplorationPanel />);
+    expect(
+      screen.queryByRole('button', { name: '塗りを元に戻す' })
+    ).not.toBeInTheDocument();
+
+    usePuyoAppStore.setState({
+      boardBeforePaint: { field: [[]], nextPuyos: [] }
+    });
+    rerender(<ExplorationPanel />);
+    fireEvent.click(screen.getByRole('button', { name: '塗りを元に戻す' }));
+    expect(usePuyoAppStore.getState().boardBeforePaint).toBeUndefined();
+  });
+});
+
 describe('ExplorationPanel — Rustバックエンド (localhost限定表示)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();

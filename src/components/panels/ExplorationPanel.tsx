@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useState } from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
 import { NumberStepper } from '@/components/controls/NumberStepper';
@@ -11,12 +12,21 @@ import {
   rustBackendSolutionMethodDescription,
   solutionMethodDescriptionMap
 } from '@/logics/solution';
+import { Button } from '@/components/ui/button';
 import {
   maxTraceNumChanged,
+  paintUndone,
   solutionMethodItemSelected,
   usePuyoAppState
 } from '@/store/puyoAppStore';
 import ExplorationTargetSetting from './ExplorationTargetSetting';
+import PaintSearchDialog from './PaintSearchDialog';
+
+/** ぷよ塗り探索に対応していない探索法 (JS実装には塗り探索が無い) */
+const jsSolutionMethods: ReadonlySet<SolutionMethod> = new Set([
+  SolutionMethod.solveAllInSerial,
+  SolutionMethod.solveAllInParallel
+]);
 
 // Rustネイティブバックエンドはlocalhost限定 (README「外部通信なし」維持のため、公開サイトでは
 // 選択肢に出さない。ローカル専用のsolver-serverへ接続する探索法のため)。
@@ -44,8 +54,11 @@ const ExplorationPanel: React.FC = () => {
     solving,
     solvingProgressPercent,
     solveResult,
-    optimalSolutionIndex
+    optimalSolutionIndex,
+    boardBeforePaint
   } = usePuyoAppState();
+  const [paintDialogOpen, setPaintDialogOpen] = useState(false);
+  const paintSearchAvailable = !jsSolutionMethods.has(solutionMethod);
 
   return (
     <div className="space-y-4">
@@ -69,6 +82,25 @@ const ExplorationPanel: React.FC = () => {
         </SettingRow>
         <ExplorationTargetSetting target={explorationTarget} />
       </div>
+
+      {(paintSearchAvailable || boardBeforePaint) && (
+        <div className="flex gap-2">
+          {paintSearchAvailable && (
+            <Button variant="outline" onClick={() => setPaintDialogOpen(true)}>
+              塗探索
+            </Button>
+          )}
+          {boardBeforePaint && (
+            <Button variant="ghost" onClick={() => paintUndone()}>
+              塗りを元に戻す
+            </Button>
+          )}
+        </div>
+      )}
+      <PaintSearchDialog
+        open={paintDialogOpen}
+        onOpenChange={setPaintDialogOpen}
+      />
 
       <div>
         <SolutionMenu solving={solving} hasResult={Boolean(solveResult)} />

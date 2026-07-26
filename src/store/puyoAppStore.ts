@@ -25,6 +25,10 @@ import {
 import { TraceMode } from '../logics/TraceMode';
 import type { PuyomistJson } from '../logics/app-json';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
+import type {
+  PaintSearchResult,
+  PaintSearchSettings
+} from '../logics/paint-search';
 import { unionSet } from '../logics/generics/set';
 import type { SolutionMethod, SolveResult } from '../logics/solution';
 import { createNextPuyos } from './internal/createNextPuyos';
@@ -110,6 +114,16 @@ interface PuyoAppActions {
   puyomistJsonDetected: (puyomist: PuyomistJson) => void;
   /** ボードブリッジから受け取ったプレビュー画像がセットされたとき */
   bridgePreviewReceived: (preview: ScreenshotInfo | undefined) => void;
+
+  /// ぷよ塗り探索系
+  paintSearchSettingsChanged: (settings: Partial<PaintSearchSettings>) => void;
+  paintSearchStarted: () => void;
+  paintSearched: (result: PaintSearchResult) => void;
+  paintSearchFailed: () => void;
+  paintSearchCleared: () => void;
+  paintPlanHovered: (coords: PuyoCoord[] | undefined) => void;
+  paintPlanApplied: (coords: PuyoCoord[]) => void;
+  paintUndone: () => void;
 }
 
 type PuyoAppStore = PuyoAppState & PuyoAppActions;
@@ -167,22 +181,7 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     /** 盤面(ネクストを含む)内のぷよが編集されたとき */
     puyoEdited: (payload) =>
       set((state) => {
-        if (state.boardId !== customBoardId) {
-          state.lastScreenshotBoard = structuredClone(
-            getSpecialBoard(state.boardId)
-          );
-          if (!state.lastScreenshotBoard.nextPuyos) {
-            state.lastScreenshotBoard.nextPuyos =
-              state.simulationData.nextPuyos.map((puyo) => puyo?.type);
-          }
-        } else if (!state.lastScreenshotBoard) {
-          state.lastScreenshotBoard = {
-            field: [...new Array(PuyoCoord.YNum)].map(() => [
-              ...new Array(PuyoCoord.XNum)
-            ]),
-            nextPuyos: [...new Array(PuyoCoord.XNum)]
-          };
-        }
+        ensureEditableBoard(state);
 
         const { fieldCoord, nextX } = payload;
 
@@ -781,9 +780,154 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         ) as any;
         state.animationSteps = [];
         state.isBoardEditing = false;
+      }),
+
+    ///
+    /// ぷよ塗り探索系
+    ///
+
+    /** ぷよ塗り探索の設定が変更されたとき */
+    paintSearchSettingsChanged: (settings) =>
+      set((state) => {
+        Object.assign(state.paintSearchSettings, settings);
+        // 設定が変われば前の結果は無効。ハイライトも道連れにする。
+        state.paintSearchResult = undefined;
+        state.paintHighlightCoords = undefined;
+      }),
+
+    /** ぷよ塗り探索を開始したとき */
+    paintSearchStarted: () =>
+      set((state) => {
+        state.paintSearching = true;
+        state.paintSearchResult = undefined;
+        state.paintHighlightCoords = undefined;
+      }),
+
+    /** ぷよ塗り探索が完了したとき */
+    paintSearched: (result) =>
+      set((state) => {
+        state.paintSearching = false;
+        state.paintSearchResult = result;
+      }),
+
+    /** ぷよ塗り探索が失敗したとき */
+    paintSearchFailed: () =>
+      set((state) => {
+        state.paintSearching = false;
+        state.paintSearchResult = undefined;
+      }),
+
+    /** ぷよ塗り探索の結果を破棄するとき */
+    paintSearchCleared: () =>
+      set((state) => {
+        state.paintSearchResult = undefined;
+        state.paintHighlightCoords = undefined;
+      }),
+
+    /** 塗り案にホバーした/ホバーが外れたとき */
+    paintPlanHovered: (coords) =>
+      set((state) => {
+        state.paintHighlightCoords = coords;
+      }),
+
+    /** 塗り案が盤面に適用されたとき */
+    paintPlanApplied: (coords) =>
+      set((state) => {
+        if (coords.length === 0) {
+          return;
+        }
+
+        const board = ensureEditableBoard(state);
+        // 適用前の盤面を1手分だけ控えておく (取り消し用)
+        state.boardBeforePaint = cloneBoard(board);
+
+        const { color } = state.paintSearchSettings;
+
+        for (const coord of coords) {
+          const prevType = board.field[coord.y][coord.x];
+          if (prevType === undefined) {
+            continue;
+          }
+          board.field[coord.y][coord.x] = convertPuyoType(prevType, color);
+        }
+
+        state.boardId = customBoardId;
+        state.simulationData = createSimulationData(
+          board,
+          {},
+          state.simulationData as any
+        );
+        state.animationSteps = [];
+        state.activeAnimationStepIndex = -1;
+        state.paintSearchResult = undefined;
+        state.paintHighlightCoords = undefined;
+      }),
+
+    /** 塗りの適用が取り消されたとき */
+    paintUndone: () =>
+      set((state) => {
+        const board = state.boardBeforePaint;
+        if (!board) {
+          return;
+        }
+
+        state.lastScreenshotBoard = board;
+        state.boardBeforePaint = undefined;
+        state.boardId = customBoardId;
+        state.simulationData = createSimulationData(
+          board,
+          {},
+          state.simulationData as any
+        );
+        state.animationSteps = [];
+        state.activeAnimationStepIndex = -1;
       })
   }))
 );
+
+/**
+ * `ensureEditableBoard` が触る範囲だけを表した型。
+ * immer のドラフトは `PuyoAppState` そのものには代入できないので構造で受ける。
+ */
+interface EditableBoardState {
+  boardId: string;
+  lastScreenshotBoard: Board | undefined;
+  simulationData: { nextPuyos: ({ type: PuyoType } | undefined)[] };
+}
+
+/**
+ * 盤面を編集できる状態にして `lastScreenshotBoard` を返す。
+ * 組み込み盤面を編集し始めたときはその複製へ、まだ何も無いときは空盤面へ差し替える。
+ */
+const ensureEditableBoard = (state: EditableBoardState): Board => {
+  if (state.boardId !== customBoardId) {
+    state.lastScreenshotBoard = structuredClone(getSpecialBoard(state.boardId));
+    if (!state.lastScreenshotBoard.nextPuyos) {
+      state.lastScreenshotBoard.nextPuyos = state.simulationData.nextPuyos.map(
+        (puyo) => puyo?.type
+      );
+    }
+  } else if (!state.lastScreenshotBoard) {
+    state.lastScreenshotBoard = {
+      field: [...new Array(PuyoCoord.YNum)].map(() => [
+        ...new Array(PuyoCoord.XNum)
+      ]),
+      nextPuyos: [...new Array(PuyoCoord.XNum)]
+    };
+  }
+  return state.lastScreenshotBoard!;
+};
+
+/**
+ * 盤面を複製する。immer のドラフトは Proxy なので `structuredClone` に渡せない。
+ * 塗りが触るのは field と nextPuyos だけだが、取り消し時にそのまま盤面として
+ * 使うので全項目を引き継ぐ。
+ */
+const cloneBoard = (board: Board): Board => ({
+  ...board,
+  field: board.field.map((row) => [...row]),
+  nextPuyos: board.nextPuyos ? [...board.nextPuyos] : undefined
+});
 
 ///
 /// バインド済みアクション（React外/コンポーネントから直接呼ぶ用）
@@ -848,7 +992,16 @@ export const {
   screenshotReceived,
   boardDetected,
   puyomistJsonDetected,
-  bridgePreviewReceived
+  bridgePreviewReceived,
+  /// ぷよ塗り探索系
+  paintSearchSettingsChanged,
+  paintSearchStarted,
+  paintSearched,
+  paintSearchFailed,
+  paintSearchCleared,
+  paintPlanHovered,
+  paintPlanApplied,
+  paintUndone
 } = usePuyoAppStore.getState();
 
 /** ストア全体を購読するフック（旧 useSelector((s) => s.puyoApp) 相当） */

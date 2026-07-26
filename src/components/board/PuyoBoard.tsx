@@ -19,6 +19,7 @@ import BoardFrame from '../board-parts/BoardFrame';
 import BoostAreaView from '../board-parts/BooastAreaView';
 import GridLines from '../board-parts/GridLines';
 import OptimalTrace from '../board-parts/OptimalTrace';
+import PaintHighlight from '../board-parts/PaintHighlight';
 import PuyoMatrix from '../board-parts/PuyoMatrix';
 import Trace from '../board-parts/Trace';
 import TracePath from '../board-parts/TracePath';
@@ -50,7 +51,9 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
     boardEditMode,
     simulationData,
     solveResult,
-    optimalSolutionIndex
+    optimalSolutionIndex,
+    paintHighlightCoords,
+    paintSearchSettings
   } = state;
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
   const poppingPuyos = selectActivePoppingPuyos(state);
@@ -211,6 +214,14 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
           poppingPuyos={poppingPuyos}
         />
         <g key="coords">
+          {paintHighlightCoords?.map((coord) => (
+            <PaintHighlight
+              key={String(coord.index)}
+              x={coord.x}
+              y={coord.y}
+              attr={paintSearchSettings.color}
+            />
+          ))}
           <TracePath coords={traceCoords} />
           {optimalTraceCoords?.map((coord, i) => (
             <OptimalTrace key={String(i)} x={coord.x} y={coord.y} />

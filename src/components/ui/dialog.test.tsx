@@ -41,6 +41,17 @@ function FixtureWithClose() {
   );
 }
 
+function FixtureWithoutOverlay() {
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button>Open</Button>} />
+      <DialogContent showOverlay={false}>
+        <DialogTitle>Reset board</DialogTitle>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 describe('Dialog', () => {
   it('is closed initially', () => {
     render(<Fixture />);
@@ -66,10 +77,21 @@ describe('Dialog', () => {
   it('renders a DialogFooter with the extra close button when showCloseButton is set', () => {
     render(<FixtureWithClose />);
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));
-    const footer = screen.getByText('Close').closest('[data-slot="dialog-footer"]');
+    const footer = screen
+      .getByText('Close')
+      .closest('[data-slot="dialog-footer"]');
     expect(footer).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('omits the overlay when showOverlay is false', () => {
+    const { baseElement } = render(<FixtureWithoutOverlay />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+    expect(screen.getByText('Reset board')).toBeInTheDocument();
+    expect(
+      baseElement.querySelector('[data-slot="dialog-overlay"]')
+    ).toBeNull();
   });
 
   it('closes the dialog when DialogClose is clicked', () => {

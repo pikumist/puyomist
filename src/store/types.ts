@@ -12,6 +12,11 @@ import type { SimulationData } from '../logics/SimulationData';
 import { Simulator } from '../logics/Simulator';
 import { TraceMode } from '../logics/TraceMode';
 import { customBoardId } from '../logics/boards';
+import {
+  type PaintSearchResult,
+  type PaintSearchSettings,
+  defaultPaintSearchSettings
+} from '../logics/paint-search';
 import { SolutionMethod, type SolveResult } from '../logics/solution';
 
 export interface PuyoAppState {
@@ -59,6 +64,19 @@ export interface PuyoAppState {
   screenshotErrorMessage: string | undefined;
   /** ボードブリッジから受け取ったプレビュー画像 */
   bridgePreview: ScreenshotInfo | undefined;
+  /** ぷよ塗り探索の設定 */
+  paintSearchSettings: PaintSearchSettings;
+  /** ぷよ塗り探索中かどうか */
+  paintSearching: boolean;
+  /** ぷよ塗り探索の結果 */
+  paintSearchResult: PaintSearchResult | undefined;
+  /** 盤面上にハイライト表示する塗りマス (塗り案にホバーしている間だけ入る) */
+  paintHighlightCoords: PuyoCoord[] | undefined;
+  /**
+   * 塗り案を適用する直前の盤面。適用の取り消し用に1手分だけ保持する。
+   * 多段塗りでは1段ずつ取り消せれば十分なので履歴は積まない。
+   */
+  boardBeforePaint: Board | undefined;
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
@@ -108,5 +126,10 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   optimalSolutionIndex: -1,
   screenshotInfo: undefined,
   screenshotErrorMessage: undefined,
-  bridgePreview: undefined
+  bridgePreview: undefined,
+  paintSearchSettings: { ...defaultPaintSearchSettings },
+  paintSearching: false,
+  paintSearchResult: undefined,
+  paintHighlightCoords: undefined,
+  boardBeforePaint: undefined
 };
