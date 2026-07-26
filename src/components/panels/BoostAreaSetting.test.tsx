@@ -20,9 +20,9 @@ describe('BoostAreaSetting', () => {
     const firstArea = [...boostAreaKeyMap.values()][0];
     render(<BoostAreaSetting boostAreaKeyList={[]} />);
     fireEvent.click(screen.getByText(firstArea.name));
-    expect(
-      usePuyoAppStore.getState().boostAreaKeyList.length
-    ).toBeGreaterThan(0);
+    expect(usePuyoAppStore.getState().boostAreaKeyList.length).toBeGreaterThan(
+      0
+    );
   });
 
   it('removes a boost area key when unchecked', () => {

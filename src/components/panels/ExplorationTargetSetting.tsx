@@ -107,9 +107,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = ({
     [NONE, '--'],
     ...coloredPuyoAttrList
       .filter((attr) => attr !== target.main_attr)
-      .map(
-        (attr) => [attr, getPuyoAttrName(attr)] as readonly [number, string]
-      )
+      .map((attr) => [attr, getPuyoAttrName(attr)] as readonly [number, string])
   ];
 
   return (
@@ -161,8 +159,7 @@ const DamageSetting: React.FC<{ target: ExplorationTargetDamage }> = ({
 const SkillPuyoCountSetting: React.FC<{
   target: ExplorationTargetSkillPuyoCount;
 }> = ({ target }) => {
-  const isStep =
-    target.counting_bonus?.bonus_type === CountingBonusType.Step;
+  const isStep = target.counting_bonus?.bonus_type === CountingBonusType.Step;
 
   return (
     <div className="space-y-2">
@@ -171,7 +168,8 @@ const SkillPuyoCountSetting: React.FC<{
           ariaLabel="主属性の選択"
           value={target.main_attr}
           items={coloredPuyoAttrList.map(
-            (attr) => [attr, getPuyoAttrName(attr)] as readonly [PuyoAttr, string]
+            (attr) =>
+              [attr, getPuyoAttrName(attr)] as readonly [PuyoAttr, string]
           )}
           colorClassFor={pastelClassForAttr}
           onValueChange={(v) =>
@@ -192,7 +190,8 @@ const SkillPuyoCountSetting: React.FC<{
         加速ボーナス
       </Label>
 
-      {isStep && target.counting_bonus?.bonus_type === CountingBonusType.Step ? (
+      {isStep &&
+      target.counting_bonus?.bonus_type === CountingBonusType.Step ? (
         <div className="space-y-2">
           <SettingRow label="ボーナス属性">
             <EnumSelect<PuyoAttr>

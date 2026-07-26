@@ -100,7 +100,11 @@ describe('SortableList', () => {
   it('renders nothing but the (empty) container when there are no items', () => {
     const onChange = vi.fn();
     const { container } = render(
-      <SortableList<Item> items={[]} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={[]}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     expect(container.querySelectorAll('button').length).toBe(0);
     expect(screen.queryAllByLabelText('ドラッグして並べ替え')).toHaveLength(0);
@@ -111,7 +115,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     expect(screen.getByText('a')).toBeInTheDocument();
     expect(screen.getByText('b')).toBeInTheDocument();
@@ -124,7 +132,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
 
@@ -151,7 +163,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
 
@@ -168,7 +184,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
 
@@ -197,7 +217,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
 
@@ -239,7 +263,11 @@ describe('SortableList', () => {
     const onChange = vi.fn();
     setupItemRects(items);
     render(
-      <SortableList<Item> items={items} onChange={onChange} renderItem={renderRow} />
+      <SortableList<Item>
+        items={items}
+        onChange={onChange}
+        renderItem={renderRow}
+      />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
 

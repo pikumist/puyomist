@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { boardSignatureOf } from '@/logics/paint-search';
 import { usePuyoAppStore } from '@/store/puyoAppStore';
 import { INITIAL_PUYO_APP_STATE } from '@/store/types';
 import ExplorationPanel from './ExplorationPanel';
@@ -135,12 +136,29 @@ describe('ExplorationPanel — ぷよ塗り探索', () => {
       screen.queryByRole('button', { name: '塗りを元に戻す' })
     ).not.toBeInTheDocument();
 
+    const state = usePuyoAppStore.getState();
     usePuyoAppStore.setState({
-      boardBeforePaint: { field: [[]], nextPuyos: [] }
+      paintUndo: {
+        board: { field: [[]], nextPuyos: [] },
+        boardSignature: boardSignatureOf(state.simulationData)
+      }
     });
     rerender(<ExplorationPanel />);
     fireEvent.click(screen.getByRole('button', { name: '塗りを元に戻す' }));
-    expect(usePuyoAppStore.getState().boardBeforePaint).toBeUndefined();
+    expect(usePuyoAppStore.getState().paintUndo).toBeUndefined();
+  });
+
+  it('hides the undo once the board has moved on since the paint', () => {
+    usePuyoAppStore.setState({
+      paintUndo: {
+        board: { field: [[]], nextPuyos: [] },
+        boardSignature: 'from-another-board'
+      }
+    });
+    render(<ExplorationPanel />);
+    expect(
+      screen.queryByRole('button', { name: '塗りを元に戻す' })
+    ).not.toBeInTheDocument();
   });
 });
 

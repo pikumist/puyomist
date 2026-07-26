@@ -175,6 +175,56 @@ describe('PaintSearchDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('drops the plans once the board changes underneath them', async () => {
+    renderDialog();
+    await search();
+    expect(
+      screen.getAllByRole('button', { name: '適用' }).length
+    ).toBeGreaterThan(0);
+
+    // 結果を出したあとに盤面を編集した ＝ その結果はもう別の盤面の答え
+    usePuyoAppStore.setState((s) => ({
+      simulationData: {
+        ...s.simulationData,
+        field: s.simulationData.field.map((row, y) =>
+          row.map((puyo, x) =>
+            y === 0 && x === 0 ? { id: puyo!.id, type: PuyoType.Green } : puyo
+          )
+        )
+      }
+    }));
+
+    expect(
+      await screen.findByText('塗り探索', { selector: 'button' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '適用' })).toBeNull();
+  });
+
+  it('clears the highlight when the dialog closes', async () => {
+    const onOpenChange = renderDialog();
+    await search();
+
+    const row = (await screen.findAllByRole('listitem'))[0];
+    fireEvent.mouseEnter(row.firstElementChild!);
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toBeDefined();
+
+    // 右上の×と、フッターの Close の2つある。どちらでも閉じる
+    fireEvent.click(screen.getAllByRole('button', { name: 'Close' })[0]);
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toBeUndefined();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('shows the expected value column when it is turned on', async () => {
+    renderDialog();
+    fireEvent.click(screen.getByLabelText('期待値も表示'));
+    await search();
+
+    const plan = usePuyoAppStore.getState().paintSearchResult!.plans[0];
+    expect(
+      await screen.findByText(`期待値 ${plan.expectedValue}`)
+    ).toBeInTheDocument();
+  });
+
   it('cannot apply the "no paint" plan', async () => {
     renderDialog();
     await search();

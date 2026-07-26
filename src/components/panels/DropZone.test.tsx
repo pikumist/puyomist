@@ -20,7 +20,10 @@ describe('DropZone', () => {
   it('calls onFileAccepted with the selected file', async () => {
     const onFileAccepted = vi.fn();
     const { container } = render(
-      <DropZone accept={{ 'image/*': ['.png'] }} onFileAccepted={onFileAccepted} />
+      <DropZone
+        accept={{ 'image/*': ['.png'] }}
+        onFileAccepted={onFileAccepted}
+      />
     );
     const input = container.querySelector('input[type="file"]');
     expect(input).not.toBeNull();

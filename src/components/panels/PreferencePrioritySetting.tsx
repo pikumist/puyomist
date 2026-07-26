@@ -53,7 +53,9 @@ const PreferencePrioritySetting: React.FC<{
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-muted-foreground">優先度</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          優先度
+        </span>
         {addablePreferences.length > 0 ? (
           <Popover>
             <PopoverTrigger

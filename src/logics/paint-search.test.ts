@@ -6,13 +6,19 @@ import { PuyoType } from './PuyoType';
 import type { SimulationData } from './SimulationData';
 import { Simulator } from './Simulator';
 import { TraceMode } from './TraceMode';
+import { SolutionMethod } from './solution';
+import { INITIAL_PUYO_APP_STATE } from '../store/types';
 import {
   PaintPrecision,
+  boardSignatureOf,
+  clampPaintPrecision,
   createMockPaintSearchResult,
   defaultPaintSearchSettings,
   enumeratePaintableCoords,
   isPaintableType,
   paintPrecisionDescriptionMap,
+  paintPrecisionListFor,
+  paintSearchSignatureOf,
   rustBackendPaintPrecisionList,
   wasmPaintPrecisionList
 } from './paint-search';
@@ -100,6 +106,8 @@ describe('enumeratePaintableCoords', () => {
   });
 });
 
+const target = INITIAL_PUYO_APP_STATE.explorationTarget;
+
 describe('createMockPaintSearchResult', () => {
   const simulationData = createSimulationDataOf(PuyoType.Blue, [
     [0, 0, PuyoType.Red],
@@ -110,17 +118,19 @@ describe('createMockPaintSearchResult', () => {
   it('is deterministic for the same board and settings', () => {
     const a = createMockPaintSearchResult(
       simulationData,
+      target,
       defaultPaintSearchSettings
     );
     const b = createMockPaintSearchResult(
       simulationData,
+      target,
       defaultPaintSearchSettings
     );
     expect(a.plans.map((p) => p.coords)).toEqual(b.plans.map((p) => p.coords));
   });
 
   it('never paints more cells than the limit', () => {
-    const result = createMockPaintSearchResult(simulationData, {
+    const result = createMockPaintSearchResult(simulationData, target, {
       ...defaultPaintSearchSettings,
       maxPaintNum: 5
     });
@@ -135,6 +145,7 @@ describe('createMockPaintSearchResult', () => {
     );
     const result = createMockPaintSearchResult(
       simulationData,
+      target,
       defaultPaintSearchSettings
     );
     for (const plan of result.plans) {
@@ -147,17 +158,18 @@ describe('createMockPaintSearchResult', () => {
   it('always offers the "no paint" plan, ordered last', () => {
     const result = createMockPaintSearchResult(
       simulationData,
+      target,
       defaultPaintSearchSettings
     );
     expect(result.plans.at(-1)!.coords).toEqual([]);
   });
 
   it('omits the expected value unless it is asked for', () => {
-    const without = createMockPaintSearchResult(simulationData, {
+    const without = createMockPaintSearchResult(simulationData, target, {
       ...defaultPaintSearchSettings,
       showExpectedValue: false
     });
-    const with_ = createMockPaintSearchResult(simulationData, {
+    const with_ = createMockPaintSearchResult(simulationData, target, {
       ...defaultPaintSearchSettings,
       showExpectedValue: true
     });
@@ -174,10 +186,112 @@ describe('createMockPaintSearchResult', () => {
     const painted = createSimulationDataOf(PuyoType.Red);
     const result = createMockPaintSearchResult(
       painted,
+      target,
       defaultPaintSearchSettings
     );
     expect(result.plans).toHaveLength(1);
     expect(result.plans[0].coords).toEqual([]);
+  });
+});
+
+describe('boardSignatureOf', () => {
+  it('changes when a puyo changes', () => {
+    const before = createSimulationDataOf(PuyoType.Blue);
+    const after = createSimulationDataOf(PuyoType.Blue, [[2, 3, PuyoType.Red]]);
+    expect(boardSignatureOf(before)).not.toBe(boardSignatureOf(after));
+  });
+
+  it('is stable for the same board', () => {
+    expect(boardSignatureOf(createSimulationDataOf(PuyoType.Blue))).toBe(
+      boardSignatureOf(createSimulationDataOf(PuyoType.Blue))
+    );
+  });
+});
+
+describe('paintSearchSignatureOf', () => {
+  const simulationData = createSimulationDataOf(PuyoType.Blue);
+  const signature = (
+    data = simulationData,
+    settings = defaultPaintSearchSettings,
+    explorationTarget = target
+  ) => paintSearchSignatureOf(data, explorationTarget, settings);
+
+  it('changes when the paint colour changes', () => {
+    expect(signature()).not.toBe(
+      signature(simulationData, {
+        ...defaultPaintSearchSettings,
+        color: PuyoAttr.Green
+      })
+    );
+  });
+
+  it('changes when the popping rule changes', () => {
+    expect(signature()).not.toBe(
+      signature({ ...simulationData, minimumPuyoNumForPopping: 3 })
+    );
+  });
+
+  it('changes when the exploration target changes', () => {
+    expect(signature()).not.toBe(
+      signature(simulationData, defaultPaintSearchSettings, {
+        ...target,
+        optimal_solution_count: target.optimal_solution_count + 1
+      })
+    );
+  });
+
+  it('changes when the boost area changes', () => {
+    expect(signature()).not.toBe(
+      signature({
+        ...simulationData,
+        boostAreaCoordList: [
+          PuyoCoord.xyToCoord(1, 1)!,
+          PuyoCoord.xyToCoord(0, 0)!
+        ]
+      })
+    );
+  });
+
+  it('does not care about the order of the boost area cells', () => {
+    const a = PuyoCoord.xyToCoord(0, 0)!;
+    const b = PuyoCoord.xyToCoord(1, 1)!;
+    expect(signature({ ...simulationData, boostAreaCoordList: [a, b] })).toBe(
+      signature({ ...simulationData, boostAreaCoordList: [b, a] })
+    );
+  });
+
+  it('ignores the trace in progress', () => {
+    expect(signature()).toBe(
+      signature({
+        ...simulationData,
+        traceCoords: [PuyoCoord.xyToCoord(0, 0)!]
+      })
+    );
+  });
+});
+
+describe('clampPaintPrecision', () => {
+  it('keeps a precision that the backend offers', () => {
+    expect(
+      clampPaintPrecision(PaintPrecision.High, wasmPaintPrecisionList)
+    ).toBe(PaintPrecision.High);
+  });
+
+  it('falls back to the best available one', () => {
+    expect(
+      clampPaintPrecision(PaintPrecision.Ultra, wasmPaintPrecisionList)
+    ).toBe(PaintPrecision.High);
+  });
+});
+
+describe('paintPrecisionListFor', () => {
+  it('offers the ultra precision only on the rust backend', () => {
+    expect(paintPrecisionListFor(SolutionMethod.solveAllByRustBackend)).toBe(
+      rustBackendPaintPrecisionList
+    );
+    expect(paintPrecisionListFor(SolutionMethod.solveAllInParallelByWasm)).toBe(
+      wasmPaintPrecisionList
+    );
   });
 });
 

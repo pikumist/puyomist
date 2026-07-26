@@ -25,9 +25,14 @@ import {
 import { TraceMode } from '../logics/TraceMode';
 import type { PuyomistJson } from '../logics/app-json';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
-import type {
-  PaintSearchResult,
-  PaintSearchSettings
+import {
+  type PaintSearchResult,
+  type PaintSearchSettings,
+  boardSignatureOf,
+  clampPaintPrecision,
+  isPaintableType,
+  paintPrecisionListFor,
+  paintSearchSignatureOf
 } from '../logics/paint-search';
 import { unionSet } from '../logics/generics/set';
 import type { SolutionMethod, SolveResult } from '../logics/solution';
@@ -607,6 +612,11 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     solutionMethodItemSelected: (method) =>
       set((state) => {
         state.solutionMethod = method;
+        // 超高精度はRustバックエンド限定。他へ切り替えたら選べる範囲に丸める。
+        state.paintSearchSettings.precision = clampPaintPrecision(
+          state.paintSearchSettings.precision,
+          paintPrecisionListFor(method)
+        );
       }),
 
     /** ブーストエリアのキーリストが変更されたとき */
@@ -807,6 +817,11 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     paintSearched: (result) =>
       set((state) => {
         state.paintSearching = false;
+        // 探索中に盤面や設定が変わっていたら、返ってきた結果はもう別物の答え。
+        // 取り込むと「今の色で古い座標を塗る」ような食い違いが起きる。
+        if (result.signature !== currentPaintSignature(state as unknown as PuyoAppState)) {
+          return;
+        }
         state.paintSearchResult = result;
       }),
 
@@ -833,17 +848,21 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
     /** 塗り案が盤面に適用されたとき */
     paintPlanApplied: (coords) =>
       set((state) => {
-        if (coords.length === 0) {
+        const { color } = state.paintSearchSettings;
+        // 結果が出たあとに盤面が変わっている場合に備え、今の盤面で塗れるマスだけに
+        // 絞る。プリズムなど、その結果を出した時点では候補外だったマスを塗らない。
+        const paintable = coords.filter((coord) =>
+          isPaintableType(state.simulationData.field[coord.y][coord.x]?.type, color)
+        );
+
+        if (paintable.length === 0) {
           return;
         }
 
         const board = ensureEditableBoard(state);
-        // 適用前の盤面を1手分だけ控えておく (取り消し用)
-        state.boardBeforePaint = cloneBoard(board);
+        const boardBefore = cloneBoard(board);
 
-        const { color } = state.paintSearchSettings;
-
-        for (const coord of coords) {
+        for (const coord of paintable) {
           const prevType = board.field[coord.y][coord.x];
           if (prevType === undefined) {
             continue;
@@ -861,21 +880,34 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         state.activeAnimationStepIndex = -1;
         state.paintSearchResult = undefined;
         state.paintHighlightCoords = undefined;
+        // 塗る前の盤面を1手分だけ控える。塗った直後の盤面の指紋も一緒に持ち、
+        // あとで盤面が別経路で変わったらこの控えは使えないと判断する。
+        state.paintUndo = {
+          board: boardBefore,
+          boardSignature: boardSignatureOf(state.simulationData as any)
+        };
       }),
 
     /** 塗りの適用が取り消されたとき */
     paintUndone: () =>
       set((state) => {
-        const board = state.boardBeforePaint;
-        if (!board) {
+        const undo = state.paintUndo;
+        if (!undo) {
           return;
         }
 
-        state.lastScreenshotBoard = board;
-        state.boardBeforePaint = undefined;
+        state.paintUndo = undefined;
+
+        // 塗ったあとに盤面が変わっているなら、戻すとその変更まで巻き戻る。
+        // 控えを捨てるだけにして盤面には触らない。
+        if (undo.boardSignature !== boardSignatureOf(state.simulationData as any)) {
+          return;
+        }
+
+        state.lastScreenshotBoard = undo.board;
         state.boardId = customBoardId;
         state.simulationData = createSimulationData(
-          board,
+          undo.board,
           {},
           state.simulationData as any
         );
@@ -884,6 +916,14 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
       })
   }))
 );
+
+/** 今の入力に対する探索結果の指紋 */
+const currentPaintSignature = (state: PuyoAppState): string =>
+  paintSearchSignatureOf(
+    state.simulationData,
+    state.explorationTarget,
+    state.paintSearchSettings
+  );
 
 /**
  * `ensureEditableBoard` が触る範囲だけを表した型。

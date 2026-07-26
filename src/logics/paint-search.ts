@@ -1,8 +1,10 @@
+import type { Board } from './Board';
+import type { ExplorationTarget } from './ExplorationTarget';
 import { type ColoredPuyoAttr, PuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import { type PuyoType, getPuyoAttr } from './PuyoType';
 import type { SimulationData } from './SimulationData';
-import type { SolutionResult } from './solution';
+import { SolutionMethod, type SolutionResult } from './solution';
 
 /**
  * 前段「ぷよ塗り」探索。
@@ -44,6 +46,14 @@ export const rustBackendPaintPrecisionList: ReadonlyArray<PaintPrecision> = [
   PaintPrecision.Ultra
 ];
 
+/** その探索法で選べる探索精度 */
+export const paintPrecisionListFor = (
+  method: SolutionMethod
+): ReadonlyArray<PaintPrecision> =>
+  method === SolutionMethod.solveAllByRustBackend
+    ? rustBackendPaintPrecisionList
+    : wasmPaintPrecisionList;
+
 /** 塗り案1件 */
 export interface PaintPlan {
   /** 塗るマス。空配列なら「塗らない」案 */
@@ -62,6 +72,23 @@ export interface PaintSearchResult {
   plans: PaintPlan[];
   /** 経過時間 (ms) */
   elapsedTime: number;
+  /**
+   * この結果を計算したときの入力の指紋 (`paintSearchSignatureOf`)。
+   * 現在の入力と一致しない結果は古いので、表示にも適用にも使ってはいけない。
+   */
+  signature: string;
+}
+
+/** 塗りの取り消し用に控えた盤面 */
+export interface PaintUndo {
+  /** 塗る直前の盤面 */
+  board: Board;
+  /**
+   * 塗った直後の盤面の指紋 (`boardSignatureOf`)。
+   * 現在の盤面がこれと違うなら、塗ったあとに別の変更が入っている。
+   * その状態で戻すとその変更まで巻き戻してしまうので、控えは捨てる。
+   */
+  boardSignature: string;
 }
 
 /** ぷよ塗り探索の設定 */
@@ -83,6 +110,69 @@ export const defaultPaintSearchSettings: PaintSearchSettings = {
   precision: PaintPrecision.Standard,
   showExpectedValue: false
 };
+
+/**
+ * 盤面の指紋。ぷよの並び (ネクスト込み) だけを見る。
+ *
+ * 塗りの取り消しが「塗る前に戻す」だけを意味するように、盤面が別経路で
+ * 変わっていないかを確かめるのに使う。
+ */
+export const boardSignatureOf = (simulationData: SimulationData): string => {
+  const field = simulationData.field
+    .map((row) => row.map((puyo) => puyo?.type ?? 0).join(','))
+    .join('/');
+  const next = simulationData.nextPuyos
+    .map((puyo) => puyo?.type ?? 0)
+    .join(',');
+  return `${field}|${next}`;
+};
+
+/**
+ * 探索結果の指紋。結果が依存する入力をすべて含める。
+ *
+ * 盤面・消し方のルール・ブーストエリア・探索対象・塗り設定のどれが変わっても
+ * 結果は無効になる。探索中に設定を変えた場合も、返ってきた結果の指紋が現在の
+ * ものと食い違うので取り込まれない。
+ */
+export const paintSearchSignatureOf = (
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget,
+  settings: PaintSearchSettings
+): string => {
+  const { color, maxPaintNum, precision, showExpectedValue } = settings;
+  const rule = [
+    simulationData.minimumPuyoNumForPopping,
+    simulationData.maxTraceNum,
+    simulationData.traceMode,
+    simulationData.poppingLeverage,
+    simulationData.chainLeverage,
+    simulationData.isChanceMode
+  ].join(',');
+  const boostArea = simulationData.boostAreaCoordList
+    .map((coord) => coord.index)
+    .sort((a, b) => a - b)
+    .join(',');
+  const paint = [color, maxPaintNum, precision, showExpectedValue].join(',');
+
+  return [
+    boardSignatureOf(simulationData),
+    rule,
+    boostArea,
+    JSON.stringify(explorationTarget),
+    paint
+  ].join('#');
+};
+
+/**
+ * 探索精度をその探索法で選べる範囲に丸める。
+ * Rustバックエンドで超高精度を選んだままWASMへ切り替えると、選択肢に無い値が
+ * 残って表示が壊れるため。
+ */
+export const clampPaintPrecision = (
+  precision: PaintPrecision,
+  available: ReadonlyArray<PaintPrecision>
+): PaintPrecision =>
+  available.includes(precision) ? precision : available[available.length - 1];
 
 /**
  * そのマスを塗り色に塗り替えられるかどうか。
@@ -137,6 +227,7 @@ export const enumeratePaintableCoords = (
  */
 export const createMockPaintSearchResult = (
   simulationData: SimulationData,
+  explorationTarget: ExplorationTarget,
   settings: PaintSearchSettings
 ): PaintSearchResult => {
   const candidates = enumeratePaintableCoords(simulationData, settings.color);
@@ -187,7 +278,15 @@ export const createMockPaintSearchResult = (
     solution: createMockSolution([], 96)
   });
 
-  return { plans, elapsedTime: 5400 };
+  return {
+    plans,
+    elapsedTime: 5400,
+    signature: paintSearchSignatureOf(
+      simulationData,
+      explorationTarget,
+      settings
+    )
+  };
 };
 
 const createMockSolution = (

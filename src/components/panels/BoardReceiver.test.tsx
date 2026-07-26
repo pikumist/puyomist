@@ -2,7 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { boostAreaKeyMap } from '@/logics/BoostArea';
-import { ExplorationCategory, PreferenceKind } from '@/logics/ExplorationTarget';
+import {
+  ExplorationCategory,
+  PreferenceKind
+} from '@/logics/ExplorationTarget';
 import { PuyoType } from '@/logics/PuyoType';
 import { toBoardJson, toPuyomistJson } from '@/logics/app-json';
 import { createSimulationData } from '@/store/internal/createSimulationData';
@@ -19,7 +22,10 @@ vi.mock('@/logics/board-detection', () => ({
   detectBoard: vi.fn()
 }));
 
-import { boardDetectedAndSolve, puyomistJsonDetectedAndSolve } from '@/store/actions';
+import {
+  boardDetectedAndSolve,
+  puyomistJsonDetectedAndSolve
+} from '@/store/actions';
 import { detectBoard } from '@/logics/board-detection';
 import { screenshotReceived } from '@/store/puyoAppStore';
 
@@ -192,11 +198,9 @@ describe('BoardReceiver', () => {
 
     it('calls boardDetectedAndSolve with an error for an invalid board json file', async () => {
       render(<BoardReceiver {...defaultProps} />);
-      const file = new File(
-        [JSON.stringify({ type: 'board' })],
-        'board.json',
-        { type: 'application/json' }
-      );
+      const file = new File([JSON.stringify({ type: 'board' })], 'board.json', {
+        type: 'application/json'
+      });
       await uploadFile(file);
 
       await waitFor(() =>

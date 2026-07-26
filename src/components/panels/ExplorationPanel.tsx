@@ -19,6 +19,7 @@ import {
   solutionMethodItemSelected,
   usePuyoAppState
 } from '@/store/puyoAppStore';
+import { selectPaintUndoAvailable } from '@/store/selectors';
 import ExplorationTargetSetting from './ExplorationTargetSetting';
 import PaintSearchDialog from './PaintSearchDialog';
 
@@ -47,6 +48,7 @@ const methodItems = (
  * the desktop right sidebar and the mobile exploration sheet.
  */
 const ExplorationPanel: React.FC = () => {
+  const state = usePuyoAppState();
   const {
     simulationData,
     solutionMethod,
@@ -54,9 +56,9 @@ const ExplorationPanel: React.FC = () => {
     solving,
     solvingProgressPercent,
     solveResult,
-    optimalSolutionIndex,
-    boardBeforePaint
-  } = usePuyoAppState();
+    optimalSolutionIndex
+  } = state;
+  const paintUndoAvailable = selectPaintUndoAvailable(state);
   const [paintDialogOpen, setPaintDialogOpen] = useState(false);
   const paintSearchAvailable = !jsSolutionMethods.has(solutionMethod);
 
@@ -83,14 +85,14 @@ const ExplorationPanel: React.FC = () => {
         <ExplorationTargetSetting target={explorationTarget} />
       </div>
 
-      {(paintSearchAvailable || boardBeforePaint) && (
+      {(paintSearchAvailable || paintUndoAvailable) && (
         <div className="flex gap-2">
           {paintSearchAvailable && (
             <Button variant="outline" onClick={() => setPaintDialogOpen(true)}>
               塗探索
             </Button>
           )}
-          {boardBeforePaint && (
+          {paintUndoAvailable && (
             <Button variant="ghost" onClick={() => paintUndone()}>
               塗りを元に戻す
             </Button>

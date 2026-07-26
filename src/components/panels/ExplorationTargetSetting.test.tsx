@@ -102,12 +102,10 @@ describe('ExplorationTargetSetting', () => {
       main_sub_ratio: undefined
     };
     render(<ExplorationTargetSetting target={target} />);
-    expect(screen.getByLabelText('主属性の選択')).toHaveTextContent(
-      'ワイルド'
+    expect(screen.getByLabelText('主属性の選択')).toHaveTextContent('ワイルド');
+    expect(screen.getByLabelText('副属性のダメージ率の選択')).toHaveTextContent(
+      '1/3'
     );
-    expect(
-      screen.getByLabelText('副属性のダメージ率の選択')
-    ).toHaveTextContent('1/3');
   });
 
   it('increments the optimal solution count', () => {

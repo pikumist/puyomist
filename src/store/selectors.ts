@@ -1,4 +1,9 @@
 import type { PuyoType } from '@/logics/PuyoType';
+import {
+  type PaintSearchResult,
+  boardSignatureOf,
+  paintSearchSignatureOf
+} from '@/logics/paint-search';
 import type { PuyoAppState } from './types';
 
 /** 消えかけ(ポップ演出中)のぷよ1つ分。前ステップの位置で描画する。 */
@@ -84,4 +89,39 @@ export const selectActivePoppingPuyos = (state: PuyoAppState): PoppingPuyo[] => 
     }
   }
   return popping;
+};
+
+/**
+ * まだ有効なぷよ塗り探索の結果を選ぶ。
+ *
+ * 結果を出したあとに盤面・ルール・探索対象・塗り設定のどれかが変わっていたら、
+ * その結果は別の入力に対する答えなので無かったことにする。古い座標を今の盤面に
+ * 適用してしまうのを、表示の段階で断つ。
+ */
+export const selectPaintSearchResult = (
+  state: PuyoAppState
+): PaintSearchResult | undefined => {
+  const result = state.paintSearchResult;
+  if (!result) {
+    return undefined;
+  }
+  const signature = paintSearchSignatureOf(
+    state.simulationData,
+    state.explorationTarget,
+    state.paintSearchSettings
+  );
+  return result.signature === signature ? result : undefined;
+};
+
+/**
+ * 塗りの取り消しが今も意味を持つかどうか。
+ *
+ * 塗ったあとに盤面が別経路で変わっていたら、戻すとその変更まで巻き戻るので
+ * 取り消しは提示しない。
+ */
+export const selectPaintUndoAvailable = (state: PuyoAppState): boolean => {
+  const undo = state.paintUndo;
+  return Boolean(
+    undo && undo.boardSignature === boardSignatureOf(state.simulationData)
+  );
 };

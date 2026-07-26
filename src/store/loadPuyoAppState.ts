@@ -89,6 +89,6 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     paintSearching: false,
     paintSearchResult: undefined,
     paintHighlightCoords: undefined,
-    boardBeforePaint: undefined
+    paintUndo: undefined
   };
 };

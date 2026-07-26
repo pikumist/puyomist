@@ -15,6 +15,7 @@ import { customBoardId } from '../logics/boards';
 import {
   type PaintSearchResult,
   type PaintSearchSettings,
+  type PaintUndo,
   defaultPaintSearchSettings
 } from '../logics/paint-search';
 import { SolutionMethod, type SolveResult } from '../logics/solution';
@@ -73,10 +74,10 @@ export interface PuyoAppState {
   /** 盤面上にハイライト表示する塗りマス (塗り案にホバーしている間だけ入る) */
   paintHighlightCoords: PuyoCoord[] | undefined;
   /**
-   * 塗り案を適用する直前の盤面。適用の取り消し用に1手分だけ保持する。
+   * 塗りの取り消し用に控えた、塗る直前の盤面。1手分だけ保持する。
    * 多段塗りでは1段ずつ取り消せれば十分なので履歴は積まない。
    */
-  boardBeforePaint: Board | undefined;
+  paintUndo: PaintUndo | undefined;
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
@@ -131,5 +132,5 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   paintSearching: false,
   paintSearchResult: undefined,
   paintHighlightCoords: undefined,
-  boardBeforePaint: undefined
+  paintUndo: undefined
 };

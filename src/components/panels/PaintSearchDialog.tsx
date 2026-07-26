@@ -28,10 +28,8 @@ import {
   type PaintPrecision,
   createMockPaintSearchResult,
   paintPrecisionDescriptionMap,
-  rustBackendPaintPrecisionList,
-  wasmPaintPrecisionList
+  paintPrecisionListFor
 } from '@/logics/paint-search';
-import { SolutionMethod } from '@/logics/solution';
 import {
   paintPlanApplied,
   paintPlanHovered,
@@ -40,6 +38,7 @@ import {
   paintSearched,
   usePuyoAppState
 } from '@/store/puyoAppStore';
+import { selectPaintSearchResult } from '@/store/selectors';
 
 /**
  * 塗り色チップの配色。未選択はごく薄い地色、選択中はその色でべた塗りする。
@@ -80,22 +79,21 @@ interface PaintSearchDialogProps {
  */
 const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
   const { open, onOpenChange } = props;
+  const state = usePuyoAppState();
   const {
     simulationData,
+    explorationTarget,
     solutionMethod,
     paintSearchSettings,
-    paintSearching,
-    paintSearchResult
-  } = usePuyoAppState();
+    paintSearching
+  } = state;
+  // 盤面や設定が変わったあとの古い結果は選択の段階で捨てられる
+  const paintSearchResult = selectPaintSearchResult(state);
   const { color, maxPaintNum, precision, showExpectedValue } =
     paintSearchSettings;
 
   // 超高精度は Rustバックエンドのときだけ選べる。WASM は単スレッドなので出さない。
-  const precisionList =
-    solutionMethod === SolutionMethod.solveAllByRustBackend
-      ? rustBackendPaintPrecisionList
-      : wasmPaintPrecisionList;
-  const precisionItems = precisionList.map(
+  const precisionItems = paintPrecisionListFor(solutionMethod).map(
     (p) => [p, paintPrecisionDescriptionMap.get(p)!] as const
   );
 
@@ -104,18 +102,28 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
     // TODO: モックの見た目確認用。WASM / Rustバックエンドが入ったら差し替える。
     const result = createMockPaintSearchResult(
       simulationData,
+      explorationTarget,
       paintSearchSettings
     );
     setTimeout(() => paintSearched(result), 300);
   };
 
+  // 行にホバーしたまま Escape で閉じると mouseleave が来ないので、
+  // 閉じるときは必ずハイライトを消す。
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      paintPlanHovered(undefined);
+    }
+    onOpenChange(next);
+  };
+
   const onApplyClick = (plan: PaintPlan) => {
     paintPlanApplied(plan.coords);
-    onOpenChange(false);
+    handleOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={handleOpenChange} modal={false}>
       <DialogContent
         showOverlay={false}
         className="top-auto bottom-4 max-h-[70svh] translate-y-0 overflow-y-auto sm:max-w-md lg:right-4 lg:left-auto lg:translate-x-0"
