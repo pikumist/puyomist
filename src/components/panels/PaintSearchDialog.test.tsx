@@ -92,6 +92,20 @@ describe('PaintSearchDialog', () => {
     ).toBeInTheDocument();
   });
 
+  it('marks only the selected colour chip as checked', () => {
+    renderDialog();
+    fireEvent.click(screen.getByRole('radio', { name: '緑' }));
+
+    // 色そのものが選択肢なので、選択状態は chip 全体のスタイル
+    // (`has-data-checked:`) で示している。その足場となる data-checked が
+    // 選んだ色にだけ立っていることを確かめる。
+    const checked = screen
+      .getAllByRole('radio')
+      .filter((radio) => radio.querySelector('[data-checked]'));
+    expect(checked).toHaveLength(1);
+    expect(checked[0].closest('label')).toHaveTextContent('緑');
+  });
+
   it('changes the precision in the store', () => {
     renderDialog();
     fireEvent.click(screen.getByLabelText('探索精度の選択'));

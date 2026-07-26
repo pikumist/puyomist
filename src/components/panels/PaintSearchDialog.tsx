@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import {
   type ColoredPuyoAttr,
   coloredPuyoAttrList,
@@ -110,9 +111,15 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
               }
             >
               {coloredPuyoAttrList.map((attr) => (
+                // 色そのものが選択肢なので、選択状態は色以外で示す。未選択は
+                // 彩度と不透明度を落とし、選択中だけ発色させて枠線を回す。
                 <Label
                   key={attr}
-                  className={`flex items-center gap-1 rounded-md px-1.5 py-1 ${pastelClassForAttr(attr)}`}
+                  className={cn(
+                    'flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 opacity-50 grayscale-50 transition-all',
+                    'has-data-checked:font-bold has-data-checked:opacity-100 has-data-checked:grayscale-0 has-data-checked:ring-2 has-data-checked:ring-foreground has-data-checked:ring-offset-1 has-data-checked:ring-offset-background',
+                    pastelClassForAttr(attr)
+                  )}
                 >
                   <RadioGroupItem value={attr} />
                   <span className="text-xs">{getPuyoAttrName(attr)}</span>
