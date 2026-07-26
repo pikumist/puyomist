@@ -5,7 +5,13 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
+import { coloredPuyoAttrList } from './PuyoAttr';
 import { TraceMode, traceModeDescriptionMap } from './TraceMode';
+import {
+  type PaintSearchSettings,
+  defaultPaintSearchSettings,
+  paintPrecisionDescriptionMap
+} from './paint-search';
 import { SolutionMethod } from './solution';
 
 export class Session {
@@ -20,6 +26,7 @@ export class Session {
   private static readonly lastScreenshotBoardKey = 'lastScreenshotBoard';
   private static readonly boostAreaKeyListKey = 'boostAreaKeys';
   private static readonly boardEditModeKey = 'boardEidtMode';
+  private static readonly paintSearchSettingsKey = 'paintSearchSettings';
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
     category: ExplorationCategory.PuyotsukaiCount,
@@ -180,6 +187,51 @@ export class Session {
       };
     }
     return JSON.parse(boardEditModeStr);
+  }
+
+  /**
+   * ぷよ塗り探索の設定。
+   *
+   * 壊れた値や、その後に無くなった選択肢が入っていても既定へ倒す。
+   * 精度は探索法によって選べる範囲が変わるが、その丸めは
+   * `solutionMethodItemSelected` 側が持つのでここではしない。
+   */
+  getPaintSearchSettings(): PaintSearchSettings {
+    const str = this.storage.getItem(Session.paintSearchSettingsKey);
+    if (!str) {
+      return { ...defaultPaintSearchSettings };
+    }
+    try {
+      const parsed = JSON.parse(str) as Partial<PaintSearchSettings>;
+      const color = coloredPuyoAttrList.includes(parsed.color as never)
+        ? (parsed.color as PaintSearchSettings['color'])
+        : defaultPaintSearchSettings.color;
+      const maxPaintNum =
+        Number.isInteger(parsed.maxPaintNum) &&
+        parsed.maxPaintNum! >= 1 &&
+        parsed.maxPaintNum! <= 16
+          ? parsed.maxPaintNum!
+          : defaultPaintSearchSettings.maxPaintNum;
+      const precision = paintPrecisionDescriptionMap.has(parsed.precision!)
+        ? parsed.precision!
+        : defaultPaintSearchSettings.precision;
+
+      return {
+        color,
+        maxPaintNum,
+        precision,
+        showExpectedValue: Boolean(parsed.showExpectedValue)
+      };
+    } catch (_) {
+      return { ...defaultPaintSearchSettings };
+    }
+  }
+
+  setPaintSearchSettings(settings: PaintSearchSettings): void {
+    this.storage.setItem(
+      Session.paintSearchSettingsKey,
+      JSON.stringify(settings)
+    );
   }
 
   setBoardEditMode(boardEditMode: BoardEditMode | undefined): void {

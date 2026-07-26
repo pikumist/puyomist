@@ -1,5 +1,6 @@
 import { CheckIcon } from 'lucide-react';
 import type React from 'react';
+import { useState } from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
 import { NumberStepper } from '@/components/controls/NumberStepper';
@@ -23,6 +24,7 @@ import {
   coloredPuyoAttrList,
   getPuyoAttrName
 } from '@/logics/PuyoAttr';
+import type { PuyoCoord } from '@/logics/PuyoCoord';
 import {
   type PaintPlan,
   type PaintPrecision,
@@ -230,20 +232,43 @@ interface PaintPlanListProps {
   onApply: (plan: PaintPlan) => void;
 }
 
-/** 塗り案のリスト。行にホバーすると盤面に塗るマスがハイライトされる。 */
+/**
+ * 塗り案のリスト。
+ *
+ * 塗るマスは行を**選ぶ**と盤面にハイライトされる。ホバーでも一時的に映すが、
+ * タッチ端末にホバーは無いので、選択を主・ホバーを副の関係にしてある
+ * (ホバーが外れたら選択中の案へ戻る)。
+ */
 const PaintPlanList: React.FC<PaintPlanListProps> = (props) => {
   const { plans, showExpectedValue, onApply } = props;
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const preview = (coords: PuyoCoord[] | undefined) => {
+    paintPlanHovered(coords ?? plans[selectedIndex]?.coords);
+  };
+
+  const toggleSelection = (index: number) => {
+    const next = selectedIndex === index ? -1 : index;
+    setSelectedIndex(next);
+    paintPlanHovered(next === -1 ? undefined : plans[next].coords);
+  };
 
   return (
     <ul className="space-y-1" aria-label="塗り案">
       {plans.map((plan, i) => (
-        <li key={String(i)}>
-          <div
-            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
-            onMouseEnter={() => paintPlanHovered(plan.coords)}
-            onMouseLeave={() => paintPlanHovered(undefined)}
-            onFocus={() => paintPlanHovered(plan.coords)}
-            onBlur={() => paintPlanHovered(undefined)}
+        <li key={String(i)} className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={selectedIndex === i}
+            className={cn(
+              'flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+              selectedIndex === i && 'bg-muted ring-1 ring-foreground/20'
+            )}
+            onClick={() => toggleSelection(i)}
+            onMouseEnter={() => preview(plan.coords)}
+            onMouseLeave={() => preview(undefined)}
+            onFocus={() => preview(plan.coords)}
+            onBlur={() => preview(undefined)}
           >
             <span className="w-6 text-right text-xs text-muted-foreground">
               {i + 1}
@@ -259,16 +284,15 @@ const PaintPlanList: React.FC<PaintPlanListProps> = (props) => {
                 期待値 {plan.expectedValue}
               </span>
             )}
-            <Button
-              className="ml-auto"
-              size="xs"
-              variant="outline"
-              disabled={plan.coords.length === 0}
-              onClick={() => onApply(plan)}
-            >
-              適用
-            </Button>
-          </div>
+          </button>
+          <Button
+            size="xs"
+            variant="outline"
+            disabled={plan.coords.length === 0}
+            onClick={() => onApply(plan)}
+          >
+            適用
+          </Button>
         </li>
       ))}
     </ul>

@@ -2,7 +2,6 @@ import { boostAreaKeyMap } from '../logics/BoostArea';
 import type { PuyoCoord } from '../logics/PuyoCoord';
 import type { SimulationData } from '../logics/SimulationData';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
-import { defaultPaintSearchSettings } from '../logics/paint-search';
 import { unionSet } from '../logics/generics/set';
 import { type Session, session as g_session } from '../logics/session';
 import type { PuyoAppState } from './types';
@@ -19,6 +18,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const lastScreenshotBoard = s.getLastScreenshotBoard();
   const boostAreaKeyList = s.getBoostAreaKeyList();
   const boardEditMode = s.getBoardEditMode();
+  const paintSearchSettings = s.getPaintSearchSettings();
 
   const traceMode = s.getTraceMode();
   const maxTraceNum = s.getMaxTraceNum();
@@ -85,7 +85,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     screenshotInfo: undefined,
     screenshotErrorMessage: undefined,
     bridgePreview: undefined,
-    paintSearchSettings: { ...defaultPaintSearchSettings },
+    paintSearchSettings,
     paintSearching: false,
     paintSearchProgressPercent: 0,
     abortControllerForPaintSearch: undefined,

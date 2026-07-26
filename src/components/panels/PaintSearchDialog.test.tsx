@@ -215,6 +215,50 @@ describe('PaintSearchDialog', () => {
     expect(usePuyoAppStore.getState().paintHighlightCoords).toBeUndefined();
   });
 
+  it('keeps the highlight after tapping a row (touch has no hover)', async () => {
+    renderDialog();
+    await search();
+
+    const rows = await screen.findAllByRole('button', { name: /マス/ });
+    fireEvent.click(rows[0]);
+    fireEvent.mouseLeave(rows[0]);
+
+    const plan = usePuyoAppStore.getState().paintSearchResult!.plans[0];
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toEqual(
+      plan.coords
+    );
+  });
+
+  it('drops the highlight when the selected row is tapped again', async () => {
+    renderDialog();
+    await search();
+
+    const rows = await screen.findAllByRole('button', { name: /マス/ });
+    fireEvent.click(rows[0]);
+    fireEvent.click(rows[0]);
+
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toBeUndefined();
+  });
+
+  it('previews another row on hover and returns to the selected one on leave', async () => {
+    renderDialog();
+    await search();
+
+    const rows = await screen.findAllByRole('button', { name: /マス/ });
+    fireEvent.click(rows[0]);
+
+    const plans = usePuyoAppStore.getState().paintSearchResult!.plans;
+    fireEvent.mouseEnter(rows[1]);
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toEqual(
+      plans[1].coords
+    );
+
+    fireEvent.mouseLeave(rows[1]);
+    expect(usePuyoAppStore.getState().paintHighlightCoords).toEqual(
+      plans[0].coords
+    );
+  });
+
   it('applies the plan to the board and closes the dialog', async () => {
     const onOpenChange = renderDialog();
     await search();

@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Board } from '../logics/Board';
 import { boostAreaKeyMap } from '../logics/BoostArea';
+import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
 import { customBoardId } from '../logics/boards';
+import { PaintPrecision } from '../logics/paint-search';
 import { Session } from '../logics/session';
 import { SolutionMethod } from '../logics/solution';
 import { loadPuyoAppState } from './loadPuyoAppState';
@@ -74,6 +76,25 @@ describe('loadPuyoAppState', () => {
     expect(state.simulationData.boostAreaCoordList[0]).toBeInstanceOf(
       PuyoCoord
     );
+  });
+
+  it('picks up the persisted paint search settings', () => {
+    const s = makeSession();
+    s.setPaintSearchSettings({
+      color: PuyoAttr.Purple,
+      maxPaintNum: 10,
+      precision: PaintPrecision.High,
+      showExpectedValue: true
+    });
+
+    const state = loadPuyoAppState(s);
+
+    expect(state.paintSearchSettings).toEqual({
+      color: PuyoAttr.Purple,
+      maxPaintNum: 10,
+      precision: PaintPrecision.High,
+      showExpectedValue: true
+    });
   });
 
   it('uses the default session when no session is given', () => {

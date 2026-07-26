@@ -23,6 +23,7 @@ usePuyoAppStore.subscribe((puyoApp) => {
   session.setLastScreenshotBoard(puyoApp.lastScreenshotBoard);
   session.setBoostAreaKeyList(puyoApp.boostAreaKeyList);
   session.setBoardEditMode(puyoApp.boardEditMode);
+  session.setPaintSearchSettings(puyoApp.paintSearchSettings);
 });
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);

@@ -6,7 +6,9 @@ import {
   type ExplorationTarget,
   PreferenceKind
 } from './ExplorationTarget';
+import { PuyoAttr } from './PuyoAttr';
 import { TraceMode } from './TraceMode';
+import { PaintPrecision, defaultPaintSearchSettings } from './paint-search';
 import { Session, session } from './session';
 import { SolutionMethod } from './solution';
 
@@ -119,6 +121,42 @@ describe('Session', () => {
     expect(s.getBoostAreaKeyList()).toEqual([]);
     s.setBoostAreaKeyList(['a', 'b']);
     expect(s.getBoostAreaKeyList()).toEqual(['a', 'b']);
+  });
+
+  it('paintSearchSettings returns the defaults when absent and round-trips', () => {
+    expect(s.getPaintSearchSettings()).toEqual(defaultPaintSearchSettings);
+
+    const settings = {
+      color: PuyoAttr.Green,
+      maxPaintNum: 10,
+      precision: PaintPrecision.High,
+      showExpectedValue: true
+    } as const;
+    s.setPaintSearchSettings(settings);
+    expect(s.getPaintSearchSettings()).toEqual(settings);
+  });
+
+  it('paintSearchSettings falls back per field when the stored value is broken', () => {
+    // 壊れた JSON
+    localStorage.setItem('paintSearchSettings', '{');
+    expect(s.getPaintSearchSettings()).toEqual(defaultPaintSearchSettings);
+
+    // 値が範囲外・型違い。おかしい項目だけ既定へ倒し、正しい項目は活かす
+    localStorage.setItem(
+      'paintSearchSettings',
+      JSON.stringify({
+        color: PuyoAttr.Heart,
+        maxPaintNum: 999,
+        precision: 'nonsense',
+        showExpectedValue: 'yes'
+      })
+    );
+    expect(s.getPaintSearchSettings()).toEqual({
+      color: defaultPaintSearchSettings.color,
+      maxPaintNum: defaultPaintSearchSettings.maxPaintNum,
+      precision: defaultPaintSearchSettings.precision,
+      showExpectedValue: true
+    });
   });
 
   it('boardEditMode returns ClearEnhance default and round-trips/removes', () => {
