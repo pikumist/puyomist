@@ -33,4 +33,22 @@ function RadioGroupItem({ className, ...props }: RadioPrimitive.Root.Props) {
   );
 }
 
-export { RadioGroup, RadioGroupItem };
+/**
+ * 選択肢そのものが見た目 (色など) を持つときの、丸ではなくチップ型のラジオ。
+ * 小さな丸の塗りつぶしでは選択状態が見分けにくいので、チップ全体を発色させ、
+ * 枠線・太字・チェックで示す。中身は呼び出し側が組み立てる。
+ */
+function RadioGroupChip({ className, ...props }: RadioPrimitive.Root.Props) {
+  return (
+    <RadioPrimitive.Root
+      data-slot="radio-group-chip"
+      className={cn(
+        'group/chip inline-flex cursor-pointer items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-checked:border-foreground data-checked:font-bold data-checked:shadow-sm',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export { RadioGroup, RadioGroupChip, RadioGroupItem };

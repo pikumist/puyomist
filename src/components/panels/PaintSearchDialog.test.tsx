@@ -96,14 +96,14 @@ describe('PaintSearchDialog', () => {
     renderDialog();
     fireEvent.click(screen.getByRole('radio', { name: '緑' }));
 
-    // 色そのものが選択肢なので、選択状態は chip 全体のスタイル
-    // (`has-data-checked:`) で示している。その足場となる data-checked が
-    // 選んだ色にだけ立っていることを確かめる。
+    // 色そのものが選択肢なので、選択状態はチップ全体のスタイル
+    // (`data-checked:` と `group-data-checked/chip:`) で示している。
+    // その足場となる data-checked が選んだ色にだけ立っていることを確かめる。
     const checked = screen
       .getAllByRole('radio')
-      .filter((radio) => radio.querySelector('[data-checked]'));
+      .filter((radio) => radio.hasAttribute('data-checked'));
     expect(checked).toHaveLength(1);
-    expect(checked[0].closest('label')).toHaveTextContent('緑');
+    expect(checked[0]).toHaveTextContent('緑');
   });
 
   it('changes the precision in the store', () => {

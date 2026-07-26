@@ -1,9 +1,9 @@
+import { CheckIcon } from 'lucide-react';
 import type React from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
 import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
-import { pastelClassForAttr } from '@/components/controls/puyoColorClass';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,13 +13,13 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { RadioGroup, RadioGroupChip } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import {
   type ColoredPuyoAttr,
+  PuyoAttr,
   coloredPuyoAttrList,
   getPuyoAttrName
 } from '@/logics/PuyoAttr';
@@ -40,6 +40,32 @@ import {
   paintSearched,
   usePuyoAppState
 } from '@/store/puyoAppStore';
+
+/**
+ * 塗り色チップの配色。未選択はごく薄い地色、選択中はその色でべた塗りする。
+ * Tailwind のスキャナに拾わせるため、クラスはリテラルで列挙する。
+ */
+const paintChipClass: Record<ColoredPuyoAttr, string> = {
+  [PuyoAttr.Red]:
+    'bg-red-500/12 hover:bg-red-500/25 data-checked:bg-red-400 data-checked:text-red-950',
+  [PuyoAttr.Blue]:
+    'bg-blue-500/12 hover:bg-blue-500/25 data-checked:bg-blue-400 data-checked:text-blue-950',
+  [PuyoAttr.Green]:
+    'bg-green-500/12 hover:bg-green-500/25 data-checked:bg-green-400 data-checked:text-green-950',
+  [PuyoAttr.Yellow]:
+    'bg-yellow-500/12 hover:bg-yellow-500/25 data-checked:bg-yellow-300 data-checked:text-yellow-950',
+  [PuyoAttr.Purple]:
+    'bg-purple-500/12 hover:bg-purple-500/25 data-checked:bg-purple-400 data-checked:text-purple-950'
+};
+
+/** 未選択チップに置く色の点 */
+const paintDotClass: Record<ColoredPuyoAttr, string> = {
+  [PuyoAttr.Red]: 'bg-red-500',
+  [PuyoAttr.Blue]: 'bg-blue-500',
+  [PuyoAttr.Green]: 'bg-green-500',
+  [PuyoAttr.Yellow]: 'bg-yellow-400',
+  [PuyoAttr.Purple]: 'bg-purple-500'
+};
 
 interface PaintSearchDialogProps {
   open: boolean;
@@ -104,26 +130,30 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
         <div className="space-y-2">
           <SettingRow label="塗り色">
             <RadioGroup
-              className="flex gap-2"
+              className="flex flex-wrap gap-1.5"
               value={color}
               onValueChange={(v) =>
                 paintSearchSettingsChanged({ color: v as ColoredPuyoAttr })
               }
             >
               {coloredPuyoAttrList.map((attr) => (
-                // 色そのものが選択肢なので、選択状態は色以外で示す。未選択は
-                // 彩度と不透明度を落とし、選択中だけ発色させて枠線を回す。
-                <Label
+                <RadioGroupChip
                   key={attr}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 opacity-50 grayscale-50 transition-all',
-                    'has-data-checked:font-bold has-data-checked:opacity-100 has-data-checked:grayscale-0 has-data-checked:ring-2 has-data-checked:ring-foreground has-data-checked:ring-offset-1 has-data-checked:ring-offset-background',
-                    pastelClassForAttr(attr)
-                  )}
+                  value={attr}
+                  className={paintChipClass[attr]}
                 >
-                  <RadioGroupItem value={attr} />
-                  <span className="text-xs">{getPuyoAttrName(attr)}</span>
-                </Label>
+                  {/* 未選択は色の点、選択中はチェック。同じ場所で入れ替える */}
+                  <span className="flex size-3 items-center justify-center">
+                    <span
+                      className={cn(
+                        'size-2.5 rounded-full group-data-checked/chip:hidden',
+                        paintDotClass[attr]
+                      )}
+                    />
+                    <CheckIcon className="hidden size-3 group-data-checked/chip:block" />
+                  </span>
+                  {getPuyoAttrName(attr)}
+                </RadioGroupChip>
               ))}
             </RadioGroup>
           </SettingRow>

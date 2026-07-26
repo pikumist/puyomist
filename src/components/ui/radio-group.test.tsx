@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { RadioGroup, RadioGroupItem } from './radio-group';
+import { RadioGroup, RadioGroupChip, RadioGroupItem } from './radio-group';
 
 function Fixture({
   onValueChange
@@ -35,5 +35,36 @@ describe('RadioGroup', () => {
     render(<Fixture onValueChange={onValueChange} />);
     fireEvent.click(screen.getByRole('radio', { name: 'b' }));
     expect(onValueChange).toHaveBeenCalledWith('b', expect.anything());
+  });
+});
+
+describe('RadioGroupChip', () => {
+  function ChipFixture() {
+    return (
+      <RadioGroup defaultValue="red">
+        <RadioGroupChip value="red">Red</RadioGroupChip>
+        <RadioGroupChip value="blue">Blue</RadioGroupChip>
+      </RadioGroup>
+    );
+  }
+
+  it('takes its accessible name from its content', () => {
+    render(<ChipFixture />);
+    expect(screen.getByRole('radio', { name: 'Red' })).toBeInTheDocument();
+  });
+
+  it('carries data-checked on the selected chip only', () => {
+    render(<ChipFixture />);
+    expect(screen.getByRole('radio', { name: 'Red' })).toHaveAttribute(
+      'data-checked'
+    );
+    expect(screen.getByRole('radio', { name: 'Blue' })).not.toHaveAttribute(
+      'data-checked'
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Blue' }));
+    expect(screen.getByRole('radio', { name: 'Blue' })).toHaveAttribute(
+      'data-checked'
+    );
   });
 });
