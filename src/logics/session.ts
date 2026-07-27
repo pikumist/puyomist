@@ -10,6 +10,7 @@ import { TraceMode, traceModeDescriptionMap } from './TraceMode';
 import {
   type PaintSearchSettings,
   defaultPaintSearchSettings,
+  paintMaxTraceNumLimit,
   paintPrecisionDescriptionMap
 } from './paint-search';
 import { SolutionMethod } from './solution';
@@ -222,6 +223,12 @@ export class Session {
         parsed.maxPaintNum! <= 16
           ? parsed.maxPaintNum!
           : defaultPaintSearchSettings.maxPaintNum;
+      const maxTraceNum =
+        Number.isInteger(parsed.maxTraceNum) &&
+        parsed.maxTraceNum! >= 1 &&
+        parsed.maxTraceNum! <= paintMaxTraceNumLimit
+          ? parsed.maxTraceNum!
+          : defaultPaintSearchSettings.maxTraceNum;
       const precision = paintPrecisionDescriptionMap.has(parsed.precision!)
         ? parsed.precision!
         : defaultPaintSearchSettings.precision;
@@ -229,6 +236,7 @@ export class Session {
       return {
         color,
         maxPaintNum,
+        maxTraceNum,
         precision,
         showExpectedValue: Boolean(parsed.showExpectedValue)
       };

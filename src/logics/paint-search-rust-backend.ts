@@ -69,8 +69,13 @@ export const searchPaintPlansByRustBackend = async (
   const startTime = Date.now();
 
   const exploration_target = toWasmExplorationTarget(explorationTarget);
+  // バックエンドは環境のなぞり上限で検証するので、塗り探索側の値に差し替えて渡す。
+  // WASM 版が `evaluate` に明示的に渡しているのと同じ値になる。
   const { environment, boost_area_coord_set, field, next_puyos } =
-    toWasmEnvironmentFieldNextPuyos(simulationData);
+    toWasmEnvironmentFieldNextPuyos({
+      ...simulationData,
+      maxTraceNum: settings.maxTraceNum
+    });
   // ワイヤープロトコルでは Set ではなく配列で送る。
   const boost_area_coords = [...boost_area_coord_set];
   const params = toWasmPaintSearchParams(settings);

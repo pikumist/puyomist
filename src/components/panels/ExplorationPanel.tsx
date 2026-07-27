@@ -3,7 +3,6 @@ import type React from 'react';
 import { useState } from 'react';
 
 import { EnumSelect } from '@/components/controls/EnumSelect';
-import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
 import SolutionMenu from '@/components/result/SolutionMenu';
 import SolutionResultView from '@/components/result/SolutionResultView';
@@ -20,7 +19,6 @@ import {
   solutionMethodDescriptionMap
 } from '@/logics/solution';
 import {
-  maxTraceNumChanged,
   paintUndone,
   solutionMethodItemSelected,
   usePuyoAppState
@@ -56,7 +54,6 @@ const methodItems = (
 const ExplorationPanel: React.FC = () => {
   const state = usePuyoAppState();
   const {
-    simulationData,
     solutionMethod,
     explorationTarget,
     solving,
@@ -71,15 +68,6 @@ const ExplorationPanel: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <SettingRow label="最大なぞり数">
-          <NumberStepper
-            ariaLabel="最大なぞり数"
-            value={simulationData.maxTraceNum}
-            min={1}
-            max={15}
-            onChange={(v) => maxTraceNumChanged(v)}
-          />
-        </SettingRow>
         <SettingRow label="探索法">
           <EnumSelect<SolutionMethod>
             ariaLabel="探索法の選択"

@@ -129,6 +129,7 @@ describe('Session', () => {
     const settings = {
       color: PuyoAttr.Green,
       maxPaintNum: 10,
+      maxTraceNum: 6,
       precision: PaintPrecision.High,
       showExpectedValue: true
     } as const;
@@ -147,6 +148,7 @@ describe('Session', () => {
       JSON.stringify({
         color: PuyoAttr.Heart,
         maxPaintNum: 999,
+        maxTraceNum: 99,
         precision: 'nonsense',
         showExpectedValue: 'yes'
       })
@@ -154,6 +156,7 @@ describe('Session', () => {
     expect(s.getPaintSearchSettings()).toEqual({
       color: defaultPaintSearchSettings.color,
       maxPaintNum: defaultPaintSearchSettings.maxPaintNum,
+      maxTraceNum: defaultPaintSearchSettings.maxTraceNum,
       precision: defaultPaintSearchSettings.precision,
       showExpectedValue: true
     });

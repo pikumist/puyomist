@@ -83,6 +83,7 @@ describe('loadPuyoAppState', () => {
     s.setPaintSearchSettings({
       color: PuyoAttr.Purple,
       maxPaintNum: 10,
+      maxTraceNum: 6,
       precision: PaintPrecision.High,
       showExpectedValue: true
     });
@@ -92,6 +93,7 @@ describe('loadPuyoAppState', () => {
     expect(state.paintSearchSettings).toEqual({
       color: PuyoAttr.Purple,
       maxPaintNum: 10,
+      maxTraceNum: 6,
       precision: PaintPrecision.High,
       showExpectedValue: true
     });

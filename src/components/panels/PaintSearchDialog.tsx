@@ -28,6 +28,7 @@ import type { PuyoCoord } from '@/logics/PuyoCoord';
 import {
   type PaintPlan,
   type PaintPrecision,
+  paintMaxTraceNumLimit,
   paintPrecisionDescriptionMap,
   paintPrecisionListFor
 } from '@/logics/paint-search';
@@ -89,7 +90,7 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
   } = state;
   // 盤面や設定が変わったあとの古い結果は選択の段階で捨てられる
   const paintSearchResult = selectPaintSearchResult(state);
-  const { color, maxPaintNum, precision, showExpectedValue } =
+  const { color, maxPaintNum, maxTraceNum, precision, showExpectedValue } =
     paintSearchSettings;
 
   // 超高精度は Rustバックエンドのときだけ選べる。WASM は単スレッドなので出さない。
@@ -162,6 +163,18 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
               min={1}
               max={16}
               onChange={(v) => paintSearchSettingsChanged({ maxPaintNum: v })}
+            />
+          </SettingRow>
+
+          {/* 盤面設定の最大なぞり数とは別物。上限を低くしてあるのは、検証件数ぶんの
+              なぞり探索になり、なぞり数のコストがその件数倍で効くため。 */}
+          <SettingRow label="最大なぞり数">
+            <NumberStepper
+              ariaLabel="最大なぞり数"
+              value={maxTraceNum}
+              min={1}
+              max={paintMaxTraceNumLimit}
+              onChange={(v) => paintSearchSettingsChanged({ maxTraceNum: v })}
             />
           </SettingRow>
 

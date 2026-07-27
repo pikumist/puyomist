@@ -123,6 +123,20 @@ describe('PaintSearchDialog', () => {
     );
   });
 
+  // 盤面設定の最大なぞり数とは別枠なので、盤面側が動かないことまで見る
+  it('changes the paint search max trace num without touching the board rule', () => {
+    renderDialog();
+    const before = usePuyoAppStore.getState().paintSearchSettings.maxTraceNum;
+    const boardBefore = usePuyoAppStore.getState().simulationData.maxTraceNum;
+    fireEvent.click(screen.getByLabelText('最大なぞり数を増やす'));
+    expect(usePuyoAppStore.getState().paintSearchSettings.maxTraceNum).toBe(
+      before + 1
+    );
+    expect(usePuyoAppStore.getState().simulationData.maxTraceNum).toBe(
+      boardBefore
+    );
+  });
+
   it('toggles the expected value column', () => {
     renderDialog();
     fireEvent.click(screen.getByLabelText('期待値も表示'));

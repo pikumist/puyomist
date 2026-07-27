@@ -26,14 +26,7 @@ describe('ExplorationPanel', () => {
     expect(screen.getByLabelText('最適解を探索')).toBeInTheDocument();
   });
 
-  it('changes the max trace num in the store', () => {
-    render(<ExplorationPanel />);
-    const before = usePuyoAppStore.getState().simulationData.maxTraceNum;
-    fireEvent.click(screen.getByLabelText('最大なぞり数を増やす'));
-    expect(usePuyoAppStore.getState().simulationData.maxTraceNum).toBe(
-      before + 1
-    );
-  });
+  // 最大なぞり数は盤面設定にだけ置いてある (FieldSettingsPanel のテストで見る)
 
   it('changes the solution method from the select', () => {
     render(<ExplorationPanel />);

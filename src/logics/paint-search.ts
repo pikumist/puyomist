@@ -97,6 +97,14 @@ export interface PaintSearchSettings {
   color: ColoredPuyoAttr;
   /** 塗り上限マス数 */
   maxPaintNum: number;
+  /**
+   * 最終検証で使う最大なぞり数。盤面設定の値とは独立させている。
+   *
+   * 検証は精度に応じて数百〜数千件の盤面をそれぞれなぞり探索するので、なぞり数を
+   * 上げた分のコストがその件数倍で効く。盤面のなぞり上限をそのまま使うと現実的な
+   * 時間で終わらなくなるため、塗り探索側で別に抑えられるようにしてある。
+   */
+  maxTraceNum: number;
   /** 探索精度 */
   precision: PaintPrecision;
   /** 期待値も併記するかどうか (false なら決定論値だけ) */
@@ -107,9 +115,13 @@ export interface PaintSearchSettings {
 export const defaultPaintSearchSettings: PaintSearchSettings = {
   color: PuyoAttr.Red,
   maxPaintNum: 8,
+  maxTraceNum: 5,
   precision: PaintPrecision.Standard,
   showExpectedValue: false
 };
+
+/** 塗り探索の最大なぞり数の上限。これ以上は待ち時間が現実的でなくなる */
+export const paintMaxTraceNumLimit = 8;
 
 /**
  * 盤面の指紋。ぷよの並び (ネクスト込み) だけを見る。
@@ -139,7 +151,8 @@ export const paintSearchSignatureOf = (
   explorationTarget: ExplorationTarget,
   settings: PaintSearchSettings
 ): string => {
-  const { color, maxPaintNum, precision, showExpectedValue } = settings;
+  const { color, maxPaintNum, maxTraceNum, precision, showExpectedValue } =
+    settings;
   const rule = [
     simulationData.minimumPuyoNumForPopping,
     simulationData.maxTraceNum,
@@ -152,7 +165,13 @@ export const paintSearchSignatureOf = (
     .map((coord) => coord.index)
     .sort((a, b) => a - b)
     .join(',');
-  const paint = [color, maxPaintNum, precision, showExpectedValue].join(',');
+  const paint = [
+    color,
+    maxPaintNum,
+    maxTraceNum,
+    precision,
+    showExpectedValue
+  ].join(',');
 
   return [
     boardSignatureOf(simulationData),

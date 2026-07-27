@@ -207,9 +207,11 @@ export const searchPaintPlansByWasm = async (
     }
     const verifySets = verify.map((i) => all[i]);
 
+    // 盤面設定のなぞり上限ではなく塗り探索側の値を使う。ここは検証件数ぶんの
+    // なぞり探索なので、なぞり数の影響がそのまま件数倍で効く。
     const evaluations = await evaluate(
       verifySets,
-      simulationData.maxTraceNum,
+      settings.maxTraceNum,
       true,
       Boolean(params.uncertainty)
     );
