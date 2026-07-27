@@ -65,7 +65,7 @@
   --ring:               oklch(0.585 0.115 290);
 
   /* --- Radius: softer for the pastel feel --- */
-  --radius:             0.75rem;
+  --radius:             0.5rem;
 
   /* --- Surfaces used by the SVG board canvas area --- */
   --canvas-bg:          oklch(0.935 0.014 290);
