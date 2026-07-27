@@ -188,13 +188,8 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
         </div>
 
         <div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => paintSearchButtonClicked()}
-              disabled={paintSearching}
-            >
-              {paintSearching ? '塗り探索中…' : '塗り探索'}
-            </Button>
+          {/* 主ボタンを右端に置いて親指の届く位置にする */}
+          <div className="flex justify-end gap-2">
             {paintSearching && (
               <Button
                 variant="outline"
@@ -203,6 +198,12 @@ const PaintSearchDialog: React.FC<PaintSearchDialogProps> = (props) => {
                 中断
               </Button>
             )}
+            <Button
+              onClick={() => paintSearchButtonClicked()}
+              disabled={paintSearching}
+            >
+              {paintSearching ? '塗り探索中…' : '塗り探索'}
+            </Button>
           </div>
           {/* 標準精度でも十数秒かかるので、進捗を見せる */}
           <Progress

@@ -1,3 +1,4 @@
+import { PaintBucketIcon } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
@@ -6,13 +7,18 @@ import { NumberStepper } from '@/components/controls/NumberStepper';
 import { SettingRow } from '@/components/controls/SettingRow';
 import SolutionMenu from '@/components/result/SolutionMenu';
 import SolutionResultView from '@/components/result/SolutionResultView';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import {
   SolutionMethod,
   rustBackendSolutionMethodDescription,
   solutionMethodDescriptionMap
 } from '@/logics/solution';
-import { Button } from '@/components/ui/button';
 import {
   maxTraceNumChanged,
   paintUndone,
@@ -85,18 +91,11 @@ const ExplorationPanel: React.FC = () => {
         <ExplorationTargetSetting target={explorationTarget} />
       </div>
 
-      {(paintSearchAvailable || paintUndoAvailable) && (
+      {paintUndoAvailable && (
         <div className="flex gap-2">
-          {paintSearchAvailable && (
-            <Button variant="outline" onClick={() => setPaintDialogOpen(true)}>
-              塗探索
-            </Button>
-          )}
-          {paintUndoAvailable && (
-            <Button variant="ghost" onClick={() => paintUndone()}>
-              塗りを元に戻す
-            </Button>
-          )}
+          <Button variant="ghost" onClick={() => paintUndone()}>
+            塗りを元に戻す
+          </Button>
         </div>
       )}
       <PaintSearchDialog
@@ -105,7 +104,27 @@ const ExplorationPanel: React.FC = () => {
       />
 
       <div>
-        <SolutionMenu solving={solving} hasResult={Boolean(solveResult)} />
+        {/* 塗探索は探索メニューの先頭に並べ、他の操作とアイコンの粒度を揃える。 */}
+        <div className="flex items-center gap-1">
+          {paintSearchAvailable && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="塗探索"
+                    onClick={() => setPaintDialogOpen(true)}
+                  />
+                }
+              >
+                <PaintBucketIcon />
+              </TooltipTrigger>
+              <TooltipContent>塗探索</TooltipContent>
+            </Tooltip>
+          )}
+          <SolutionMenu solving={solving} hasResult={Boolean(solveResult)} />
+        </div>
         <Progress
           className="mt-2"
           value={
