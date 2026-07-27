@@ -62,8 +62,11 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
   const deadCellCoords = selectDeadCellCoords(state);
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
-  const optimalTraceCoords =
-    solveResult?.optimal_solutions[optimalSolutionIndex]?.trace_coords;
+  // 塗り囲いと消し候補の囲いが重なると見分けが付かないので、塗りハイライト中は
+  // 消し候補の囲いを引っ込める。
+  const optimalTraceCoords = paintHighlightCoords?.length
+    ? undefined
+    : solveResult?.optimal_solutions[optimalSolutionIndex]?.trace_coords;
   const [touching, setTouching] = useState(false);
   const hasAnimation = state.animationSteps.length > 0;
 
