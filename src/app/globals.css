@@ -276,12 +276,6 @@
     font-size: 1rem;
     line-height: 1.55;
     text-wrap: pretty;
-    /* ぷよミスト: a soft, single-hue lavender haze the frosted panels float on.
-       Purely decorative — strips to --background in forced-colors / print. */
-    background:
-      radial-gradient(60rem 60rem at 12% -8%, oklch(0.93 0.03 290 / 0.45), transparent 60%) fixed,
-      radial-gradient(52rem 52rem at 102% 108%, oklch(0.92 0.025 320 / 0.40), transparent 60%) fixed,
-      var(--background);
   }
 
   /* Numeric / damage / count contexts: tabular mono */
