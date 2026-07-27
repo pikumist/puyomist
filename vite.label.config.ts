@@ -8,7 +8,7 @@ import { defineConfig } from 'vite';
 // - different root entry (`label.html` instead of `index.html`)
 // - different build output dir (`dist-label` instead of `dist`)
 //
-// `base` MUST match the public app (`vite.config.ts` base '/puyomist') so the
+// `base` MUST match the public app (`vite.config.ts` base '/puyomist/') so the
 // reused board components resolve their asset paths. The puyo sprite is
 // referenced by a hardcoded absolute path (`/puyomist/assets/puyo-sprite.svg`
 // in symbol-reference.ts); under any other base that URL 404s and the board

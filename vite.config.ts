@@ -4,7 +4,9 @@ import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/puyomist',
+  // 末尾のスラッシュは必須。無いと import.meta.env.BASE_URL がそのまま '/puyomist'
+  // になり、連結した URL が '/puyomistassets/...' に潰れる。
+  base: '/puyomist/',
   plugins: [react()],
   resolve: {
     alias: {
