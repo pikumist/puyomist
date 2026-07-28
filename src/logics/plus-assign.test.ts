@@ -245,7 +245,7 @@ describe('calcPlusAssignPlan', () => {
     }
     expect(candidates).toHaveLength(8);
 
-    const valueOf = (chosen: PuyoCoord[]) => {
+    const evaluate = (chosen: PuyoCoord[]) => {
       const field = data.field.map((row) => [...row]);
       for (const c of chosen) {
         const puyo = field[c.y][c.x]!;
@@ -267,7 +267,7 @@ describe('calcPlusAssignPlan', () => {
         for (let k = j + 1; k < candidates.length; k++) {
           bruteForce = Math.max(
             bruteForce,
-            valueOf([candidates[i], candidates[j], candidates[k]])
+            evaluate([candidates[i], candidates[j], candidates[k]])
           );
         }
       }
