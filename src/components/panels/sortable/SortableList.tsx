@@ -20,7 +20,6 @@ import {
 } from '@dnd-kit/sortable';
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
 
-import { PreferenceKind } from '@/logics/ExplorationTarget';
 import SortableItem, { DragHandle } from './SortableItem';
 import SortableOverlay from './SortableOverlay';
 
@@ -32,10 +31,15 @@ interface Props<T extends BaseItem> {
   items: T[];
   onChange(items: T[]): void;
   renderItem(item: T): ReactNode;
+  /**
+   * リストの外に落としたときにその項目を取り除いてよいかどうか。
+   * 省略時は取り除かない (落とし損ねが削除にならないよう、削除は使う側の明示に任せる)。
+   */
+  canRemove?(id: UniqueIdentifier): boolean;
 }
 
 const SortableList = <T extends BaseItem>(props: Props<T>) => {
-  const { items, onChange, renderItem } = props;
+  const { items, onChange, renderItem, canRemove } = props;
   const [active, setActive] = useState<Active | null>(null);
   const activeItem = useMemo(
     () => items.find((item) => item.id === active?.id),
@@ -62,17 +66,11 @@ const SortableList = <T extends BaseItem>(props: Props<T>) => {
             const overIndex = items.findIndex(({ id }) => id === over.id);
             onChange(arrayMove(items, activeIndex, overIndex));
           }
-        } else {
-          const pref = active.id as PreferenceKind;
-          if (
-            pref !== PreferenceKind.BiggerValue &&
-            pref !== PreferenceKind.SmallerValue
-          ) {
-            const activeIndex = items.findIndex(({ id }) => id === active.id);
-            const newItems = [...items];
-            newItems.splice(activeIndex, 1);
-            onChange(newItems);
-          }
+        } else if (canRemove?.(active.id)) {
+          const activeIndex = items.findIndex(({ id }) => id === active.id);
+          const newItems = [...items];
+          newItems.splice(activeIndex, 1);
+          onChange(newItems);
         }
         setActive(null);
       }}

@@ -92,6 +92,8 @@ const PreferencePrioritySetting: React.FC<{
         onChange={(next) =>
           explorationPreferencePrioritiesChanged(next.map(({ id }) => id))
         }
+        // 値の好みは外せない (探索の基準が無くなってしまうため)。
+        canRemove={(id) => !isValuePreference(id as PreferenceKind)}
         renderItem={(item) => {
           const derivatives = getDerivativePreferenceList(item.id);
           return (

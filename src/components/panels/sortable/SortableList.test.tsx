@@ -212,7 +212,7 @@ describe('SortableList', () => {
   // it stays over itself). Only the pointer sensor can move the drag
   // further than any droppable's rect, so we drive it directly with
   // pointer events instead.
-  it('removes the item when dropped outside the list (pointer sensor, over === null)', () => {
+  it('removes the item when dropped outside the list if canRemove allows it (pointer sensor, over === null)', () => {
     const items: Item[] = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
     const onChange = vi.fn();
     setupItemRects(items);
@@ -221,6 +221,7 @@ describe('SortableList', () => {
         items={items}
         onChange={onChange}
         renderItem={renderRow}
+        canRemove={() => true}
       />
     );
     const handles = screen.getAllByLabelText('ドラッグして並べ替え');
@@ -254,7 +255,9 @@ describe('SortableList', () => {
     ]);
   });
 
-  it('does not remove the item when dropped outside the list if it is a value preference (BiggerValue/SmallerValue)', () => {
+  // canRemove を渡さないのが既定。落とし損ねが削除にならないよう、
+  // 削除は使う側が明示したときだけ起きる。
+  it('does not remove the item when dropped outside the list without canRemove', () => {
     const items: Item[] = [
       { id: PreferenceKind.BiggerValue },
       { id: PreferenceKind.SmallerValue },
