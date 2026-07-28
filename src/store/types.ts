@@ -18,6 +18,11 @@ import {
   type PaintUndo,
   defaultPaintSearchSettings
 } from '../logics/paint-search';
+import {
+  type PlusAssignSettings,
+  type PlusAssignUndo,
+  defaultPlusAssignSettings
+} from '../logics/plus-assign';
 import { SolutionMethod, type SolveResult } from '../logics/solution';
 
 export interface PuyoAppState {
@@ -84,6 +89,12 @@ export interface PuyoAppState {
    * 多段塗りでは1段ずつ取り消せれば十分なので履歴は積まない。
    */
   paintUndo: PaintUndo | undefined;
+  /** プラス付与案の設定 */
+  plusAssignSettings: PlusAssignSettings;
+  /**
+   * プラス付与の取り消し用に控えた、付与する直前の盤面。塗りと同じく1手分だけ持つ。
+   */
+  plusAssignUndo: PlusAssignUndo | undefined;
 }
 
 export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
@@ -136,6 +147,8 @@ export const INITIAL_PUYO_APP_STATE: PuyoAppState = {
   bridgePreview: undefined,
   showDeadCells: false,
   paintSearchSettings: { ...defaultPaintSearchSettings },
+  plusAssignSettings: { ...defaultPlusAssignSettings },
+  plusAssignUndo: undefined,
   paintSearching: false,
   paintSearchProgressPercent: 0,
   abortControllerForPaintSearch: undefined,

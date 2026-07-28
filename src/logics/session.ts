@@ -13,6 +13,12 @@ import {
   paintMaxTraceNumLimit,
   paintPrecisionDescriptionMap
 } from './paint-search';
+import {
+  type PlusAssignSettings,
+  defaultPlusAssignSettings,
+  normalizePlusPreferencePriorities,
+  plusAssignMaxNumLimit
+} from './plus-assign';
 import { SolutionMethod } from './solution';
 
 export class Session {
@@ -29,6 +35,7 @@ export class Session {
   private static readonly boardEditModeKey = 'boardEidtMode';
   private static readonly paintSearchSettingsKey = 'paintSearchSettings';
   private static readonly showDeadCellsKey = 'showDeadCells';
+  private static readonly plusAssignSettingsKey = 'plusAssignSettings';
 
   private static readonly defaultExplorationTarget: ExplorationTarget = {
     category: ExplorationCategory.PuyotsukaiCount,
@@ -243,6 +250,40 @@ export class Session {
     } catch (_) {
       return { ...defaultPaintSearchSettings };
     }
+  }
+
+  /** プラス付与案の設定。壊れた値は既定へ倒す。 */
+  getPlusAssignSettings(): PlusAssignSettings {
+    const str = this.storage.getItem(Session.plusAssignSettingsKey);
+    if (!str) {
+      return { ...defaultPlusAssignSettings };
+    }
+    try {
+      const parsed = JSON.parse(str) as Partial<PlusAssignSettings>;
+      const num =
+        Number.isInteger(parsed.num) &&
+        parsed.num! >= 1 &&
+        parsed.num! <= plusAssignMaxNumLimit
+          ? parsed.num!
+          : defaultPlusAssignSettings.num;
+      return {
+        enabled: Boolean(parsed.enabled),
+        num,
+        priorities: normalizePlusPreferencePriorities(parsed.priorities),
+        color: coloredPuyoAttrList.includes(parsed.color as never)
+          ? (parsed.color as PlusAssignSettings['color'])
+          : defaultPlusAssignSettings.color
+      };
+    } catch (_) {
+      return { ...defaultPlusAssignSettings };
+    }
+  }
+
+  setPlusAssignSettings(settings: PlusAssignSettings): void {
+    this.storage.setItem(
+      Session.plusAssignSettingsKey,
+      JSON.stringify(settings)
+    );
   }
 
   setPaintSearchSettings(settings: PaintSearchSettings): void {

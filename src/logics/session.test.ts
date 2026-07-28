@@ -9,6 +9,7 @@ import {
 import { PuyoAttr } from './PuyoAttr';
 import { TraceMode } from './TraceMode';
 import { PaintPrecision, defaultPaintSearchSettings } from './paint-search';
+import { defaultPlusAssignSettings } from './plus-assign';
 import { Session, session } from './session';
 import { SolutionMethod } from './solution';
 
@@ -135,6 +136,32 @@ describe('Session', () => {
     } as const;
     s.setPaintSearchSettings(settings);
     expect(s.getPaintSearchSettings()).toEqual(settings);
+  });
+
+  it('plusAssignSettings returns the defaults when absent and round-trips', () => {
+    expect(s.getPlusAssignSettings()).toEqual(defaultPlusAssignSettings);
+
+    const settings = {
+      ...defaultPlusAssignSettings,
+      enabled: true,
+      num: 10
+    };
+    s.setPlusAssignSettings(settings);
+    expect(s.getPlusAssignSettings()).toEqual(settings);
+  });
+
+  it('plusAssignSettings falls back per field when the stored value is broken', () => {
+    localStorage.setItem('plusAssignSettings', '{');
+    expect(s.getPlusAssignSettings()).toEqual(defaultPlusAssignSettings);
+
+    localStorage.setItem(
+      'plusAssignSettings',
+      JSON.stringify({ enabled: 'yes', num: 999 })
+    );
+    expect(s.getPlusAssignSettings()).toEqual({
+      ...defaultPlusAssignSettings,
+      enabled: true
+    });
   });
 
   it('paintSearchSettings falls back per field when the stored value is broken', () => {

@@ -76,6 +76,8 @@
   --board-frame:        oklch(0.96 0.010 290);     /* soft frame */
   --board-grid:         oklch(0.55 0.020 290 / 0.45);
   --board-optimal-trace: oklch(0.98 0.005 290);
+  --board-plus-mark:    oklch(0.84 0.16 85);       /* プラス付与案。盤面のどの色とも被らない琥珀 */
+  --board-plus-mark-ink: oklch(0.24 0.040 85);
   --board-dead-mark:    oklch(0.98 0.005 290 / 0.92);
   --board-dead-mark-halo: oklch(0.20 0.020 290 / 0.75);
   --board-trace:        oklch(0.30 0.030 290);

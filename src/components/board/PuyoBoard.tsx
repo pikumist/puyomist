@@ -12,16 +12,18 @@ import {
 import {
   selectActiveFieldAndNextPuyos,
   selectActivePoppingPuyos,
-  selectDeadCellCoords
+  selectDeadCellCoords,
+  selectPlusAssignPlan
 } from '@/store/selectors';
 import styles from '../PuyoBoard.module.css';
 import BoardBackground from '../board-parts/BoardBackground';
 import BoardFrame from '../board-parts/BoardFrame';
 import BoostAreaView from '../board-parts/BooastAreaView';
+import DeadCellMark from '../board-parts/DeadCellMark';
 import GridLines from '../board-parts/GridLines';
 import OptimalTrace from '../board-parts/OptimalTrace';
-import DeadCellMark from '../board-parts/DeadCellMark';
 import PaintHighlight from '../board-parts/PaintHighlight';
+import PlusAssignMark from '../board-parts/PlusAssignMark';
 import PuyoMatrix from '../board-parts/PuyoMatrix';
 import Trace from '../board-parts/Trace';
 import TracePath from '../board-parts/TracePath';
@@ -60,6 +62,10 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
   const { field, nextPuyos } = selectActiveFieldAndNextPuyos(state);
   const poppingPuyos = selectActivePoppingPuyos(state);
   const deadCellCoords = selectDeadCellCoords(state);
+  // プラスの印もマスを囲うので、塗りハイライト中は消し候補の囲いと同じ理由で引っ込める。
+  const plusAssignCoords = paintHighlightCoords?.length
+    ? undefined
+    : selectPlusAssignPlan(state)?.coords;
   const { boostAreaCoordList, traceCoords } = simulationData;
   const editing = isBoardEditing;
   // 塗り囲いと消し候補の囲いが重なると見分けが付かないので、塗りハイライト中は
@@ -234,6 +240,14 @@ const PuyoBoard: React.FC<PuyoBoardProps> = (props) => {
           ))}
           {traceCoords.map((coord, i) => (
             <Trace key={String(i)} x={coord.x} y={coord.y} />
+          ))}
+          {plusAssignCoords?.map((coord, i) => (
+            <PlusAssignMark
+              key={String(coord.index)}
+              x={coord.x}
+              y={coord.y}
+              rank={i + 1}
+            />
           ))}
           {/* 塗り案のハイライトに覆われないよう、重ねるものの最後に置く */}
           {deadCellCoords.map((coord) => (

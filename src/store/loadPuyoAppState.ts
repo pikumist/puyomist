@@ -4,9 +4,9 @@ import type { SimulationData } from '../logics/SimulationData';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
 import { unionSet } from '../logics/generics/set';
 import { type Session, session as g_session } from '../logics/session';
-import type { PuyoAppState } from './types';
 import { createNextPuyos } from './internal/createNextPuyos';
 import { createSimulationData } from './internal/createSimulationData';
+import type { PuyoAppState } from './types';
 
 export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const s = session ?? g_session;
@@ -20,6 +20,7 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
   const boardEditMode = s.getBoardEditMode();
   const paintSearchSettings = s.getPaintSearchSettings();
   const showDeadCells = s.getShowDeadCells();
+  const plusAssignSettings = s.getPlusAssignSettings();
 
   const traceMode = s.getTraceMode();
   const maxTraceNum = s.getMaxTraceNum();
@@ -93,6 +94,8 @@ export const loadPuyoAppState = (session?: Session): PuyoAppState => {
     abortControllerForPaintSearch: undefined,
     paintSearchResult: undefined,
     paintHighlightCoords: undefined,
-    paintUndo: undefined
+    paintUndo: undefined,
+    plusAssignSettings,
+    plusAssignUndo: undefined
   };
 };

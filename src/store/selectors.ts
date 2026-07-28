@@ -6,6 +6,11 @@ import {
   boardSignatureOf,
   paintSearchSignatureOf
 } from '@/logics/paint-search';
+import {
+  type PlusAssignPlan,
+  calcPlusAssignPlan,
+  plusAssignSignatureOf
+} from '@/logics/plus-assign';
 import type { PuyoAppState } from './types';
 
 /** 消えかけ(ポップ演出中)のぷよ1つ分。前ステップの位置で描画する。 */
@@ -139,6 +144,69 @@ export const selectPaintSearchResult = (
     state.paintSearchSettings
   );
   return result.signature === signature ? result : undefined;
+};
+
+/**
+ * プラス付与案の1件だけのキャッシュ。
+ *
+ * 案の算出は盤面のマス数ぶんの再シミュレーションなので、レンダーのたびに
+ * 走らせたくない。入力が同じなら同じ参照を返し、`React.memo` も効かせる。
+ */
+let plusAssignCache:
+  | { signature: string; plan: PlusAssignPlan | undefined }
+  | undefined;
+
+/**
+ * 選択中の最適解に対するプラス付与案を選ぶ。
+ *
+ * 案は「初期盤面 + そのなぞり」に対する答えなので、連鎖アニメーションで盤面が
+ * 進んでいる間は出さない (出ている盤面と座標の意味がずれる)。
+ */
+export const selectPlusAssignPlan = (
+  state: PuyoAppState
+): PlusAssignPlan | undefined => {
+  const settings = state.plusAssignSettings;
+  if (!settings.enabled || state.animationSteps.length > 0) {
+    return undefined;
+  }
+
+  const solveResult = state.solveResult;
+  const solution = solveResult?.optimal_solutions[state.optimalSolutionIndex];
+  if (!solveResult || !solution) {
+    return undefined;
+  }
+
+  const signature = plusAssignSignatureOf(
+    state.simulationData,
+    solveResult.explorationTarget,
+    solution.trace_coords,
+    settings
+  );
+
+  if (plusAssignCache?.signature !== signature) {
+    plusAssignCache = {
+      signature,
+      plan: calcPlusAssignPlan(
+        state.simulationData,
+        solveResult.explorationTarget,
+        solution.trace_coords,
+        settings
+      )
+    };
+  }
+
+  return plusAssignCache.plan;
+};
+
+/**
+ * プラス付与の取り消しが今も意味を持つかどうか。
+ * 判定の理由は `selectPaintUndoAvailable` と同じ。
+ */
+export const selectPlusAssignUndoAvailable = (state: PuyoAppState): boolean => {
+  const undo = state.plusAssignUndo;
+  return Boolean(
+    undo && undo.boardSignature === boardSignatureOf(state.simulationData)
+  );
 };
 
 /**

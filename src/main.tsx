@@ -25,6 +25,7 @@ usePuyoAppStore.subscribe((puyoApp) => {
   session.setBoardEditMode(puyoApp.boardEditMode);
   session.setPaintSearchSettings(puyoApp.paintSearchSettings);
   session.setShowDeadCells(puyoApp.showDeadCells);
+  session.setPlusAssignSettings(puyoApp.plusAssignSettings);
 });
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);

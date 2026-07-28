@@ -5,13 +5,14 @@ import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType, getPuyoAttr } from '../logics/PuyoType';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
-import { SolutionMethod } from '../logics/solution';
 import {
   PaintPrecision,
   type PaintSearchResult,
   enumeratePaintableCoords,
   paintSearchSignatureOf
 } from '../logics/paint-search';
+import { SolutionMethod } from '../logics/solution';
+import { createSimulationData } from './internal/createSimulationData';
 import {
   paintPlanApplied,
   paintPlanHovered,
@@ -24,7 +25,6 @@ import {
   solutionMethodItemSelected,
   usePuyoAppStore
 } from './puyoAppStore';
-import { createSimulationData } from './internal/createSimulationData';
 import { selectPaintSearchResult, selectPaintUndoAvailable } from './selectors';
 import { INITIAL_PUYO_APP_STATE } from './types';
 
@@ -98,6 +98,24 @@ describe('paint search selectors', () => {
     setBoard(edited);
 
     expect(selectPaintSearchResult(usePuyoAppStore.getState())).toBeUndefined();
+  });
+
+  it('drops the solve result because the paint changed the board', () => {
+    usePuyoAppStore.setState({
+      solveResult: {
+        explorationTarget: usePuyoAppStore.getState().explorationTarget,
+        candidates_num: 1,
+        elapsedTime: 1,
+        optimal_solutions: []
+      },
+      optimalSolutionIndex: 0
+    });
+
+    paintSearchSettingsChanged({ color: PuyoAttr.Red });
+    paintPlanApplied([PuyoCoord.xyToCoord(0, 0)!]);
+
+    expect(usePuyoAppStore.getState().solveResult).toBeUndefined();
+    expect(usePuyoAppStore.getState().optimalSolutionIndex).toBe(-1);
   });
 
   it('offers the undo only while the board is as the paint left it', () => {

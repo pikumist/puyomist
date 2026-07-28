@@ -17,6 +17,8 @@ import { PuyoCoord } from '../logics/PuyoCoord';
 import {
   type PuyoType,
   convertPuyoType,
+  isColoredPuyoType,
+  isPlusPuyo,
   isTraceablePuyo,
   toChanceColoredType,
   toNormalColoredType,
@@ -25,6 +27,7 @@ import {
 import { TraceMode } from '../logics/TraceMode';
 import type { PuyomistJson } from '../logics/app-json';
 import { customBoardId, getSpecialBoard } from '../logics/boards';
+import { unionSet } from '../logics/generics/set';
 import {
   type PaintSearchResult,
   type PaintSearchSettings,
@@ -34,8 +37,14 @@ import {
   paintPrecisionListFor,
   paintSearchSignatureOf
 } from '../logics/paint-search';
-import { unionSet } from '../logics/generics/set';
+import {
+  type PlusAssignSettings,
+  defaultPlusAssignSettings,
+  normalizePlusPreferencePriorities,
+  plusAssignMaxNumLimit
+} from '../logics/plus-assign';
 import type { SolutionMethod, SolveResult } from '../logics/solution';
+import { simulateSolution } from '../logics/solution-value';
 import { createNextPuyos } from './internal/createNextPuyos';
 import { createSimulationData } from './internal/createSimulationData';
 import { INITIAL_PUYO_APP_STATE, type PuyoAppState } from './types';
@@ -132,6 +141,11 @@ interface PuyoAppActions {
   paintPlanHovered: (coords: PuyoCoord[] | undefined) => void;
   paintPlanApplied: (coords: PuyoCoord[]) => void;
   paintUndone: () => void;
+
+  /// プラス付与案系
+  plusAssignSettingsChanged: (settings: Partial<PlusAssignSettings>) => void;
+  plusAssignApplied: (coords: PuyoCoord[]) => void;
+  plusAssignUndone: () => void;
 }
 
 type PuyoAppStore = PuyoAppState & PuyoAppActions;
@@ -916,6 +930,10 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         state.activeAnimationStepIndex = -1;
         state.paintSearchResult = undefined;
         state.paintHighlightCoords = undefined;
+        // 塗ると色が変わるので、前の探索結果はもう別の盤面に対する答え。
+        // 他の盤面変更と同じく捨てる (残すと古い値が今の盤面のものとして読まれる)。
+        state.solveResult = undefined;
+        state.optimalSolutionIndex = -1;
         // 塗る前の盤面を1手分だけ控える。塗った直後の盤面の指紋も一緒に持ち、
         // あとで盤面が別経路で変わったらこの控えは使えないと判断する。
         state.paintUndo = {
@@ -951,6 +969,127 @@ export const usePuyoAppStore = create<PuyoAppStore>()(
         );
         state.animationSteps = [];
         state.activeAnimationStepIndex = -1;
+      }),
+
+    ///
+    /// プラス付与案系
+    ///
+
+    /** プラス付与案の設定が変更されたとき */
+    plusAssignSettingsChanged: (settings) =>
+      set((state) => {
+        const { num, priorities } = settings;
+        Object.assign(state.plusAssignSettings, settings);
+        if (priorities !== undefined) {
+          // 種類は増減させず並べ替えるだけなので、欠けや重複は直して受け取る。
+          state.plusAssignSettings.priorities =
+            normalizePlusPreferencePriorities(priorities);
+        }
+        if (num !== undefined) {
+          // NaN や Infinity が来ても案の算出が壊れないよう、ここで必ず整数へ倒す。
+          state.plusAssignSettings.num = Number.isFinite(num)
+            ? Math.min(Math.max(Math.trunc(num), 1), plusAssignMaxNumLimit)
+            : defaultPlusAssignSettings.num;
+        }
+      }),
+
+    /** プラス付与案が盤面に適用されたとき */
+    plusAssignApplied: (coords) =>
+      set((state) => {
+        // 案を出したあとに盤面が変わっている場合に備え、今もプラスを付けられる
+        // マスだけに絞る。
+        const assignable = coords.filter((coord) => {
+          const type = state.simulationData.field[coord.y][coord.x]?.type;
+          return (
+            type !== undefined && isColoredPuyoType(type) && !isPlusPuyo(type)
+          );
+        });
+
+        if (assignable.length === 0) {
+          return;
+        }
+
+        const board = ensureEditableBoard(state);
+        const boardBefore = cloneBoard(board);
+
+        for (const coord of assignable) {
+          const prevType = board.field[coord.y][coord.x];
+          if (prevType === undefined) {
+            continue;
+          }
+          board.field[coord.y][coord.x] = toPlusColoredType(prevType);
+        }
+
+        state.boardId = customBoardId;
+        state.simulationData = createSimulationData(
+          board,
+          {},
+          state.simulationData as any
+        );
+        state.animationSteps = [];
+        state.activeAnimationStepIndex = -1;
+        // 塗りハイライトとプラスの印はマスの囲いが重なって見分けが付かないので、
+        // 付与したらハイライトは引っ込める。
+        state.paintHighlightCoords = undefined;
+
+        // プラスは連鎖の構造を変えないので、探索済みのなぞりはそのまま有効。
+        // 値だけ計算し直して結果を残す。並びは動かさない (選択中の行が跳ぶため)。
+        const solveResult = state.solveResult;
+        if (solveResult) {
+          solveResult.optimal_solutions = solveResult.optimal_solutions.map(
+            (solution) =>
+              simulateSolution(
+                state.simulationData as any,
+                solveResult.explorationTarget as any,
+                solution.trace_coords as any
+              )
+          ) as any;
+        }
+
+        state.plusAssignUndo = {
+          board: boardBefore,
+          boardSignature: boardSignatureOf(state.simulationData as any)
+        };
+      }),
+
+    /** プラス付与の適用が取り消されたとき */
+    plusAssignUndone: () =>
+      set((state) => {
+        const undo = state.plusAssignUndo;
+        if (!undo) {
+          return;
+        }
+
+        state.plusAssignUndo = undefined;
+
+        // 付与したあとに盤面が変わっているなら、戻すとその変更まで巻き戻る。
+        if (
+          undo.boardSignature !== boardSignatureOf(state.simulationData as any)
+        ) {
+          return;
+        }
+
+        state.lastScreenshotBoard = undo.board;
+        state.boardId = customBoardId;
+        state.simulationData = createSimulationData(
+          undo.board,
+          {},
+          state.simulationData as any
+        );
+        state.animationSteps = [];
+        state.activeAnimationStepIndex = -1;
+
+        const solveResult = state.solveResult;
+        if (solveResult) {
+          solveResult.optimal_solutions = solveResult.optimal_solutions.map(
+            (solution) =>
+              simulateSolution(
+                state.simulationData as any,
+                solveResult.explorationTarget as any,
+                solution.trace_coords as any
+              )
+          ) as any;
+        }
       })
   }))
 );
@@ -1082,7 +1221,11 @@ export const {
   paintSearchCleared,
   paintPlanHovered,
   paintPlanApplied,
-  paintUndone
+  paintUndone,
+  /// プラス付与案系
+  plusAssignSettingsChanged,
+  plusAssignApplied,
+  plusAssignUndone
 } = usePuyoAppStore.getState();
 
 /** ストア全体を購読するフック（旧 useSelector((s) => s.puyoApp) 相当） */

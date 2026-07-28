@@ -8,13 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {
-  CountingBonusType,
-  ExplorationCategory,
-  type ExplorationTarget,
-  PreferenceKind
-} from './ExplorationTarget';
-import { PuyoAttr } from './PuyoAttr';
+import { type ExplorationTarget, PreferenceKind } from './ExplorationTarget';
 import { PuyoCoord } from './PuyoCoord';
 import { isTraceablePuyo } from './PuyoType';
 import { Simulator } from './Simulator';
@@ -24,6 +18,7 @@ import {
   type SolutionResult,
   SolutionState
 } from './solution';
+import { simulateSolution } from './solution-value';
 
 /**
  * @deprecated Rust版に集約する
@@ -574,86 +569,9 @@ const calcSolutionResult = (
   explorationTarget: ExplorationTarget,
   traceCoords: PuyoCoord[]
 ): SolutionResult => {
-  const sim = new Simulator(simulator.getSimulationData());
-  sim.setTraceCoords(traceCoords);
-  sim.doChains();
-
-  const chains = sim.getChains();
-
-  let value: number | undefined;
-
-  switch (explorationTarget.category) {
-    case ExplorationCategory.Damage: {
-      if (!explorationTarget.main_attr) {
-        value = Simulator.calcTotalWildDamage(chains);
-      } else {
-        const mainValue = Simulator.calcTotalDamageOfTargetAttr(
-          chains,
-          explorationTarget.main_attr
-        );
-        const subValue = explorationTarget.sub_attr
-          ? Simulator.calcTotalDamageOfTargetAttr(
-              chains,
-              explorationTarget.sub_attr
-            ) * (explorationTarget.main_sub_ratio ?? 0)
-          : 0;
-        value = mainValue + subValue;
-      }
-      break;
-    }
-    case ExplorationCategory.SkillPuyoCount: {
-      const mainValue = Simulator.calcTotalCountOfTargetAttr(
-        chains,
-        explorationTarget.main_attr
-      );
-      let bonusValue = 0;
-      if (explorationTarget.counting_bonus) {
-        const countingBonus = explorationTarget.counting_bonus;
-        switch (countingBonus.bonus_type) {
-          case CountingBonusType.Step: {
-            const totalHeight = countingBonus.target_attrs.reduce(
-              (m, attr) =>
-                m + Simulator.calcTotalCountOfTargetAttr(chains, attr),
-              0
-            );
-            let steps = Math.floor(totalHeight / countingBonus.step_height);
-            if (!countingBonus.repeat) {
-              steps = Math.min(1, steps);
-            }
-            bonusValue = countingBonus.bonus_count * steps;
-          }
-        }
-      }
-      value = mainValue + bonusValue;
-      break;
-    }
-    case ExplorationCategory.PuyotsukaiCount: {
-      value = Simulator.calcTotalPuyoTsukaiCount(chains);
-      break;
-    }
-  }
-
-  return {
-    trace_coords: traceCoords,
-    chains,
-    value: value!,
-    popped_chance_num: Simulator.calcPoppedChanceNum(chains),
-    popped_prism_num: Simulator.calcTotalCountOfTargetAttr(
-      chains,
-      PuyoAttr.Prism
-    ),
-    popped_heart_num: Simulator.calcTotalCountOfTargetAttr(
-      chains,
-      PuyoAttr.Heart
-    ),
-    popped_ojama_num: Simulator.calcTotalCountOfTargetAttr(
-      chains,
-      PuyoAttr.Ojama
-    ),
-    popped_kata_num: Simulator.calcTotalCountOfTargetAttr(
-      chains,
-      PuyoAttr.Kata
-    ),
-    is_all_cleared: Simulator.isAllCleared(chains)
-  };
+  return simulateSolution(
+    simulator.getSimulationData(),
+    explorationTarget,
+    traceCoords
+  );
 };
