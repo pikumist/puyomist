@@ -577,6 +577,20 @@ mod tests {
         }
     }
 
+    /// テスト用の縮小した探索規模 (ビーム幅, 検証件数)。
+    ///
+    /// 探索コストはビーム展開段が支配的で、
+    /// `max_paint_num × beam_width × 候補マス数` 回のなぞり全探索が走る。
+    /// 既定の幅300では到底終わらないので、性質の検査に必要な最小限まで落とす。
+    /// 制約充足・決定性・分割一致・並び順はいずれも規模に依らない性質なので、
+    /// ここを削っても検査の意味は変わらない。
+    const TEST_BEAM: (usize, usize) = (6, 16);
+
+    /// テスト用の代理なぞり数。
+    /// 実運用の下限は4だが (品質の話)、代理評価は全経路で同じ値を使うだけなので
+    /// 性質の検査には2で足りる。なぞり数はコストに強く効くのでここを削るのが一番速い。
+    const TEST_SURROGATE_TRACE_NUM: u32 = 2;
+
     fn exploration_target() -> ExplorationTarget {
         ExplorationTarget {
             category: ExplorationCategory::PuyotsukaiCount,
@@ -615,10 +629,11 @@ mod tests {
         // 塗らない場合の値。
         let mut params = PaintSearchParams::new(PuyoAttr::Red, 6);
         params.result_num = 5;
+        params.surrogate_trace_num = TEST_SURROGATE_TRACE_NUM;
         let context = PaintBeamContext::new(&field, &next, &params, 4);
         let no_paint = evaluate_paint_set(&eval, &context, &[], env.max_trace_num, true, &[]);
 
-        let plans = search_paint_plans_with(&eval, &params, 20, 60);
+        let plans = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
 
         assert!(!plans.is_empty(), "塗り案が1件も返らなかった");
         assert!(plans.len() <= params.result_num as usize);
@@ -653,8 +668,10 @@ mod tests {
             next_puyos: &next,
         };
 
+        // 塗り上限は大きいままにする (深く塗るほど制約を破りやすく、この検査の本題)。
         let mut params = PaintSearchParams::new(PuyoAttr::Blue, 8);
-        let plans = search_paint_plans_with(&eval, &params, 20, 60);
+        params.surrogate_trace_num = TEST_SURROGATE_TRACE_NUM;
+        let plans = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
         assert!(!plans.is_empty());
 
         let masks = build_neighbor_masks();
@@ -719,16 +736,19 @@ mod tests {
 
         let mut params = PaintSearchParams::new(PuyoAttr::Red, 5);
         params.result_num = 5;
+        params.surrogate_trace_num = TEST_SURROGATE_TRACE_NUM;
 
-        let without = search_paint_plans_with(&eval, &params, 10, 30);
+        let without = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
         assert!(without.iter().all(|p| p.expected_value.is_none()));
 
+        // 検証段はサンプル数の分だけ全探索が増える。並び順の検査には2件で足りる
+        // (サンプル列そのものは unknown_fills_are_deterministic が見ている)。
         params.uncertainty = Some(UncertaintyParams {
             policy: UnknownFillPolicy::ChainAverse,
-            samples: 4,
+            samples: 2,
             max_refills: 1,
         });
-        let with = search_paint_plans_with(&eval, &params, 10, 30);
+        let with = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
         assert!(with.iter().all(|p| p.expected_value.is_some()));
         // 期待値の降順に並んでいること。
         for w in with.windows(2) {
@@ -875,9 +895,10 @@ mod tests {
         };
         let mut params = PaintSearchParams::new(PuyoAttr::Red, 4);
         params.result_num = 8;
+        params.surrogate_trace_num = TEST_SURROGATE_TRACE_NUM;
 
-        let a = search_paint_plans_with(&eval, &params, 20, 60);
-        let b = search_paint_plans_with(&eval, &params, 20, 60);
+        let a = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
+        let b = search_paint_plans_with(&eval, &params, TEST_BEAM.0, TEST_BEAM.1);
 
         assert_eq!(a.len(), b.len());
         for (x, y) in a.iter().zip(b.iter()) {
@@ -935,7 +956,8 @@ mod tests {
         };
         let mut params = PaintSearchParams::new(PuyoAttr::Red, 4);
         params.result_num = 8;
-        let (beam_width, verify_num) = (20, 60);
+        params.surrogate_trace_num = TEST_SURROGATE_TRACE_NUM;
+        let (beam_width, verify_num) = TEST_BEAM;
 
         let sequential = search_paint_plans_with(&eval, &params, beam_width, verify_num);
 
