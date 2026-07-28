@@ -30,7 +30,7 @@ use crate::puyo_coord::PuyoCoord;
 use crate::simulation_environment::SimulationEnvironment;
 use crate::simulator_bb::{UnknownFill, UnknownFillPolicy};
 use crate::solution::SolutionResult;
-use crate::solution_explorer::{better_solution, SolutionExplorer};
+use crate::solution_explorer::{better_solution, EvExplorationResult, SolutionExplorer};
 
 /// 不確定ぷよ (ネクストより先に降ってくるぷよ) を考慮した期待値評価の設定。
 ///
@@ -150,8 +150,14 @@ impl PaintSearchParams {
 pub struct PaintEvaluation {
     /// 決定論評価の値。大きいほど良い。
     pub value: f64,
-    /// 期待値 (不確定ぷよを考慮)。[`UncertaintyParams`] を渡したときだけ入る。
+    /// 期待値 `E_s[max_t]` (不確定ぷよを考慮)。[`UncertaintyParams`] を渡したときだけ入る。
+    /// **補充を見てからなぞりを選べる前提**の値なので上振れ側に偏る。既存の並べ替えの基準。
     pub expected_value: Option<f64>,
+    /// 期待値 `max_t[E_s]`。補充が見えないうちになぞりを決める実プレイに対応する。
+    /// 現状は比較計測のために持っているだけで、並べ替えには使っていない。
+    /// (JS 側が古い形のまま送ってきても壊れないよう `default` を付けてある)
+    #[serde(default)]
+    pub expected_value_of_plan: Option<f64>,
     /// 後段のなぞり消しの最適解。最終評価のときだけ入る。
     pub solution: Option<SolutionResult>,
 }
@@ -299,6 +305,27 @@ impl<'a> PaintEvalContext<'a> {
             .into_iter()
             .next()
     }
+
+    /// 決定論解と期待値を、**なぞりの全列挙1回**で同時に求める。
+    fn solve_ev(
+        &self,
+        painted_field: &Field,
+        max_trace_num: u32,
+        unknown_fills: &[UnknownFill],
+    ) -> EvExplorationResult {
+        let environment = SimulationEnvironment {
+            max_trace_num,
+            ..*self.environment
+        };
+        SolutionExplorer::new(
+            self.exploration_target,
+            &environment,
+            self.boost_area,
+            painted_field,
+            self.next_puyos,
+        )
+        .solve_all_traces_ev(unknown_fills)
+    }
 }
 
 /// 共通乱数法のためのサンプル列を作る。**全候補に同じ列を当てること**。
@@ -330,26 +357,25 @@ pub fn evaluate_paint_set(
     unknown_fills: &[UnknownFill],
 ) -> PaintEvaluation {
     let painted = context.apply(eval.field, paint_set);
-    let solution = eval.solve(&painted, max_trace_num, None);
-    let value = solution.as_ref().map(|s| s.value).unwrap_or(0.0);
 
-    let expected_value = if unknown_fills.is_empty() {
-        None
+    // 補充ありのときは、なぞりの全列挙も各なぞりの決定論部分も1回で済ませる
+    // ([`SolutionExplorer::solve_all_traces_ev`])。決定論値もそこから取れる。
+    let (solution, expected_value, expected_value_of_plan) = if unknown_fills.is_empty() {
+        (eval.solve(&painted, max_trace_num, None), None, None)
     } else {
-        let total: f64 = unknown_fills
-            .iter()
-            .map(|fill| {
-                eval.solve(&painted, max_trace_num, Some(fill))
-                    .map(|s| s.value)
-                    .unwrap_or(0.0)
-            })
-            .sum();
-        Some(total / unknown_fills.len() as f64)
+        let ev = eval.solve_ev(&painted, max_trace_num, unknown_fills);
+        (
+            ev.deterministic.optimal_solutions.into_iter().next(),
+            Some(ev.expected_of_best),
+            Some(ev.best_of_expected),
+        )
     };
+    let value = solution.as_ref().map(|s| s.value).unwrap_or(0.0);
 
     PaintEvaluation {
         value,
         expected_value,
+        expected_value_of_plan,
         solution: if with_solution { solution } else { None },
     }
 }
@@ -832,6 +858,7 @@ mod tests {
             .map(|_| PaintEvaluation {
                 value: one.value,
                 expected_value: None,
+                expected_value_of_plan: None,
                 solution: one.solution.clone(),
             })
             .collect();
@@ -845,6 +872,7 @@ mod tests {
             .map(|_| PaintEvaluation {
                 value: one.value,
                 expected_value: Some(123.0),
+                expected_value_of_plan: Some(120.0),
                 solution: one.solution.clone(),
             })
             .collect();

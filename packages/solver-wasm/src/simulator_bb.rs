@@ -108,7 +108,7 @@ struct PopOutcome {
 
 /// 探索中に必要なスカラーだけを集約したもの (Vec<Chain>/HashMap を作らない)。
 /// popped は属性インデックス (PuyoAttr::to_u8()-1): 0..4=色, 5=Heart,6=Prism,7=Ojama,8=Kata。
-#[derive(Default)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct ChainsAggregate {
     pub popped: [u32; 9],
     pub color_strength: [f64; 5],
@@ -272,29 +272,122 @@ impl<'a> SimulatorBB<'a> {
     /// HashMap / Vec<Chain> を一切確保しないので、全候補を回す探索の高速版に使う。
     pub fn do_chains_aggregate(&self, boards: &mut BitBoards, trace: u64) -> ChainsAggregate {
         let mut agg = ChainsAggregate::default();
-        self.fold_chains(boards, trace, &mut |o: PopOutcome| {
-            for i in 0..5 {
-                if let Some(cp) = o.colors[i] {
-                    agg.color_strength[i] += cp.strength;
-                    agg.popped[i] += cp.popped_count;
-                }
-            }
-            agg.popped[5] += o.heart_count;
-            agg.popped[6] += o.prism_count;
-            agg.popped[7] += o.ojama_count;
-            agg.popped[8] += o.kata_count;
-            agg.prism_strength += 3.0 * o.prism_count as f64;
-            agg.boost_count += o.boost_count;
-            agg.puyo_tsukai_count += o.puyo_tsukai_count;
-            agg.popped_chance_num += o.popped_chance_num;
-            agg.is_all_cleared |= o.is_all_cleared;
-        });
+        self.fold_chains(boards, trace, &mut |o: PopOutcome| Self::accumulate(&mut agg, o));
         return agg;
+    }
+
+    /// 連鎖1回分の `PopOutcome` を集約に足し込む。
+    #[inline]
+    fn accumulate(agg: &mut ChainsAggregate, o: PopOutcome) {
+        for i in 0..5 {
+            if let Some(cp) = o.colors[i] {
+                agg.color_strength[i] += cp.strength;
+                agg.popped[i] += cp.popped_count;
+            }
+        }
+        agg.popped[5] += o.heart_count;
+        agg.popped[6] += o.prism_count;
+        agg.popped[7] += o.ojama_count;
+        agg.popped[8] += o.kata_count;
+        agg.prism_strength += 3.0 * o.prism_count as f64;
+        agg.boost_count += o.boost_count;
+        agg.puyo_tsukai_count += o.puyo_tsukai_count;
+        agg.popped_chance_num += o.popped_chance_num;
+        agg.is_all_cleared |= o.is_all_cleared;
+    }
+
+    /// なぞり消しを実施し、**決定論フェーズを1回だけ計算**して、そこから先を
+    /// 補充パターンごとに分岐させた集約を返す。
+    ///
+    /// 乱数を使うのは [`Self::fill_unknown`] だけで、それは [`Self::drop_next_into_field`] の
+    /// 末尾でしか呼ばれない。つまり「なぞり消し → フィールド内落下の連鎖 → 最初のネクスト落下の
+    /// 詰め処理」までは全サンプルでビット単位に同一なので、そこまでを共有してサンプル数分の
+    /// 再計算を省く。
+    ///
+    /// ネクスト落下の時点でフィールドに空きが無ければ補充は起きないので、その場合は
+    /// **さらに先まで共有する** ([`Self::advance_to_first_refill`])。分岐するのは
+    /// 「実際に不確定ぷよが盤面に入る」最初の1点。
+    ///
+    /// `out` の長さは `fills.len() + 1` であること。`out[0]` は補充なし (決定論)、
+    /// `out[1 + i]` が `fills[i]` に対応する。`self.unknown_fill` は無視する。
+    pub fn do_chains_aggregate_multi(
+        &self,
+        boards: &BitBoards,
+        trace: u64,
+        fills: &[UnknownFill],
+        out: &mut [ChainsAggregate],
+    ) {
+        debug_assert_eq!(out.len(), fills.len() + 1);
+
+        let mut shared_boards = boards.clone();
+        let mut shared = ChainsAggregate::default();
+        let chain_num = self.fold_field_phase(&mut shared_boards, trace, &mut |o: PopOutcome| {
+            Self::accumulate(&mut shared, o)
+        });
+
+        // どのサンプルでも補充が起きないなら、全サンプルが同値になる。
+        let any_fill_applies = fills
+            .iter()
+            .any(|f| f.policy != UnknownFillPolicy::Inert && f.max_refills > 0);
+        let mut chain_num = match chain_num {
+            Some(c) => c,
+            None => {
+                for slot in out.iter_mut() {
+                    *slot = shared.clone();
+                }
+                return;
+            }
+        };
+        let restore = self.advance_to_first_refill(
+            &mut shared_boards,
+            &mut chain_num,
+            any_fill_applies,
+            &mut |o: PopOutcome| Self::accumulate(&mut shared, o),
+        );
+        let Some(restore) = restore else {
+            for slot in out.iter_mut() {
+                *slot = shared.clone();
+            }
+            return;
+        };
+
+        for (i, slot) in out.iter_mut().enumerate() {
+            let sim = SimulatorBB {
+                environment: self.environment,
+                boost_area: self.boost_area,
+                unknown_fill: if i == 0 { None } else { Some(&fills[i - 1]) },
+                refills_done: std::cell::Cell::new(0),
+            };
+            let mut boards = shared_boards.clone();
+            let mut agg = shared.clone();
+            sim.fill_unknown(&mut boards, restore);
+            sim.fold_next_phase(&mut boards, chain_num, &mut |o: PopOutcome| {
+                Self::accumulate(&mut agg, o)
+            });
+            *slot = agg;
+        }
     }
 
     /// 連鎖駆動の共通ループ。各連鎖で `PopOutcome` を sink に渡す。
     /// do_chains (フル) と do_chains_aggregate (スカラー) で共有し、シミュレーション本体の二重化を防ぐ。
     fn fold_chains<F: FnMut(PopOutcome)>(&self, boards: &mut BitBoards, trace: u64, sink: &mut F) {
+        let Some(chain_num) = self.fold_field_phase(boards, trace, sink) else {
+            return;
+        };
+        if self.drop_next_into_field(boards) {
+            self.fold_next_phase(boards, chain_num, sink);
+        }
+    }
+
+    /// なぞり消し〜フィールド内落下だけの決定論フェーズ。不確定ぷよは一切関与しない。
+    /// 戻り値はここまでの連鎖数。何も消えなければ `None` (以降のフェーズも起きない)。
+    #[inline]
+    fn fold_field_phase<F: FnMut(PopOutcome)>(
+        &self,
+        boards: &mut BitBoards,
+        trace: u64,
+        sink: &mut F,
+    ) -> Option<u32> {
         let mut chain_num: u32 = 0;
 
         let popped_or_cleared = match self.environment.trace_mode {
@@ -335,7 +428,7 @@ impl<'a> SimulatorBB<'a> {
         };
 
         if !popped_or_cleared {
-            return;
+            return None;
         }
 
         while self.drop_in_field(boards) {
@@ -347,7 +440,57 @@ impl<'a> SimulatorBB<'a> {
                 None => break,
             }
         }
-        while self.drop_next_into_field(boards) {
+        Some(chain_num)
+    }
+
+    /// 不確定ぷよが実際に盤面へ入る最初の地点まで、決定論のまま進める。
+    /// 戻り値はその地点の `restore` ([`Self::compact_next_into_field`] の戻り値)。
+    /// そこへ到達せずに連鎖が終われば `None` (= 全サンプルが同値)。
+    ///
+    /// ネクストが落ちてもフィールドに空きが無ければ [`Self::fill_unknown`] は何もしないので、
+    /// その連鎖はまだ全サンプルで共通。「消えた数がネクストで埋まりきる」なぞりでは
+    /// ここで何連鎖分も共有できる。
+    #[inline]
+    fn advance_to_first_refill<F: FnMut(PopOutcome)>(
+        &self,
+        boards: &mut BitBoards,
+        chain_num: &mut u32,
+        any_fill_applies: bool,
+        sink: &mut F,
+    ) -> Option<u64> {
+        loop {
+            let restore = Self::compact_next_into_field(boards)?;
+            if any_fill_applies && (FIELD_MASK & !restore) != 0 {
+                return Some(restore);
+            }
+            match self.pop_puyo_blocks(boards, true, *chain_num + 1) {
+                Some(o) => {
+                    *chain_num += 1;
+                    sink(o);
+                }
+                None => return None,
+            }
+            while self.drop_in_field(boards) {
+                match self.pop_puyo_blocks(boards, true, *chain_num + 1) {
+                    Some(o) => {
+                        *chain_num += 1;
+                        sink(o);
+                    }
+                    None => break,
+                }
+            }
+        }
+    }
+
+    /// ネクスト落下後のフェーズ。**呼び出し時点でネクストの落下が1回済んでいること**。
+    #[inline]
+    fn fold_next_phase<F: FnMut(PopOutcome)>(
+        &self,
+        boards: &mut BitBoards,
+        mut chain_num: u32,
+        sink: &mut F,
+    ) {
+        loop {
             match self.pop_puyo_blocks(boards, true, chain_num + 1) {
                 Some(o) => {
                     chain_num += 1;
@@ -363,6 +506,9 @@ impl<'a> SimulatorBB<'a> {
                     }
                     None => break,
                 }
+            }
+            if !self.drop_next_into_field(boards) {
+                break;
             }
         }
     }
@@ -598,7 +744,21 @@ impl<'a> SimulatorBB<'a> {
     }
 
     /// ネクストをフィールドにドロップする。
+    #[inline]
     fn drop_next_into_field(&self, boards: &mut BitBoards) -> bool {
+        match Self::compact_next_into_field(boards) {
+            Some(restore) => {
+                self.fill_unknown(boards, restore);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// ネクストをフィールドに詰める処理だけ。**不確定ぷよの補充はしない**ので決定論。
+    /// 戻り値は詰めたあとに占有されているビット (`restore`)。詰める余地が無ければ `None`。
+    #[inline]
+    fn compact_next_into_field(boards: &mut BitBoards) -> Option<u64> {
         let occ = boards.colors[0]
             | boards.colors[1]
             | boards.colors[2]
@@ -621,7 +781,7 @@ impl<'a> SimulatorBB<'a> {
         restore |= ((1 << (occ & (COL_MASK << HEIGHT * 7)).count_ones()) - 1) << HEIGHT * 7;
 
         if (restore & FIELD_MASK) == FIELD_MASK {
-            return false;
+            return None;
         }
 
         for i in 0..boards.colors.len() {
@@ -637,9 +797,7 @@ impl<'a> SimulatorBB<'a> {
         boards.plus = Self::pext_and_pdep(boards.plus, occ, restore);
         boards.chance = Self::pext_and_pdep(boards.chance, occ, restore);
 
-        self.fill_unknown(boards, restore);
-
-        return true;
+        return Some(restore);
     }
 
     /// 詰めたあとに空いたフィールドのマスを、不確定ぷよとして色ぷよで埋める。
@@ -989,6 +1147,91 @@ impl<'a> SimulatorBB<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// 決定論プレフィックスを共有する [`SimulatorBB::do_chains_aggregate_multi`] が、
+    /// サンプルごとに独立して回した従来の結果と**完全に一致**すること。
+    /// (共有できるのは最初の補充より手前だけ、という前提が崩れたらここで落ちる)
+    #[test]
+    fn multi_matches_per_sample_runs() {
+        let r = Some(PuyoType::Red);
+        let b = Some(PuyoType::Blue);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let h = Some(PuyoType::Heart);
+
+        let field = [
+            [r, p, h, p, y, g, y, y],
+            [r, y, p, h, y, g, p, g],
+            [b, y, g, b, h, y, g, p],
+            [b, r, b, r, p, b, r, p],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
+        ];
+        let next_puyos = [g, g, g, g, g, g, g, g];
+
+        let fills: Vec<UnknownFill> = (0..6u64)
+            .map(|s| UnknownFill {
+                policy: if s % 2 == 0 {
+                    UnknownFillPolicy::ChainAverse
+                } else {
+                    UnknownFillPolicy::Random
+                },
+                seed: (s + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15),
+                max_refills: 2,
+            })
+            .collect();
+
+        for &(min_pop, trace_mode) in &[
+            (3u32, TraceMode::Normal),
+            (4u32, TraceMode::Normal),
+            (4u32, TraceMode::ToPurple),
+        ] {
+            let environment = SimulationEnvironment {
+                is_chance_mode: false,
+                minimum_puyo_num_for_popping: min_pop,
+                max_trace_num: 5,
+                trace_mode,
+                popping_leverage: 1.0,
+                chain_leverage: 7.0,
+            };
+            let boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+            // なぞりを横2マスずつ総当たりする (何も消えない/大連鎖する の両方を通す)。
+            for y0 in 0..6u8 {
+                for x0 in 0..7u8 {
+                    let trace = SimulatorBB::coords_to_board(
+                        [PuyoCoord { x: x0, y: y0 }, PuyoCoord { x: x0 + 1, y: y0 }].iter(),
+                    );
+
+                    let mut actual = vec![ChainsAggregate::default(); fills.len() + 1];
+                    let simulator = SimulatorBB {
+                        environment: &environment,
+                        boost_area: 0,
+                        unknown_fill: None,
+                        refills_done: std::cell::Cell::new(0),
+                    };
+                    simulator.do_chains_aggregate_multi(&boards, trace, &fills, &mut actual);
+
+                    for i in 0..=fills.len() {
+                        let sim = SimulatorBB {
+                            environment: &environment,
+                            boost_area: 0,
+                            unknown_fill: if i == 0 { None } else { Some(&fills[i - 1]) },
+                            refills_done: std::cell::Cell::new(0),
+                        };
+                        let expected =
+                            sim.do_chains_aggregate(&mut boards.clone(), trace);
+                        assert_eq!(
+                            actual[i], expected,
+                            "min_pop={} mode={:?} trace=({},{}) sample={}",
+                            min_pop, trace_mode, x0, y0, i
+                        );
+                    }
+                }
+            }
+        }
+    }
 
     /// ChainAverse の充填が、補充ぷよ同士を隣り合って同色にしないこと。
     /// (補充だけでは発火できない = 連鎖しにくい側に倒れていることの担保)

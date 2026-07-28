@@ -614,6 +614,7 @@ fn evaluate_paint_sets_parallel(
                 return PaintEvaluation {
                     value: 0.0,
                     expected_value: None,
+                    expected_value_of_plan: None,
                     solution: None,
                 };
             }

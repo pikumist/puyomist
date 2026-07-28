@@ -162,8 +162,10 @@ export type WasmPaintSet = number[];
 export interface WasmPaintEvaluation {
   /** 決定論評価の値 */
   value: number;
-  /** 期待値。求めていなければ undefined */
+  /** 期待値 E_s[max_t]。求めていなければ undefined */
   expected_value: number | undefined;
+  /** 期待値 max_t[E_s]。求めていなければ undefined */
+  expected_value_of_plan?: number | undefined;
   /** 後段の最適解。最終評価のときだけ入る */
   solution: WasmSolutionResult | undefined;
 }

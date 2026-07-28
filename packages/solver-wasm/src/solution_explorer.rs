@@ -382,6 +382,87 @@ pub fn better_solution<'a>(
     return s1;
 }
 
+/// なぞり1件ごとの評価の受け手。再帰 ([`SolutionExplorer::advance_trace_with`]) を
+/// 1本に保ちつつ、決定論探索と期待値探索で処理を差し替えるための抽象。
+trait TraceVisitor {
+    fn visit(&mut self, explorer: &SolutionExplorer, trace_coords: &[PuyoCoord]);
+}
+
+/// 従来の探索。1件評価して最良解リストを更新するだけ。
+struct DeterministicVisitor<'r> {
+    exploration_result: &'r mut ExplorationResult,
+}
+
+impl TraceVisitor for DeterministicVisitor<'_> {
+    #[inline]
+    fn visit(&mut self, explorer: &SolutionExplorer, trace_coords: &[PuyoCoord]) {
+        let solution_result = explorer.calc_solution_result(trace_coords);
+        explorer.update_exploration_result(solution_result, self.exploration_result);
+    }
+}
+
+/// 不確定ぷよを考慮した探索結果。**なぞりの全列挙は1回だけ**で、
+/// 決定論の結果と2種類の期待値を同時に得る。
+pub struct EvExplorationResult {
+    /// 補充なし (決定論) の探索結果。[`SolutionExplorer::solve_all_traces`] と一致する。
+    pub deterministic: ExplorationResult,
+    /// サンプルごとの最良値の平均 `E_s[max_t]`。
+    /// 補充を見てからなぞりを選べる前提の値なので、上振れ側に偏る。
+    pub expected_of_best: f64,
+    /// なぞりごとのサンプル平均の最大 `max_t[E_s]`。
+    /// 補充は見えないうちになぞりを決める実際のプレイに対応する値。
+    pub best_of_expected: f64,
+    /// [`Self::best_of_expected`] を与えるなぞり。
+    pub best_of_expected_trace: Vec<PuyoCoord>,
+}
+
+/// 期待値つきの探索。1つのなぞりについて、決定論プレフィックスを共有したまま
+/// サンプル数分の尾部だけを回す ([`SimulatorBB::do_chains_aggregate_multi`])。
+struct EvVisitor<'f, 'r> {
+    fills: &'f [UnknownFill],
+    /// 集約バッファ (なぞりごとに使い回す)。`[0]` が補充なし。
+    aggs: Vec<ChainsAggregate>,
+    /// サンプルごとの、これまでの最良値。
+    sample_best: Vec<f64>,
+    best_of_expected: f64,
+    best_of_expected_trace: Vec<PuyoCoord>,
+    exploration_result: &'r mut ExplorationResult,
+}
+
+impl TraceVisitor for EvVisitor<'_, '_> {
+    fn visit(&mut self, explorer: &SolutionExplorer, trace_coords: &[PuyoCoord]) {
+        let simulator = SimulatorBB {
+            environment: explorer.environment,
+            boost_area: explorer.boost_area,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+        simulator.do_chains_aggregate_multi(
+            &explorer.boards,
+            SimulatorBB::coords_to_board(trace_coords.iter()),
+            self.fills,
+            &mut self.aggs,
+        );
+
+        let solution_result = explorer.solution_result_from_agg(trace_coords, &self.aggs[0]);
+        explorer.update_exploration_result(solution_result, self.exploration_result);
+
+        let mut sum = 0.0;
+        for i in 0..self.fills.len() {
+            let value = explorer.calc_value(&self.aggs[i + 1]);
+            sum += value;
+            if value > self.sample_best[i] {
+                self.sample_best[i] = value;
+            }
+        }
+        let mean = sum / self.fills.len() as f64;
+        if mean > self.best_of_expected {
+            self.best_of_expected = mean;
+            self.best_of_expected_trace = trace_coords.to_vec();
+        }
+    }
+}
+
 pub struct SolutionExplorer<'a> {
     exploration_target: &'a ExplorationTarget,
     environment: &'a SimulationEnvironment,
@@ -443,6 +524,55 @@ impl<'a> SolutionExplorer<'a> {
         }
         self.finalize_chains(&mut result);
         return result;
+    }
+
+    /// 不確定ぷよのサンプルを当てながら全なぞりを1回だけ列挙する。
+    ///
+    /// サンプルごとに [`Self::solve_all_traces`] を呼び直すのに比べ、
+    /// (1) なぞり木の列挙が1回で済み、(2) 各なぞりの決定論部分の連鎖計算も1回で済む。
+    /// 結果はサンプルごとに回した場合と一致する (`ev_matches_per_sample_solves` で担保)。
+    ///
+    /// `self.unknown_fill` は無視する (補充はここで渡す `fills` で決まる)。
+    pub fn solve_all_traces_ev(&self, fills: &[UnknownFill]) -> EvExplorationResult {
+        let mut deterministic = ExplorationResult {
+            candidates_num: 0,
+            optimal_solutions: Vec::new(),
+        };
+        let mut visitor = EvVisitor {
+            fills,
+            aggs: vec![ChainsAggregate::default(); fills.len() + 1],
+            sample_best: vec![0.0; fills.len()],
+            best_of_expected: f64::NEG_INFINITY,
+            best_of_expected_trace: Vec::new(),
+            exploration_result: &mut deterministic,
+        };
+        for y in 0..PuyoCoord::Y_NUM {
+            for x in 0..PuyoCoord::X_NUM {
+                let coord = PuyoCoord::xy_to_coord(x, y).unwrap();
+                let state = SolutionState::new(coord.index());
+                self.advance_trace_with(&state, coord, &mut visitor);
+            }
+        }
+
+        let expected_of_best = if fills.is_empty() {
+            0.0
+        } else {
+            visitor.sample_best.iter().sum::<f64>() / fills.len() as f64
+        };
+        let best_of_expected = if visitor.best_of_expected.is_finite() {
+            visitor.best_of_expected
+        } else {
+            0.0
+        };
+        let best_of_expected_trace = visitor.best_of_expected_trace;
+
+        self.finalize_chains(&mut deterministic);
+        EvExplorationResult {
+            deterministic,
+            expected_of_best,
+            best_of_expected,
+            best_of_expected_trace,
+        }
     }
 
     pub fn solve_traces_including_index(&self, coord_index: u8) -> Option<ExplorationResult> {
@@ -538,6 +668,17 @@ impl<'a> SolutionExplorer<'a> {
         coord: PuyoCoord,
         exploration_result: &mut ExplorationResult,
     ) {
+        self.advance_trace_with(state, coord, &mut DeterministicVisitor { exploration_result });
+    }
+
+    /// なぞり木の再帰。**訪問器はジェネリクスで単相化する**ので、
+    /// 決定論探索 ([`DeterministicVisitor`]) の生成コードは訪問器を足す前と変わらない。
+    fn advance_trace_with<V: TraceVisitor>(
+        &self,
+        state: &SolutionState,
+        coord: PuyoCoord,
+        visitor: &mut V,
+    ) {
         if let Some(p) = self.field[coord.y as usize][coord.x as usize] {
             if !is_traceable_type(p.puyo_type) {
                 return;
@@ -549,12 +690,10 @@ impl<'a> SolutionExplorer<'a> {
             let mut st = state.clone();
             st.add_trace_coord(coord);
 
-            let solution_result = self.calc_solution_result(st.get_trace_coords());
-
-            self.update_exploration_result(solution_result, exploration_result);
+            visitor.visit(self, st.get_trace_coords());
 
             for next_coord in st.get_next_candidate_coords() {
-                self.advance_trace(&st, *next_coord, exploration_result);
+                self.advance_trace_with(&st, *next_coord, visitor);
             }
         }
     }
@@ -571,7 +710,15 @@ impl<'a> SolutionExplorer<'a> {
     /// `chains` は空のままにし、最終的な勝者についてのみ `finalize_chains` でフル構築する。
     fn calc_solution_result(&self, trace_coords: &[PuyoCoord]) -> SolutionResult {
         let agg = self.do_chains_aggregate_bb(trace_coords);
-        let value = self.calc_value(&agg);
+        self.solution_result_from_agg(trace_coords, &agg)
+    }
+
+    fn solution_result_from_agg(
+        &self,
+        trace_coords: &[PuyoCoord],
+        agg: &ChainsAggregate,
+    ) -> SolutionResult {
+        let value = self.calc_value(agg);
 
         return SolutionResult {
             trace_coords: trace_coords.to_vec(),
@@ -720,6 +867,118 @@ mod tests {
         trace_mode::TraceMode,
     };
     use std::collections::HashSet;
+    use crate::simulator_bb::UnknownFillPolicy;
+
+    /// `solve_all_traces_ev` が、サンプルごとに `solve_all_traces` を回した従来の結果と
+    /// 一致すること (決定論解も `E_s[max_t]` も)。
+    #[test]
+    fn ev_matches_per_sample_solves() {
+        let exploration_target = ExplorationTarget {
+            category: ExplorationCategory::Damage,
+            preference_priorities: Vec::from([
+                PreferenceKind::BiggerValue,
+                PreferenceKind::ChancePop,
+                PreferenceKind::PrismPop,
+                PreferenceKind::AllClear,
+                PreferenceKind::SmallerTraceNum,
+            ]),
+            optimal_solution_count: 1,
+            main_attr: Some(PuyoAttr::Green),
+            sub_attr: None,
+            main_sub_ratio: None,
+            counting_bonus: None,
+        };
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 4,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 7.0,
+        };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let h = PuyoType::Heart;
+        let mut id_counter = 0;
+        let field = [
+            [r, p, h, p, y, g, y, y],
+            [r, y, p, h, y, g, p, g],
+            [b, y, g, b, h, y, g, p],
+            [b, r, b, r, p, b, r, p],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo { id: id_counter, puyo_type })
+            })
+        });
+        let next_puyos = [g, g, g, g, g, g, g, g].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo { id: id_counter, puyo_type })
+        });
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
+
+        let fills: Vec<UnknownFill> = (0..4u64)
+            .map(|s| UnknownFill {
+                policy: UnknownFillPolicy::ChainAverse,
+                seed: (s + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15),
+                max_refills: 2,
+            })
+            .collect();
+
+        let actual = explorer.solve_all_traces_ev(&fills);
+
+        // 決定論部分は従来の探索と完全に一致する。
+        let expected_deterministic = explorer.solve_all_traces();
+        assert_eq!(
+            actual.deterministic.candidates_num,
+            expected_deterministic.candidates_num
+        );
+        assert_eq!(
+            actual.deterministic.optimal_solutions[0].trace_coords,
+            expected_deterministic.optimal_solutions[0].trace_coords
+        );
+        assert_eq!(
+            actual.deterministic.optimal_solutions[0].value,
+            expected_deterministic.optimal_solutions[0].value
+        );
+
+        // E_s[max_t] は、サンプルごとに探索し直した最良値の平均と一致する。
+        let mut total = 0.0;
+        for fill in &fills {
+            let per_sample = SolutionExplorer::new(
+                &exploration_target,
+                &environment,
+                &boost_area_coord_set,
+                &field,
+                &next_puyos,
+            )
+            .with_unknown_fill(fill)
+            .solve_all_traces();
+            total += per_sample
+                .optimal_solutions
+                .first()
+                .map(|s| s.value)
+                .unwrap_or(0.0);
+        }
+        assert_eq!(actual.expected_of_best, total / fills.len() as f64);
+
+        // max_t[E_s] は E_s[max_t] を超えない (最大と平均の交換)。
+        assert!(actual.best_of_expected <= actual.expected_of_best);
+        assert!(!actual.best_of_expected_trace.is_empty());
+    }
 
     const S: SolutionResult = SolutionResult {
         trace_coords: Vec::new(),
