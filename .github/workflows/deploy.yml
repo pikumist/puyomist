@@ -35,18 +35,14 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Install wasm-pack (pinned 0.15.0)
-        # Rust 本体は rust-toolchain.toml (channel 1.96.1) によりビルド時に自動取得される
-        run: |
-          curl -sSL https://github.com/wasm-bindgen/wasm-pack/releases/download/v0.15.0/wasm-pack-v0.15.0-x86_64-unknown-linux-musl.tar.gz \
-            | tar -xz -C "$HOME/.cargo/bin" --strip-components=1 --wildcards '*/wasm-pack'
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           # Vite 8 (rolldown-vite) requires Node 20.19+ / 22.12+
-          node-version: 24.18.x
+          node-version-file: .nvmrc
 
+      # wasm-pack は devDependencies に入っているので npm ci で入る。
+      # Rust 本体は rust-toolchain.toml (channel 1.96.1) によりビルド時に自動取得される。
       - name: Build
         run: npm ci && npm run build
 

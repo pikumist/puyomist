@@ -60,6 +60,7 @@
     "typescript": "^5.8.2",
     "vite": "^8.1.0",
     "vitest": "^4.1.9",
+    "wasm-pack": "^0.15.0",
     "ws": "^8.18.1"
   },
   "overrides": {
