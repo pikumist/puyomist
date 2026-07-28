@@ -200,7 +200,7 @@ pub fn solve_traces_with_prefix(
 ///
 /// 1関数で完結させると wasm の単スレッドでは幅300でも約19秒かかり、その間 UI が
 /// 固まる。そこで段ごとに分けて公開し、重い評価だけを JS が複数ワーカーへ配れる
-/// ようにしてある (`docs/paint-search.md`)。JS 側は
+/// ようにしてある (`docs/research/paint-search.md`)。JS 側は
 /// 「展開 → 評価を分割 → 上位選抜」を深さ分だけ回し、最後に本番評価して
 /// `paint_build_plans` へ渡す。
 ///

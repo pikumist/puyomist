@@ -10,7 +10,7 @@ import { SolutionMethod, type SolutionResult } from './solution';
  * 前段「ぷよ塗り」探索。
  *
  * 盤面の任意のマスを1色に塗り替えて連鎖しやすい盤面を作り、そのあとで既存の
- * なぞり消し探索にかける。方式の詳細と実測根拠は `docs/paint-search.md` を参照。
+ * なぞり消し探索にかける。方式の詳細と実測根拠は `docs/research/paint-search.md` を参照。
  */
 
 /** 探索精度。ビーム幅と検証件数はバックエンドをまたいで同じマッピングにする。 */

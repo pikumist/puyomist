@@ -13,7 +13,7 @@ import { toJsPaintPlan, toWasmPaintSearchParams } from './wasm-serialize';
  *
  * 深さごとに「展開 → 評価をワーカーへ配る → 上位選抜」を回す。重いのは評価だけで、
  * そこは要素ごとに独立している。1関数で完結させると wasm の単スレッドでは幅300でも
- * 約19秒かかり、その間 UI が固まる (`docs/paint-search.md`)。
+ * 約19秒かかり、その間 UI が固まる (`docs/research/paint-search.md`)。
  *
  * **分割した評価は必ず元の順序で組み直すこと**。順序が崩れると同点の並びが変わり、
  * Rustネイティブバックエンドと違う結果になる。Rust 側の

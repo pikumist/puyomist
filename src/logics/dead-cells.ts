@@ -17,7 +17,7 @@ import { TraceMode } from './TraceMode';
  * > ランに含まれるその色の総数が最低消し数未満なら、そのラン内のぷよは絶対にひっつかない
  *
  * が厳密に成り立つ。詳細と実測 (1盤面あたり平均7.02個・99.9%の盤面に1個以上) は
- * `docs/paint-search.md` §4 を参照。Rust 側の `paint.rs` の `dead_cells` と同じ規則で、
+ * `docs/research/paint-search.md` §4 を参照。Rust 側の `paint.rs` の `dead_cells` と同じ規則で、
  * 表示のたびに wasm を呼ぶほどのものではないのでこちらにも実装してある。
  *
  * **「消えない」ではなく「ひっつかない」**。通常なぞりモードではなぞったぷよは連結数に
@@ -34,7 +34,7 @@ type NextPuyos = (Puyo | undefined)[];
 /**
  * 判定が成り立つ盤面・設定かどうか。
  *
- * `docs/paint-search.md` §4 の「厳密なのは限定条件下だけ」に対応する。
+ * `docs/research/paint-search.md` §4 の「厳密なのは限定条件下だけ」に対応する。
  * 実際のゲームの補充で偽になり得る点は文言側で断る。
  */
 export const isDeadCellRuleApplicable = (

@@ -590,7 +590,7 @@ fn run_tasks(
 // 前段「ぷよ塗り」探索
 //
 // 重いのは塗り集合の評価だけで、そこは要素ごとに完全に独立している。wasm 版は
-// これを Web Worker へ配り、ここでは rayon で回す (docs/paint-search.md)。
+// これを Web Worker へ配り、ここでは rayon で回す (docs/research/paint-search.md)。
 //
 // **評価結果は必ず元の順序で組み直すこと**。`par_iter().map().collect()` は入力順を
 // 保つのでそのまま使える。順序が崩れると同点の並びが変わり、wasm 版と違う結果になる。

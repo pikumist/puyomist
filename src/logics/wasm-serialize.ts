@@ -124,7 +124,7 @@ export const toWasmPaintSearchParams = (
   target: settings.color,
   max_paint_num: settings.maxPaintNum,
   // 絞り込みは実測で最大 22.9% 取りこぼす一方、コストは 1.4 倍にしかならない。
-  // 変えないこと (docs/paint-search.md §3)。
+  // 変えないこと (docs/research/paint-search.md §3)。
   filter: WasmPaintFilter.All,
   precision: toWasmPaintPrecision(settings.precision),
   // 代理評価のなぞり数。3 だと品質が頭打ちになるので 4 が下限。
