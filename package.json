@@ -10,6 +10,8 @@
     "build:wasm": "wasm-pack build packages/solver-wasm --target web",
     "build:vite": "tsc && vite build",
     "lint": "biome lint .",
+    "badges": "node scripts/update-badges.mjs",
+    "badges:check": "node scripts/update-badges.mjs --check",
     "preview": "vite preview",
     "test": "vitest",
     "test-wasm": "cd packages/solver-wasm; cargo test",
@@ -67,9 +69,5 @@
     "js-yaml": "^4.3.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@hono/node-server": "^2.0.10"
-  },
-  "volta": {
-    "node": "24.18.0",
-    "npm": "11.16.0"
   }
 }

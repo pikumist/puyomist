@@ -28,6 +28,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # README のバッジのバージョンが package-lock.json などとズレていたら落とす
+      - name: Check badges
+        run: npm run badges:check
+
       - name: Test with coverage
         run: npm run coverage
 
