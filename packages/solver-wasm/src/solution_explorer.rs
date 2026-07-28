@@ -274,12 +274,33 @@ type BetterFn = for<'a> fn(&'a SolutionResult, &'a SolutionResult) -> Option<&'a
 static BETTER_METHOD_MAP: OnceLock<HashMap<PreferenceKind, BetterFn>> = OnceLock::new();
 
 /// 好みの優先度リストに従って、2つの解のうち良い方を返す。
-pub fn better_solution<'a>(
-    preference_priorities: &Vec<PreferenceKind>,
+/// 好みの優先度を比較関数の列に解決する。同じ優先度で何度も比較するときは、
+/// 毎回ハッシュを引き直さずに済むようこれで先に解決しておく。
+fn resolve_better_fns(preference_priorities: &[PreferenceKind]) -> Vec<BetterFn> {
+    let table = better_method_map();
+    preference_priorities
+        .iter()
+        .filter_map(|pref| table.get(pref).copied())
+        .collect()
+}
+
+/// [`better_solution`] の、解決済みの比較関数列を使う版。
+fn better_solution_with_fns<'a>(
+    fns: &[BetterFn],
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
 ) -> &'a SolutionResult {
-    let table = BETTER_METHOD_MAP.get_or_init(|| {
+    for method in fns {
+        if let Some(s) = method(s1, s2) {
+            return s;
+        }
+    }
+    return s1;
+}
+
+/// 好みの種類から比較関数を引くテーブル。
+fn better_method_map() -> &'static HashMap<PreferenceKind, BetterFn> {
+    BETTER_METHOD_MAP.get_or_init(|| {
         return HashMap::from([
             (
                 PreferenceKind::BiggerValue,
@@ -370,7 +391,15 @@ pub fn better_solution<'a>(
                 better_solution_by_less_ojama_pop as BetterFn,
             ),
         ]);
-    });
+    })
+}
+
+pub fn better_solution<'a>(
+    preference_priorities: &Vec<PreferenceKind>,
+    s1: &'a SolutionResult,
+    s2: &'a SolutionResult,
+) -> &'a SolutionResult {
+    let table = better_method_map();
 
     for pref in preference_priorities {
         if let Some(method) = table.get(pref) {
@@ -401,6 +430,21 @@ impl TraceVisitor for DeterministicVisitor<'_> {
     }
 }
 
+/// 中身を書き込んで使い回すための空の解。
+fn empty_solution_result() -> SolutionResult {
+    SolutionResult {
+        trace_coords: Vec::new(),
+        chains: Vec::new(),
+        value: 0.0,
+        popped_chance_num: 0,
+        popped_heart_num: 0,
+        popped_prism_num: 0,
+        popped_ojama_num: 0,
+        popped_kata_num: 0,
+        is_all_cleared: false,
+    }
+}
+
 /// 不確定ぷよを考慮した探索結果。**なぞりの全列挙は1回だけ**で、
 /// 決定論の結果と2種類の期待値を同時に得る。
 pub struct EvExplorationResult {
@@ -411,6 +455,11 @@ pub struct EvExplorationResult {
     pub expected_of_best: f64,
     /// なぞりごとのサンプル平均の最大 `max_t[E_s]`。
     /// 補充は見えないうちになぞりを決める実際のプレイに対応する値。
+    ///
+    /// **こちらは値だけで最大化する** (`preference_priorities` を見ない)。
+    /// 「チャンスぷよを消す」のような値以外の好みは1回のプレイの属性であって、
+    /// サンプル平均に対して定義できないため。値以外を優先する設定でこれを
+    /// 並べ替えに使うなら、好みの扱いを先に決めること。
     pub best_of_expected: f64,
     /// [`Self::best_of_expected`] を与えるなぞり。
     pub best_of_expected_trace: Vec<PuyoCoord>,
@@ -420,10 +469,18 @@ pub struct EvExplorationResult {
 /// サンプル数分の尾部だけを回す ([`SimulatorBB::do_chains_aggregate_multi`])。
 struct EvVisitor<'f, 'r> {
     fills: &'f [UnknownFill],
+    /// 解決済みの比較関数列。なぞり×サンプルの回数だけ比較するので、
+    /// 毎回ハッシュを引くと無視できないコストになる。
+    better_fns: Vec<BetterFn>,
     /// 集約バッファ (なぞりごとに使い回す)。`[0]` が補充なし。
     aggs: Vec<ChainsAggregate>,
-    /// サンプルごとの、これまでの最良値。
-    sample_best: Vec<f64>,
+    /// 比較用の作業領域 (なぞりごとに使い回す)。`Vec` を確保し直さないために持つ。
+    scratch: Vec<SolutionResult>,
+    /// サンプルごとの、これまでの最良解。
+    ///
+    /// **値の max ではなく `better_solution` の全順序で選ぶ**こと。
+    /// 「チャンスぷよを消す」を値より優先する設定では、最良解の値が最大値とは限らない。
+    sample_best: Vec<Option<SolutionResult>>,
     best_of_expected: f64,
     best_of_expected_trace: Vec<PuyoCoord>,
     exploration_result: &'r mut ExplorationResult,
@@ -449,10 +506,20 @@ impl TraceVisitor for EvVisitor<'_, '_> {
 
         let mut sum = 0.0;
         for i in 0..self.fills.len() {
-            let value = explorer.calc_value(&self.aggs[i + 1]);
-            sum += value;
-            if value > self.sample_best[i] {
-                self.sample_best[i] = value;
+            let candidate = &mut self.scratch[i];
+            explorer.fill_solution_result(trace_coords, &self.aggs[i + 1], candidate);
+            sum += candidate.value;
+
+            // 同点なら先に見つかっていた方を残す (`update_exploration_result` と同じ扱い)。
+            let wins = match &self.sample_best[i] {
+                None => true,
+                Some(best) => std::ptr::eq(
+                    better_solution_with_fns(&self.better_fns, best, candidate),
+                    candidate as &_,
+                ),
+            };
+            if wins {
+                self.sample_best[i] = Some(candidate.clone());
             }
         }
         let mean = sum / self.fills.len() as f64;
@@ -534,14 +601,26 @@ impl<'a> SolutionExplorer<'a> {
     ///
     /// `self.unknown_fill` は無視する (補充はここで渡す `fills` で決まる)。
     pub fn solve_all_traces_ev(&self, fills: &[UnknownFill]) -> EvExplorationResult {
+        // サンプルが無いなら期待値も無い。NaN を撒きながら全列挙しても意味がない。
+        if fills.is_empty() {
+            return EvExplorationResult {
+                deterministic: self.solve_all_traces(),
+                expected_of_best: 0.0,
+                best_of_expected: 0.0,
+                best_of_expected_trace: Vec::new(),
+            };
+        }
+
         let mut deterministic = ExplorationResult {
             candidates_num: 0,
             optimal_solutions: Vec::new(),
         };
         let mut visitor = EvVisitor {
             fills,
+            better_fns: resolve_better_fns(&self.exploration_target.preference_priorities),
             aggs: vec![ChainsAggregate::default(); fills.len() + 1],
-            sample_best: vec![0.0; fills.len()],
+            scratch: vec![empty_solution_result(); fills.len()],
+            sample_best: vec![None; fills.len()],
             best_of_expected: f64::NEG_INFINITY,
             best_of_expected_trace: Vec::new(),
             exploration_result: &mut deterministic,
@@ -554,10 +633,16 @@ impl<'a> SolutionExplorer<'a> {
             }
         }
 
-        let expected_of_best = if fills.is_empty() {
+        // 最適解を1件も採らない設定では、従来もサンプルごとの最良解が空になり 0 だった。
+        let expected_of_best = if self.exploration_target.optimal_solution_count == 0 {
             0.0
         } else {
-            visitor.sample_best.iter().sum::<f64>() / fills.len() as f64
+            visitor
+                .sample_best
+                .iter()
+                .map(|s| s.as_ref().map(|s| s.value).unwrap_or(0.0))
+                .sum::<f64>()
+                / fills.len() as f64
         };
         let best_of_expected = if visitor.best_of_expected.is_finite() {
             visitor.best_of_expected
@@ -711,6 +796,26 @@ impl<'a> SolutionExplorer<'a> {
     fn calc_solution_result(&self, trace_coords: &[PuyoCoord]) -> SolutionResult {
         let agg = self.do_chains_aggregate_bb(trace_coords);
         self.solution_result_from_agg(trace_coords, &agg)
+    }
+
+    /// [`Self::solution_result_from_agg`] の、確保済みの入れ物に書き込む版。
+    /// なぞり1件ごとにサンプル数分の解を作るので、`Vec` を確保し直さないために要る。
+    fn fill_solution_result(
+        &self,
+        trace_coords: &[PuyoCoord],
+        agg: &ChainsAggregate,
+        out: &mut SolutionResult,
+    ) {
+        out.trace_coords.clear();
+        out.trace_coords.extend_from_slice(trace_coords);
+        out.chains.clear();
+        out.value = self.calc_value(agg);
+        out.popped_chance_num = agg.popped_chance_num;
+        out.popped_heart_num = agg.popped[attr_index(PuyoAttr::Heart)];
+        out.popped_prism_num = agg.popped[attr_index(PuyoAttr::Prism)];
+        out.popped_ojama_num = agg.popped[attr_index(PuyoAttr::Ojama)];
+        out.popped_kata_num = agg.popped[attr_index(PuyoAttr::Kata)];
+        out.is_all_cleared = agg.is_all_cleared;
     }
 
     fn solution_result_from_agg(
@@ -871,17 +976,38 @@ mod tests {
 
     /// `solve_all_traces_ev` が、サンプルごとに `solve_all_traces` を回した従来の結果と
     /// 一致すること (決定論解も `E_s[max_t]` も)。
+    ///
+    /// **値が第一キーでない優先度も必ず含めること**。サンプルごとの最良解は
+    /// `better_solution` の全順序で選ぶ必要があり、値の max で代用すると
+    /// 「チャンスぷよを消す」を優先する設定でズレる。
     #[test]
     fn ev_matches_per_sample_solves() {
-        let exploration_target = ExplorationTarget {
-            category: ExplorationCategory::Damage,
-            preference_priorities: Vec::from([
+        for priorities in [
+            Vec::from([
                 PreferenceKind::BiggerValue,
                 PreferenceKind::ChancePop,
                 PreferenceKind::PrismPop,
                 PreferenceKind::AllClear,
                 PreferenceKind::SmallerTraceNum,
             ]),
+            // 実運用の既定の並び (チャンスぷよ優先)。
+            Vec::from([
+                PreferenceKind::ChancePop,
+                PreferenceKind::BiggerValue,
+                PreferenceKind::PrismPop,
+                PreferenceKind::AllClear,
+                PreferenceKind::SmallerTraceNum,
+            ]),
+        ] {
+            check_ev_matches_per_sample_solves(priorities);
+        }
+    }
+
+    fn check_ev_matches_per_sample_solves(priorities: Vec<PreferenceKind>) {
+        let chance_first = priorities[0] == PreferenceKind::ChancePop;
+        let exploration_target = ExplorationTarget {
+            category: ExplorationCategory::Damage,
+            preference_priorities: priorities,
             optimal_solution_count: 1,
             main_attr: Some(PuyoAttr::Green),
             sub_attr: None,
@@ -904,11 +1030,12 @@ mod tests {
         let p = PuyoType::Purple;
         let h = PuyoType::Heart;
         let mut id_counter = 0;
+        let pc = PuyoType::PurpleChance;
         let field = [
             [r, p, h, p, y, g, y, y],
-            [r, y, p, h, y, g, p, g],
-            [b, y, g, b, h, y, g, p],
-            [b, r, b, r, p, b, r, p],
+            [r, y, p, h, y, g, pc, g],
+            [b, y, g, b, h, y, g, pc],
+            [b, r, b, r, p, b, r, pc],
             [y, g, p, p, r, b, g, g],
             [b, g, b, r, b, y, r, r],
         ]
@@ -975,8 +1102,47 @@ mod tests {
         }
         assert_eq!(actual.expected_of_best, total / fills.len() as f64);
 
-        // max_t[E_s] は E_s[max_t] を超えない (最大と平均の交換)。
-        assert!(actual.best_of_expected <= actual.expected_of_best);
+        // チャンスぷよ優先のときは「値の max」で代用すると答えが変わることを示す。
+        // (このテストが本当にその退行を捕まえられることの担保)
+        if chance_first {
+            // 値だけを第一キーにした探索 = 「値の max」そのもの。
+            let value_first = ExplorationTarget {
+                category: exploration_target.category,
+                preference_priorities: Vec::from([PreferenceKind::BiggerValue]),
+                optimal_solution_count: exploration_target.optimal_solution_count,
+                main_attr: exploration_target.main_attr,
+                sub_attr: exploration_target.sub_attr,
+                main_sub_ratio: exploration_target.main_sub_ratio,
+                counting_bonus: None,
+            };
+            let mut naive = 0.0;
+            for fill in &fills {
+                naive += SolutionExplorer::new(
+                    &value_first,
+                    &environment,
+                    &boost_area_coord_set,
+                    &field,
+                    &next_puyos,
+                )
+                .with_unknown_fill(fill)
+                .solve_all_traces()
+                .optimal_solutions
+                .first()
+                .map(|s| s.value)
+                .unwrap_or(0.0);
+            }
+            assert_ne!(
+                naive / fills.len() as f64,
+                actual.expected_of_best,
+                "チャンス優先でも値の max と一致してしまい、退行を検出できない盤面になっている"
+            );
+        }
+
+        // 値が第一キーのときは max_t[E_s] <= E_s[max_t] (最大と平均の交換)。
+        // チャンス優先だと E_s[max_t] 側が値の最大でなくなるので、この関係は成り立たない。
+        if !chance_first {
+            assert!(actual.best_of_expected <= actual.expected_of_best);
+        }
         assert!(!actual.best_of_expected_trace.is_empty());
     }
 

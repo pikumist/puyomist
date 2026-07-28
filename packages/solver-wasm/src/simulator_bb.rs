@@ -317,7 +317,11 @@ impl<'a> SimulatorBB<'a> {
         fills: &[UnknownFill],
         out: &mut [ChainsAggregate],
     ) {
-        debug_assert_eq!(out.len(), fills.len() + 1);
+        assert_eq!(
+            out.len(),
+            fills.len() + 1,
+            "出力バッファの長さは fills.len() + 1 であること"
+        );
 
         let mut shared_boards = boards.clone();
         let mut shared = ChainsAggregate::default();
@@ -1170,17 +1174,29 @@ mod tests {
         ];
         let next_puyos = [g, g, g, g, g, g, g, g];
 
-        let fills: Vec<UnknownFill> = (0..6u64)
+        let seed_of = |s: u64| (s + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15);
+        // policy と max_refills を混ぜる。補充が起きないサンプル (Inert / 上限0) が
+        // 混ざっても、共有できる範囲の判定が壊れないことまで見る。
+        let mixed: Vec<UnknownFill> = (0..6u64)
             .map(|s| UnknownFill {
-                policy: if s % 2 == 0 {
-                    UnknownFillPolicy::ChainAverse
-                } else {
-                    UnknownFillPolicy::Random
+                policy: match s % 3 {
+                    0 => UnknownFillPolicy::ChainAverse,
+                    1 => UnknownFillPolicy::Random,
+                    _ => UnknownFillPolicy::Inert,
                 },
-                seed: (s + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15),
+                seed: seed_of(s),
+                max_refills: (s % 3) as u32,
+            })
+            .collect();
+        // 誰も補充しない一式 (共有を最後まで続ける経路) と、サンプル無し。
+        let never: Vec<UnknownFill> = (0..3u64)
+            .map(|s| UnknownFill {
+                policy: UnknownFillPolicy::Inert,
+                seed: seed_of(s),
                 max_refills: 2,
             })
             .collect();
+        let fill_sets: Vec<Vec<UnknownFill>> = vec![mixed, never, Vec::new()];
 
         for &(min_pop, trace_mode) in &[
             (3u32, TraceMode::Normal),
@@ -1198,35 +1214,36 @@ mod tests {
             let boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
 
             // なぞりを横2マスずつ総当たりする (何も消えない/大連鎖する の両方を通す)。
-            for y0 in 0..6u8 {
-                for x0 in 0..7u8 {
-                    let trace = SimulatorBB::coords_to_board(
-                        [PuyoCoord { x: x0, y: y0 }, PuyoCoord { x: x0 + 1, y: y0 }].iter(),
-                    );
+            for (set_no, fills) in fill_sets.iter().enumerate() {
+                for y0 in 0..6u8 {
+                    for x0 in 0..7u8 {
+                        let trace = SimulatorBB::coords_to_board(
+                            [PuyoCoord { x: x0, y: y0 }, PuyoCoord { x: x0 + 1, y: y0 }].iter(),
+                        );
 
-                    let mut actual = vec![ChainsAggregate::default(); fills.len() + 1];
-                    let simulator = SimulatorBB {
-                        environment: &environment,
-                        boost_area: 0,
-                        unknown_fill: None,
-                        refills_done: std::cell::Cell::new(0),
-                    };
-                    simulator.do_chains_aggregate_multi(&boards, trace, &fills, &mut actual);
-
-                    for i in 0..=fills.len() {
-                        let sim = SimulatorBB {
+                        let mut actual = vec![ChainsAggregate::default(); fills.len() + 1];
+                        let simulator = SimulatorBB {
                             environment: &environment,
                             boost_area: 0,
-                            unknown_fill: if i == 0 { None } else { Some(&fills[i - 1]) },
+                            unknown_fill: None,
                             refills_done: std::cell::Cell::new(0),
                         };
-                        let expected =
-                            sim.do_chains_aggregate(&mut boards.clone(), trace);
-                        assert_eq!(
-                            actual[i], expected,
-                            "min_pop={} mode={:?} trace=({},{}) sample={}",
-                            min_pop, trace_mode, x0, y0, i
-                        );
+                        simulator.do_chains_aggregate_multi(&boards, trace, fills, &mut actual);
+
+                        for i in 0..=fills.len() {
+                            let sim = SimulatorBB {
+                                environment: &environment,
+                                boost_area: 0,
+                                unknown_fill: if i == 0 { None } else { Some(&fills[i - 1]) },
+                                refills_done: std::cell::Cell::new(0),
+                            };
+                            let expected = sim.do_chains_aggregate(&mut boards.clone(), trace);
+                            assert_eq!(
+                                actual[i], expected,
+                                "min_pop={} mode={:?} fills={} trace=({},{}) sample={}",
+                                min_pop, trace_mode, set_no, x0, y0, i
+                            );
+                        }
                     }
                 }
             }
