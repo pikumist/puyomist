@@ -4,19 +4,7 @@
 
 [![CI](https://github.com/pikumist/puyomist/actions/workflows/ci.yml/badge.svg)](https://github.com/pikumist/puyomist/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-
-特徴は
-
-- 連鎖シミュレーション
-- 属性ダメージやぷよ使いカウントを対象とした最適解計算
-- なぞる前に盤面を1色に塗り替えて連鎖しやすい形を探す「ぷよ塗り探索」
-- 最適解計算の簡易マルチスレッド対応
-- 特別ルールの盤面リスト
-- スクリーンショット画像からの盤面セット (グミのみ対応。チャンスぷよが混じると精度は悪いです)
-- 外部通信なし
-
-## 技術スタック
-
+<!-- バッジは `npm run badges` で `package-lock.json` などから生成しています。手で書き換えないでください。 -->
 <!-- badges:start -->
 ![React 19.2.7](https://img.shields.io/badge/React-19.2.7-087EA4?logo=react&logoColor=white)
 ![TypeScript 5.9.3](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript&logoColor=white)
@@ -31,11 +19,15 @@
 ![Node.js 24.18.0](https://img.shields.io/badge/Node.js-24.18.0-5FA04E?logo=nodedotjs&logoColor=white)
 <!-- badges:end -->
 
-UI は shadcn/ui (Base UI / base-vega) と lucide-react、テーマは CSS トークン + next-themes (class 方式) です。
-テストは Vitest + Testing Library + jsdom、コンポーネントカタログは Storybook、Lint と Format は Biome です。
-探索のコアは `src/logics/` の連鎖シミュレータ・ソルバと、`packages/solver-wasm/` の Rust 製 WASM ソルバです。
+特徴は
 
-> バッジは `npm run badges` で `package-lock.json` などから生成しています。手で書き換えないでください。
+- 連鎖シミュレーション
+- 属性ダメージやぷよ使いカウントを対象とした最適解計算
+- なぞる前に盤面を1色に塗り替えて連鎖しやすい形を探す「ぷよ塗り探索」
+- 最適解計算の簡易マルチスレッド対応
+- 特別ルールの盤面リスト
+- スクリーンショット画像からの盤面セット (グミのみ対応。チャンスぷよが混じると精度は悪いです)
+- 外部通信なし
 
 ## 起動方法
 
