@@ -25,6 +25,80 @@ fn attr_index(attr: PuyoAttr) -> usize {
     attr.to_u8().unwrap() as usize - 1
 }
 
+/// 集約スカラーから探索対象の値を計算する。
+/// chain_helper のフルチェーン版と数値的に一致させること。
+pub(crate) fn calc_value(exploration_target: &ExplorationTarget, agg: &ChainsAggregate) -> f64 {
+    match exploration_target.category {
+        ExplorationCategory::Damage => {
+            let boost_ratio = calc_boost_ratio(agg.boost_count);
+            if let Some(main_attr) = exploration_target.main_attr {
+                let main_value =
+                    (agg.color_strength[attr_index(main_attr)] + agg.prism_strength)
+                        * boost_ratio;
+                let main_sub_ratio = exploration_target.main_sub_ratio.unwrap_or(0.0);
+                let sub_value = match exploration_target.sub_attr {
+                    Some(sub_attr) => {
+                        (agg.color_strength[attr_index(sub_attr)] + agg.prism_strength)
+                            * boost_ratio
+                            * main_sub_ratio
+                    }
+                    None => 0.0,
+                };
+                main_value + sub_value
+            } else {
+                // ワイルド
+                let wild_pure: f64 = agg.color_strength.iter().sum();
+                (wild_pure + agg.prism_strength) * boost_ratio
+            }
+        }
+        ExplorationCategory::SkillPuyoCount => {
+            if let Some(main_attr) = exploration_target.main_attr {
+                let main_value = agg.popped[attr_index(main_attr)];
+                let mut bonus_value: u32 = 0;
+                if let Some(counting_bonus) = &exploration_target.counting_bonus {
+                    if counting_bonus.bonus_type == CountingBonusType::Step {
+                        let height = counting_bonus
+                            .target_attrs
+                            .iter()
+                            .fold(0, |acc, attr| acc + agg.popped[attr_index(*attr)]);
+                        let mut steps = height / counting_bonus.step_height as u32;
+                        if !counting_bonus.repeat {
+                            steps = cmp::min(1, steps);
+                        }
+                        bonus_value = counting_bonus.bonus_count as u32 * steps;
+                    }
+                }
+                (main_value + bonus_value) as f64
+            } else {
+                0.0
+            }
+        }
+        ExplorationCategory::PuyotsukaiCount => agg.puyo_tsukai_count as f64,
+    }
+}
+
+/// 集約スカラーから [`SolutionResult`] を組み立てる。
+///
+/// なぞり探索と塗り発火探索 ([`crate::paint_ignition`]) で式を二重化しないための共通化。
+/// 塗り発火探索では `trace_coords` に**塗ったマス**が入る。
+pub(crate) fn solution_result_from_agg(
+    exploration_target: &ExplorationTarget,
+    trace_coords: &[PuyoCoord],
+    agg: &ChainsAggregate,
+) -> SolutionResult {
+    SolutionResult {
+        trace_coords: trace_coords.to_vec(),
+        chains: Vec::new(),
+        value: calc_value(exploration_target, agg),
+        popped_chance_num: agg.popped_chance_num,
+        popped_heart_num: agg.popped[attr_index(PuyoAttr::Heart)],
+        popped_prism_num: agg.popped[attr_index(PuyoAttr::Prism)],
+        popped_ojama_num: agg.popped[attr_index(PuyoAttr::Ojama)],
+        popped_kata_num: agg.popped[attr_index(PuyoAttr::Kata)],
+        is_all_cleared: agg.is_all_cleared,
+    }
+}
+
 fn better_solution_by_bigger_value<'a>(
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
@@ -269,14 +343,17 @@ fn better_solution_by_less_ojama_pop<'a>(
     return the_other(s1, s2, better_solution_by_more_ojama_pop(s1, s2));
 }
 
-type BetterFn = for<'a> fn(&'a SolutionResult, &'a SolutionResult) -> Option<&'a SolutionResult>;
+pub(crate) type BetterFn =
+    for<'a> fn(&'a SolutionResult, &'a SolutionResult) -> Option<&'a SolutionResult>;
 
 static BETTER_METHOD_MAP: OnceLock<HashMap<PreferenceKind, BetterFn>> = OnceLock::new();
 
-/// 好みの優先度リストに従って、2つの解のうち良い方を返す。
-/// 好みの優先度を比較関数の列に解決する。同じ優先度で何度も比較するときは、
-/// 毎回ハッシュを引き直さずに済むようこれで先に解決しておく。
-fn resolve_better_fns(preference_priorities: &[PreferenceKind]) -> Vec<BetterFn> {
+/// 好みの優先度を比較関数の列に解決する。
+///
+/// [`better_solution`] は呼ぶたびにテーブル (HashMap) を優先度の数だけ引く。
+/// 局所探索のように**1歩あたり数百回**比較する経路では、そこが支配的になるので
+/// 先に解決しておくこと。
+pub(crate) fn resolve_better_fns(preference_priorities: &[PreferenceKind]) -> Vec<BetterFn> {
     let table = better_method_map();
     preference_priorities
         .iter()
@@ -285,7 +362,7 @@ fn resolve_better_fns(preference_priorities: &[PreferenceKind]) -> Vec<BetterFn>
 }
 
 /// [`better_solution`] の、解決済みの比較関数列を使う版。
-fn better_solution_with_fns<'a>(
+pub(crate) fn better_solution_with_fns<'a>(
     fns: &[BetterFn],
     s1: &'a SolutionResult,
     s2: &'a SolutionResult,
@@ -501,7 +578,7 @@ impl TraceVisitor for EvVisitor<'_, '_> {
             &mut self.aggs,
         );
 
-        let solution_result = explorer.solution_result_from_agg(trace_coords, &self.aggs[0]);
+        let solution_result = solution_result_from_agg(explorer.exploration_target, trace_coords, &self.aggs[0]);
         explorer.update_exploration_result(solution_result, self.exploration_result);
 
         let mut sum = 0.0;
@@ -795,7 +872,7 @@ impl<'a> SolutionExplorer<'a> {
     /// `chains` は空のままにし、最終的な勝者についてのみ `finalize_chains` でフル構築する。
     fn calc_solution_result(&self, trace_coords: &[PuyoCoord]) -> SolutionResult {
         let agg = self.do_chains_aggregate_bb(trace_coords);
-        self.solution_result_from_agg(trace_coords, &agg)
+        solution_result_from_agg(self.exploration_target, trace_coords, &agg)
     }
 
     /// [`Self::solution_result_from_agg`] の、確保済みの入れ物に書き込む版。
@@ -809,85 +886,13 @@ impl<'a> SolutionExplorer<'a> {
         out.trace_coords.clear();
         out.trace_coords.extend_from_slice(trace_coords);
         out.chains.clear();
-        out.value = self.calc_value(agg);
+        out.value = calc_value(self.exploration_target, agg);
         out.popped_chance_num = agg.popped_chance_num;
         out.popped_heart_num = agg.popped[attr_index(PuyoAttr::Heart)];
         out.popped_prism_num = agg.popped[attr_index(PuyoAttr::Prism)];
         out.popped_ojama_num = agg.popped[attr_index(PuyoAttr::Ojama)];
         out.popped_kata_num = agg.popped[attr_index(PuyoAttr::Kata)];
         out.is_all_cleared = agg.is_all_cleared;
-    }
-
-    fn solution_result_from_agg(
-        &self,
-        trace_coords: &[PuyoCoord],
-        agg: &ChainsAggregate,
-    ) -> SolutionResult {
-        let value = self.calc_value(agg);
-
-        return SolutionResult {
-            trace_coords: trace_coords.to_vec(),
-            chains: Vec::new(),
-            value,
-            popped_chance_num: agg.popped_chance_num,
-            popped_heart_num: agg.popped[attr_index(PuyoAttr::Heart)],
-            popped_prism_num: agg.popped[attr_index(PuyoAttr::Prism)],
-            popped_ojama_num: agg.popped[attr_index(PuyoAttr::Ojama)],
-            popped_kata_num: agg.popped[attr_index(PuyoAttr::Kata)],
-            is_all_cleared: agg.is_all_cleared,
-        };
-    }
-
-    /// 集約スカラーから探索対象の値を計算する。
-    /// chain_helper のフルチェーン版と数値的に一致させること。
-    fn calc_value(&self, agg: &ChainsAggregate) -> f64 {
-        match self.exploration_target.category {
-            ExplorationCategory::Damage => {
-                let boost_ratio = calc_boost_ratio(agg.boost_count);
-                if let Some(main_attr) = self.exploration_target.main_attr {
-                    let main_value =
-                        (agg.color_strength[attr_index(main_attr)] + agg.prism_strength)
-                            * boost_ratio;
-                    let main_sub_ratio = self.exploration_target.main_sub_ratio.unwrap_or(0.0);
-                    let sub_value = match self.exploration_target.sub_attr {
-                        Some(sub_attr) => {
-                            (agg.color_strength[attr_index(sub_attr)] + agg.prism_strength)
-                                * boost_ratio
-                                * main_sub_ratio
-                        }
-                        None => 0.0,
-                    };
-                    main_value + sub_value
-                } else {
-                    // ワイルド
-                    let wild_pure: f64 = agg.color_strength.iter().sum();
-                    (wild_pure + agg.prism_strength) * boost_ratio
-                }
-            }
-            ExplorationCategory::SkillPuyoCount => {
-                if let Some(main_attr) = self.exploration_target.main_attr {
-                    let main_value = agg.popped[attr_index(main_attr)];
-                    let mut bonus_value: u32 = 0;
-                    if let Some(counting_bonus) = &self.exploration_target.counting_bonus {
-                        if counting_bonus.bonus_type == CountingBonusType::Step {
-                            let height = counting_bonus
-                                .target_attrs
-                                .iter()
-                                .fold(0, |acc, attr| acc + agg.popped[attr_index(*attr)]);
-                            let mut steps = height / counting_bonus.step_height as u32;
-                            if !counting_bonus.repeat {
-                                steps = cmp::min(1, steps);
-                            }
-                            bonus_value = counting_bonus.bonus_count as u32 * steps;
-                        }
-                    }
-                    (main_value + bonus_value) as f64
-                } else {
-                    0.0
-                }
-            }
-            ExplorationCategory::PuyotsukaiCount => agg.puyo_tsukai_count as f64,
-        }
     }
 
     /// 最適解リストの各要素について、空だった `chains` をフル構築して埋める。
