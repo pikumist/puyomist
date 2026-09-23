@@ -25,6 +25,7 @@ extern crate console_error_panic_hook;
 extern crate num_derive;
 
 use exploration_target::ExplorationTarget;
+use paint_ignition_search::{IgnitionSearchParams, IgnitionSearchResult};
 use paint_search::{PaintBeamContext, PaintEvalContext, PaintEvaluation, PaintSearchParams};
 use puyo::{Field, NextPuyos};
 use puyo_coord::PuyoCoord;
@@ -371,5 +372,64 @@ pub fn paint_build_plans(
         &paint_sets,
         &evaluations,
         result_num as usize,
+    ))
+}
+
+/// 塗り発火探索。**ぷよ塗りした時点で連鎖が発火する塗り方**を探す。
+///
+/// 既存の塗り探索 ([`paint_expand_beam`] 等) とは別物で、あちらは「発火させずに
+/// 連鎖しやすい形を作る」前段。こちらは塗りそのものが発火役なので後段のなぞりが要らない。
+/// 設計と実測は `docs/research/paint-ignition-search.md`。
+///
+/// **重いのはこの1関数だけで、内部で分割はしない。** 反復局所探索の再始動は互いに
+/// 独立なので、並列化したい場合は `params.seed` を変えて複数のワーカーで呼び、
+/// 結果を [`paint_ignition_merge`] で畳み込むこと。
+///
+/// 塗り色が色ぷよでなければ `null` を返す。
+#[wasm_bindgen]
+pub fn paint_ignition_search(
+    js_exploration_target: JsValue,
+    js_environment: JsValue,
+    js_boost_area_coord_set: JsValue,
+    js_field: JsValue,
+    js_next_puyos: JsValue,
+    js_params: JsValue,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let exploration_target: ExplorationTarget = de(js_exploration_target)?;
+    let environment: SimulationEnvironment = de(js_environment)?;
+    let boost_area_coord_set: HashSet<PuyoCoord> = de(js_boost_area_coord_set)?;
+    let field: Field = de(js_field)?;
+    let next_puyos: NextPuyos = de(js_next_puyos)?;
+    let params: IgnitionSearchParams = de(js_params)?;
+
+    let result = paint_ignition_search::search_ignition(
+        &exploration_target,
+        &environment,
+        &boost_area_coord_set,
+        &field,
+        &next_puyos,
+        &params,
+    );
+    ser(&result)
+}
+
+/// シードを変えて走らせた [`paint_ignition_search`] の結果を畳み込む。
+///
+/// 比較は探索中とまったく同じ優先順位を使うので、ワーカーへの分け方で結果が変わらない。
+#[wasm_bindgen]
+pub fn paint_ignition_merge(
+    js_exploration_target: JsValue,
+    js_results: JsValue,
+) -> Result<JsValue, JsError> {
+    console_error_panic_hook::set_once();
+
+    let exploration_target: ExplorationTarget = de(js_exploration_target)?;
+    let results: Vec<IgnitionSearchResult> = de(js_results)?;
+
+    ser(&paint_ignition_search::merge_ignition_results(
+        &exploration_target.preference_priorities,
+        &results,
     ))
 }
