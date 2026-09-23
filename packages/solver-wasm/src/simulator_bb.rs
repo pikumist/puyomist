@@ -60,14 +60,23 @@ pub struct BitBoards {
 }
 
 impl BitBoards {
-    pub fn is_field_all_cleared(&self) -> bool {
+    /// 占有マス (色ぷよ5色・ハート・プリズム・おじゃま・固ぷよ・?ぷよの9枚のうち
+    /// いずれかにぷよがあるマス) のビットボード。
+    fn occupied(&self) -> u64 {
         let mut occ = self.colors.iter().fold(0, |acc, c| acc | c);
+        occ |= self.heart;
         occ |= self.prism;
         occ |= self.ojama;
         occ |= self.kata;
         occ |= self.question;
-        occ &= FIELD_MASK;
-        return occ == 0;
+        occ & FIELD_MASK
+    }
+
+    pub fn is_field_all_cleared(&self) -> bool {
+        // ハートも「消えていないぷよ」の一種なので占有判定に含める必要がある。
+        // TS 側 (`field.every(row => row.every(p => !p))`) はマスの型を問わず
+        // 何か残っていれば全消し扱いにしないので、それに合わせる。
+        self.occupied() == 0
     }
 }
 
@@ -2638,6 +2647,27 @@ mod tests {
                 is_all_cleared: false
             }
         );
+    }
+
+    /// `BitBoards::is_field_all_cleared` の占有判定にハートを含めることの回帰テスト。
+    #[test]
+    fn test_is_field_all_cleared_counts_heart() {
+        // Arrange
+        let h = Some(PuyoType::Heart);
+        let n: Option<PuyoType> = None;
+        let field = [
+            [n; 8],
+            [n; 8],
+            [n; 8],
+            [n; 8],
+            [n; 8],
+            [h, n, n, n, n, n, n, n],
+        ];
+        let next_puyos = [n; 8];
+        let boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+        // Act & Assert
+        assert!(!boards.is_field_all_cleared());
     }
 
     #[test]
