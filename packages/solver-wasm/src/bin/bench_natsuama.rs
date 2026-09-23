@@ -3,7 +3,7 @@
 //! シナリオ (puyomist Web と一致):
 //!   - 盤面: なつアマ/1
 //!   - ネクスト: 紫 ×8
-//!   - なぞり: 紫ぷよに変える (TraceMode::ToPurple)
+//!   - なぞり: 引数で指定 (既定 ToPurple。紫ぷよに変える)
 //!   - 最低消し数: 4
 //!   - 連鎖倍率: 10.5 / 同時係数(popping_leverage): 7.5  ※同時係数は探索時間に影響しない(値スケールのみ)
 //!   - ブーストエリア: なし
@@ -11,8 +11,18 @@
 //!   - 最大なぞり数: 引数で指定 (既定 11)
 //!
 //! 使い方:
-//!   cargo run --release --bin bench_natsuama -- [max_trace_num]
-//!   RUSTFLAGS="-C target-cpu=native" cargo run --release --bin bench_natsuama -- 9   # ハードウェアPEXT(BMI2)
+//!   cargo run --release --bin bench_natsuama -- [max_trace_num] [trace_mode]
+//!   RUSTFLAGS="-C target-cpu=native" cargo run --release --bin bench_natsuama -- 9 to_purple   # ハードウェアPEXT(BMI2)
+//!   cargo run --release --bin bench_natsuama -- 9 normal    # Normal (通常なぞり消し) を計測
+//!
+//! trace_mode に渡せる値 (大文字小文字は区別しない):
+//!   normal / to_red / to_blue / to_green / to_yellow / to_purple (既定)
+//!
+//! なぞり消しモードは `fold_field_phase` (packages/solver-wasm/src/simulator_bb.rs) の
+//! ホットパスの分岐先であり、`TraceMode::Normal` と `TraceMode::To*` とで処理内容も
+//! コストも異なる。どちらか片方だけを固定で計測すると、もう片方への変更 (例えば
+//! Normal 分岐にだけ命令を1つ足した、あるいは To* 分岐だけを最適化した) の影響を
+//! 見落とすので、両方を計測できるようにしてある。
 //!
 //! 単スレッド(探索器そのもの)での計測。Web は 48 開始インデックスを Worker 並列するため、
 //! 実機の体感時間 ≒ この単スレッド時間 / 実効並列度。
@@ -30,9 +40,45 @@ use solver::simulation_environment::SimulationEnvironment;
 use solver::solution_explorer::SolutionExplorer;
 use solver::trace_mode::TraceMode;
 
+/// コマンドライン引数の文字列からなぞり消しモードを決める。
+/// 未知の文字列を渡したときは、黙って既定値にフォールバックせず、
+/// 何が使えるかをその場で示して終了する (計測条件を取り違えたまま
+/// 走らせてしまう事故を防ぐため)。
+fn parse_trace_mode(s: &str) -> TraceMode {
+    match s.to_ascii_lowercase().as_str() {
+        "normal" => TraceMode::Normal,
+        "to_red" | "red" => TraceMode::ToRed,
+        "to_blue" | "blue" => TraceMode::ToBlue,
+        "to_green" | "green" => TraceMode::ToGreen,
+        "to_yellow" | "yellow" => TraceMode::ToYellow,
+        "to_purple" | "purple" => TraceMode::ToPurple,
+        other => {
+            eprintln!(
+                "unknown trace_mode: {other:?} (expected: normal | to_red | to_blue | to_green | to_yellow | to_purple)"
+            );
+            std::process::exit(1);
+        }
+    }
+}
+
+fn trace_mode_name(trace_mode: TraceMode) -> &'static str {
+    match trace_mode {
+        TraceMode::Normal => "normal",
+        TraceMode::ToRed => "to_red",
+        TraceMode::ToBlue => "to_blue",
+        TraceMode::ToGreen => "to_green",
+        TraceMode::ToYellow => "to_yellow",
+        TraceMode::ToPurple => "to_purple",
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let max_trace_num: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(11);
+    let trace_mode: TraceMode = args
+        .get(2)
+        .map(|s| parse_trace_mode(s.as_str()))
+        .unwrap_or(TraceMode::ToPurple);
 
     // なつアマ/1 (specialRule4/1) の盤面。W=Prism, H=Heart。
     let r = PuyoType::Red;
@@ -68,7 +114,7 @@ fn main() {
         is_chance_mode: false,
         minimum_puyo_num_for_popping: 4,
         max_trace_num,
-        trace_mode: TraceMode::ToPurple,
+        trace_mode,
         popping_leverage: 7.5,
         chain_leverage: 10.5,
     };
@@ -101,8 +147,12 @@ fn main() {
 
     let bmi2 = cfg!(target_feature = "bmi2");
     eprintln!(
-        "board=natsuama/1 k={} popping={} chain={} bmi2(hw PEXT)={}",
-        max_trace_num, environment.popping_leverage, environment.chain_leverage, bmi2
+        "board=natsuama/1 k={} trace_mode={} popping={} chain={} bmi2(hw PEXT)={}",
+        max_trace_num,
+        trace_mode_name(trace_mode),
+        environment.popping_leverage,
+        environment.chain_leverage,
+        bmi2
     );
 
     let start = Instant::now();
@@ -114,8 +164,13 @@ fn main() {
     let us_per = elapsed.as_secs_f64() * 1e6 / cands.max(1) as f64;
 
     println!(
-        "k={:>2}  candidates={:>12}  elapsed={:>10.2} ms  {:>6.3} us/cand  bmi2={}",
-        max_trace_num, cands, ms, us_per, bmi2
+        "k={:>2}  trace_mode={:<9}  candidates={:>12}  elapsed={:>10.2} ms  {:>6.3} us/cand  bmi2={}",
+        max_trace_num,
+        trace_mode_name(trace_mode),
+        cands,
+        ms,
+        us_per,
+        bmi2
     );
     if let Some(best) = result.optimal_solutions.first() {
         println!(
