@@ -51,6 +51,7 @@ http://localhost:5173 にWebアプリが立ち上がります。これだけで�
 | ドキュメント | 内容 |
 | --- | --- |
 | [開発](docs/development.md) | 必要な環境、コマンド一覧、エディタ設定 |
+| [ぷよ塗り探索の仕組み](docs/paint-search-overview.md) | 「仕込み」と「発火」で何が違い、それぞれどう探索しているかの図解 |
 | [ローカルサーバー](docs/local-servers.md) | 監視サーバーと Rust ネイティブ探索サーバー |
 | [調査記録](docs/research/) | 探索アルゴリズムの設計判断と実測値 |
 
