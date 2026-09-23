@@ -102,6 +102,10 @@ struct ColorPop {
 
 struct PopOutcome {
     chain_num: u32,
+    /// この連鎖で盤面から消えたマスと、固ぷよ→おじゃまに変わったマス。
+    /// 塗り発火探索が「同じ連鎖を生む塗り集合」を見分けるために使う
+    /// (`docs/research/paint-ignition-search.md` §7)。
+    popped_mask: u64,
     simultaneous_num: u32,
     boost_count: u32,
     puyo_tsukai_count: u32,
@@ -113,6 +117,38 @@ struct PopOutcome {
     kata_count: u32,
     popped_chance_num: u32,
     is_all_cleared: bool,
+}
+
+/// 連鎖の「消え方」の指紋。
+///
+/// 塗り発火探索 ([`crate::paint_ignition`]) は、同じ連鎖を起こす塗り集合が
+/// 「連鎖に絡まない埋め草マス」の置き方だけ違う形で大量に並ぶ
+/// (`docs/research/paint-ignition-search.md` §7)。塗りマスクでは重複排除できないので、
+/// **結果の側**をキーにするために使う。
+#[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct ChainSignature {
+    /// 全連鎖を通して消えた (あるいは固ぷよ→おじゃまに変わった) マスの和。
+    pub popped: u64,
+    /// 連鎖ごとの消えたマスを**順序込みで**畳み込んだ値。
+    /// 同じマスの集合でも消える順が違えば別物として扱う。
+    ///
+    /// 64ビットに畳んでいるので衝突しうる。衝突すると別の連鎖が同一視されて
+    /// 候補が1つ落ちるが、[`Self::popped`] と [`Self::chain_num`] も一致していないと
+    /// 衝突が表に出ないため、実用上は無視できる確率になる。
+    pub order: u64,
+    /// 連鎖数。
+    pub chain_num: u32,
+}
+
+impl ChainSignature {
+    /// 連鎖1回ぶんを畳み込む。
+    #[inline]
+    fn push(&mut self, popped_mask: u64) {
+        self.popped |= popped_mask;
+        // 回転を挟んでから混ぜることで、同じマスクでも現れる順番で値が変わるようにする。
+        self.order = (self.order.rotate_left(13) ^ popped_mask).wrapping_mul(0x9E37_79B9_7F4A_7C15);
+        self.chain_num += 1;
+    }
 }
 
 /// 探索中に必要なスカラーだけを集約したもの (Vec<Chain>/HashMap を作らない)。
@@ -303,6 +339,24 @@ impl<'a> SimulatorBB<'a> {
         agg.puyo_tsukai_count += o.puyo_tsukai_count;
         agg.popped_chance_num += o.popped_chance_num;
         agg.is_all_cleared |= o.is_all_cleared;
+    }
+
+    /// なぞり消し (塗り替え) を実施し、集約スカラーと**連鎖の消え方の指紋**を返す。
+    ///
+    /// [`Self::do_chains_aggregate`] と同じ計算に指紋の畳み込みを足しただけで、
+    /// 集約スカラーは完全に一致する。塗り発火探索の重複排除用。
+    pub fn do_chains_signature(
+        &self,
+        boards: &mut BitBoards,
+        trace: u64,
+    ) -> (ChainsAggregate, ChainSignature) {
+        let mut agg = ChainsAggregate::default();
+        let mut signature = ChainSignature::default();
+        self.fold_chains(boards, trace, &mut |o: PopOutcome| {
+            signature.push(o.popped_mask);
+            Self::accumulate(&mut agg, o);
+        });
+        (agg, signature)
     }
 
     /// なぞり消しを実施し、**決定論フェーズを1回だけ計算**して、そこから先を
@@ -734,6 +788,7 @@ impl<'a> SimulatorBB<'a> {
 
         return Some(PopOutcome {
             chain_num,
+            popped_mask: poppable_connected | kata_connected,
             simultaneous_num,
             boost_count,
             puyo_tsukai_count,
@@ -2890,6 +2945,83 @@ mod tests {
 
         // 二重占有 (同じマスが2つ以上の属性ビットボードに同時に立っている状態) が無いこと。
         assert_no_double_occupancy(&boards);
+    }
+
+    /// [`SimulatorBB::do_chains_signature`] の指紋が、連鎖の「消え方」を区別すること。
+    /// 塗り発火探索の重複排除がこれに乗る (docs/research/paint-ignition-search.md §7)。
+    #[test]
+    fn test_chain_signature_distinguishes_how_puyos_popped() {
+        let r = Some(PuyoType::Red);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let b = Some(PuyoType::Blue);
+
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::ToBlue,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        // 対角ストライプなので、塗らない限り同色は縦横に隣接しない。
+        let field = [
+            [r, g, y, p, r, g, y, p],
+            [g, y, p, r, g, y, p, r],
+            [y, p, r, g, y, p, r, g],
+            [p, r, g, y, p, r, g, y],
+            [b, r, y, p, r, g, y, p],
+            [b, b, p, r, g, y, p, r],
+        ];
+        let next_puyos = [None; 8];
+        let boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+
+        let mask = |coords: &[(u8, u8)]| -> u64 {
+            let cs: Vec<PuyoCoord> = coords
+                .iter()
+                .map(|&(x, y)| PuyoCoord { x, y })
+                .collect();
+            SimulatorBB::coords_to_board(cs.iter())
+        };
+
+        // (1,4) を青に塗ると、左下の青3つと繋がって4個消える。
+        let left = mask(&[(1, 4)]);
+        let (agg_left, sig_left) = simulator.do_chains_signature(&mut boards.clone(), left);
+        assert_eq!(sig_left.chain_num, 1, "1連鎖で消えるはず");
+        assert_eq!(agg_left.popped[0..5].iter().sum::<u32>(), 4);
+
+        // 集約スカラーは do_chains_aggregate と完全に一致すること (指紋を足しただけ)。
+        let agg_plain = simulator.do_chains_aggregate(&mut boards.clone(), left);
+        assert_eq!(agg_left, agg_plain);
+
+        // 消えなければ指紋は空のまま。
+        let none = mask(&[(7, 0)]);
+        let (agg_none, sig_none) = simulator.do_chains_signature(&mut boards.clone(), none);
+        assert_eq!(sig_none, ChainSignature::default());
+        assert_eq!(agg_none, ChainsAggregate::default());
+
+        // 「埋め草」を足しても、消え方が同じなら指紋は変わらない。
+        // (7,0) は連鎖に絡まないので、塗りマスクは違っても指紋は一致する。
+        let padded = left | none;
+        let (_, sig_padded) = simulator.do_chains_signature(&mut boards.clone(), padded);
+        assert_eq!(
+            sig_padded, sig_left,
+            "連鎖に絡まないマスを足しただけで指紋が変わってはいけない"
+        );
+
+        // 違う場所で連鎖を起こすと、消えたマスが違うので指紋も違う。
+        // 左上の 2x2 を青に塗って4連結を作る。
+        let elsewhere = mask(&[(0, 0), (1, 0), (0, 1), (1, 1)]);
+        let (_, sig_elsewhere) = simulator.do_chains_signature(&mut boards.clone(), elsewhere);
+        assert_ne!(sig_elsewhere.popped, 0, "こちらも発火していないと比較にならない");
+        assert_ne!(sig_elsewhere, sig_left, "別の場所の連鎖が同じ指紋になっている");
     }
 
     /// なぞり塗り (To*) で ?ぷよが他の色ぷよ同様に指定色へ変換される回帰テスト
