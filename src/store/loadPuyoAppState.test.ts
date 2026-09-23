@@ -5,7 +5,7 @@ import { PuyoAttr } from '../logics/PuyoAttr';
 import { PuyoCoord } from '../logics/PuyoCoord';
 import { PuyoType } from '../logics/PuyoType';
 import { customBoardId } from '../logics/boards';
-import { PaintPrecision } from '../logics/paint-search';
+import { PaintGoal, PaintPrecision } from '../logics/paint-search';
 import { Session } from '../logics/session';
 import { SolutionMethod } from '../logics/solution';
 import { loadPuyoAppState } from './loadPuyoAppState';
@@ -81,6 +81,7 @@ describe('loadPuyoAppState', () => {
   it('picks up the persisted paint search settings', () => {
     const s = makeSession();
     s.setPaintSearchSettings({
+      goal: PaintGoal.Ignite,
       color: PuyoAttr.Purple,
       maxPaintNum: 10,
       maxTraceNum: 6,
@@ -91,6 +92,7 @@ describe('loadPuyoAppState', () => {
     const state = loadPuyoAppState(s);
 
     expect(state.paintSearchSettings).toEqual({
+      goal: PaintGoal.Ignite,
       color: PuyoAttr.Purple,
       maxPaintNum: 10,
       maxTraceNum: 6,

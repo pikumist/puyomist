@@ -10,6 +10,7 @@ import { TraceMode, traceModeDescriptionMap } from './TraceMode';
 import {
   type PaintSearchSettings,
   defaultPaintSearchSettings,
+  paintGoalNameMap,
   paintMaxTraceNumLimit,
   paintPrecisionDescriptionMap
 } from './paint-search';
@@ -239,8 +240,12 @@ export class Session {
       const precision = paintPrecisionDescriptionMap.has(parsed.precision!)
         ? parsed.precision!
         : defaultPaintSearchSettings.precision;
+      const goal = paintGoalNameMap.has(parsed.goal!)
+        ? parsed.goal!
+        : defaultPaintSearchSettings.goal;
 
       return {
+        goal,
         color,
         maxPaintNum,
         maxTraceNum,

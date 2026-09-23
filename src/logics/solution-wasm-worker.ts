@@ -3,6 +3,7 @@ import init, {
   paint_build_plans,
   paint_evaluate_sets,
   paint_expand_beam,
+  paint_ignition_search,
   paint_select_top,
   solve_all_traces,
   solve_traces_including_index,
@@ -13,6 +14,8 @@ import type { SimulationData } from './SimulationData';
 import type { ExplorationResult } from './solution';
 import type {
   WasmExplorationResult,
+  WasmIgnitionSearchParams,
+  WasmIgnitionSearchResult,
   WasmPaintEvaluation,
   WasmPaintPlan,
   WasmPaintSearchParams,
@@ -218,6 +221,34 @@ export async function buildPaintPlans(
   ) as WasmPaintPlan[];
 }
 
+///
+/// 塗り発火探索 (塗った瞬間に連鎖を起こす塗りを探す)。
+///
+/// 仕込みと違って**1呼び出しで完結する**。反復局所探索なので段に分けられないし、
+/// wasm の単スレッドでも標準精度で約0.5秒・超高精度でも約5.6秒で終わるため
+/// 分割する必要が無い (`docs/research/paint-ignition-search.md` §9-11)。
+/// それでも UI を止めないようワーカーで回す。
+export async function searchIgnitionPlans(
+  simulationData: SimulationData,
+  explorationTarget: ExplorationTarget,
+  params: WasmIgnitionSearchParams
+): Promise<WasmIgnitionSearchResult | undefined> {
+  await initPromise;
+
+  const exploration_target = toWasmExplorationTarget(explorationTarget);
+  const { environment, boost_area_coord_set, field, next_puyos } =
+    toWasmEnvironmentFieldNextPuyos(simulationData);
+
+  return paint_ignition_search(
+    exploration_target,
+    environment,
+    boost_area_coord_set,
+    field,
+    next_puyos,
+    params
+  ) as WasmIgnitionSearchResult | undefined;
+}
+
 expose({
   solveAllTraces,
   solveIncludingTraceIndex,
@@ -225,5 +256,6 @@ expose({
   expandPaintBeam,
   evaluatePaintSets,
   selectTopPaintSets,
-  buildPaintPlans
+  buildPaintPlans,
+  searchIgnitionPlans
 });

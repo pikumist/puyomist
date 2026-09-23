@@ -271,6 +271,35 @@ export class Simulator {
    * @param animate true のときアニメーションステップのリストを返す。
    */
   doChains(animate?: boolean): AnimationStep[] | undefined {
+    return this.runChains(() => Boolean(this.popTracingPuyos()), animate);
+  }
+
+  /**
+   * **なぞらずに**、今の盤面にある消える組をそのまま消して最後まで連鎖を続ける。
+   *
+   * 塗り発火探索 (`docs/research/paint-ignition-search.md`) 用。あちらは塗った時点で
+   * 連鎖が起きる塗り方を探すので、塗り替えたあとの盤面はもう消える状態になっている。
+   * [`doChains`] はなぞりが空だと何もしない (`popTracingPuyos` が false を返す) ため、
+   * 発火後の盤面をそのまま流すにはこちらが要る。
+   *
+   * 消える組が無ければ何も起こらない (アニメーションは初期状態の1コマだけ)。
+   *
+   * @param animate true のときアニメーションステップのリストを返す。
+   */
+  doChainsWithoutTracing(animate?: boolean): AnimationStep[] | undefined {
+    return this.runChains(() => Boolean(this.popPuyoBlocks()), animate);
+  }
+
+  /**
+   * 連鎖の本体。最初の一手 (`firstPop`) だけが [`doChains`] と
+   * [`doChainsWithoutTracing`] で違う。
+   *
+   * animate が無いときの await を出来るだけ避けたいので、やや冗長になっている。
+   */
+  private runChains(
+    firstPop: () => boolean,
+    animate?: boolean
+  ): AnimationStep[] | undefined {
     const animationSteps: AnimationStep[] = [];
 
     const invokeOnAnimateField = () => {
@@ -287,10 +316,7 @@ export class Simulator {
       invokeOnAnimateField();
     }
 
-    // animate オブジェクトがないときの await を出来るだけ回避したいので、
-    // やや冗長になっている。
-
-    if (this.popTracingPuyos()) {
+    if (firstPop()) {
       if (animate) {
         invokeOnAnimateField();
       }

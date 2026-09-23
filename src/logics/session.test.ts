@@ -8,7 +8,11 @@ import {
 } from './ExplorationTarget';
 import { PuyoAttr } from './PuyoAttr';
 import { TraceMode } from './TraceMode';
-import { PaintPrecision, defaultPaintSearchSettings } from './paint-search';
+import {
+  PaintGoal,
+  PaintPrecision,
+  defaultPaintSearchSettings
+} from './paint-search';
 import { defaultPlusAssignSettings } from './plus-assign';
 import { Session, session } from './session';
 import { SolutionMethod } from './solution';
@@ -128,6 +132,7 @@ describe('Session', () => {
     expect(s.getPaintSearchSettings()).toEqual(defaultPaintSearchSettings);
 
     const settings = {
+      goal: PaintGoal.Ignite,
       color: PuyoAttr.Green,
       maxPaintNum: 10,
       maxTraceNum: 6,
@@ -173,6 +178,7 @@ describe('Session', () => {
     localStorage.setItem(
       'paintSearchSettings',
       JSON.stringify({
+        goal: 'nonsense',
         color: PuyoAttr.Heart,
         maxPaintNum: 999,
         maxTraceNum: 99,
@@ -181,6 +187,7 @@ describe('Session', () => {
       })
     );
     expect(s.getPaintSearchSettings()).toEqual({
+      goal: defaultPaintSearchSettings.goal,
       color: defaultPaintSearchSettings.color,
       maxPaintNum: defaultPaintSearchSettings.maxPaintNum,
       maxTraceNum: defaultPaintSearchSettings.maxTraceNum,

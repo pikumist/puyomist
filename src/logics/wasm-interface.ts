@@ -177,3 +177,61 @@ export interface WasmPaintPlan {
   expected_value: number | undefined;
   solution: WasmSolutionResult;
 }
+
+///
+/// 塗り発火探索 (塗った瞬間に連鎖を起こす塗りを探す)。
+/// 仕込み側と違って1回の呼び出しで完結する (局所探索なので分割できない)。
+///
+
+/** 探索精度 (Rust の `IgnitionPrecision`)。評価回数はここから決まる */
+export enum WasmIgnitionPrecision {
+  /** 16万評価 */
+  Standard = 0,
+  /** 50万評価 */
+  High = 1,
+  /** 150万評価。仕込みと違い wasm でも選んでよい (約5.6秒) */
+  Ultra = 2
+}
+
+export interface WasmIgnitionSearchParams {
+  /** 塗り色 */
+  target: PuyoAttr;
+  /** 塗れるマス数の上限 */
+  max_paint_num: number;
+  /** 候補マスの絞り込み方。絞ると大きく取りこぼすので All から変えないこと */
+  filter: WasmPaintFilter;
+  /** 探索精度 */
+  precision: WasmIgnitionPrecision;
+  /** 評価回数を直接指定して精度を上書きする。計測用なので実運用では undefined */
+  budget?: number;
+  /** 返す塗り案の件数 */
+  result_num: number;
+  /** 期待値による並べ替え。無いなら undefined */
+  uncertainty?: WasmUncertaintyParams;
+  /** 乱数のシード。変えて複数回走らせると別の解に当たる */
+  seed: number;
+}
+
+export interface WasmIgnitionPlan {
+  coords: { x: number; y: number }[];
+  /** 決定論評価の値 */
+  value: number;
+  /** 不確定ぷよを考慮した期待値。求めていなければ undefined */
+  expected_value?: number;
+  /** 塗った瞬間に起きる連鎖 */
+  solution: WasmSolutionResult;
+}
+
+export interface WasmIgnitionSearchResult {
+  /** 最良の塗り案。`plans` の先頭と同じ */
+  best?: WasmIgnitionPlan;
+  /** 良い順の塗り案 */
+  plans: WasmIgnitionPlan[];
+  /** 塗り数ごとの最良。添字が塗り数 */
+  by_paint_num: (WasmIgnitionPlan | undefined)[];
+  /** 実際に呼んだ連鎖シミュレーションの回数 */
+  evaluated: number;
+  /** 再始動した回数と、再始動プール (発火コア) の件数 */
+  restarts: number;
+  cores: number;
+}

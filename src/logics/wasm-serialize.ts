@@ -15,23 +15,26 @@ import type {
 import type { ColoredPuyoAttr } from './PuyoAttr';
 import { PuyoCoord } from './PuyoCoord';
 import type { SimulationData } from './SimulationData';
-import type { SolutionResult } from './solution';
 import {
   type PaintPlan,
   PaintPrecision,
   type PaintSearchSettings
 } from './paint-search';
+import type { SolutionResult } from './solution';
 import {
   type WasmExplorationTarget,
+  type WasmIgnitionPlan,
+  WasmIgnitionPrecision,
+  type WasmIgnitionSearchParams,
   WasmPaintFilter,
   type WasmPaintPlan,
   WasmPaintPrecision,
   type WasmPaintSearchParams,
-  WasmUnknownFillPolicy,
   type WasmPuyo,
   type WasmSimulationEnvironment,
   type WasmSolutionResult,
-  type WasmStepCountingBonus
+  type WasmStepCountingBonus,
+  WasmUnknownFillPolicy
 } from './wasm-interface';
 
 export const toWasmExplorationTarget = (
@@ -152,6 +155,52 @@ export const toWasmPaintPrecision = (
 
 /** Rust 側の塗り案を JS 側の型に変換する */
 export const toJsPaintPlan = (plan: WasmPaintPlan): PaintPlan => ({
+  coords: plan.coords.map((c) => PuyoCoord.xyToCoord(c.x, c.y)!),
+  value: plan.value,
+  expectedValue: plan.expected_value,
+  solution: toJsOptimalSolution(plan.solution)
+});
+
+/** 塗り発火探索の設定を Rust 側のパラメータに変換する */
+export const toWasmIgnitionSearchParams = (
+  settings: PaintSearchSettings,
+  seed = 1
+): WasmIgnitionSearchParams => ({
+  target: settings.color,
+  max_paint_num: settings.maxPaintNum,
+  // 絞り込みは実測で大きく取りこぼす (all 42.6% に対し adj2 31.3% / adj1 3.1%)。
+  // 変えないこと (docs/research/paint-ignition-search.md §9-4)。
+  filter: WasmPaintFilter.All,
+  precision: toWasmIgnitionPrecision(settings.precision),
+  result_num: 20,
+  // 探索は決定論のまま、最終選抜だけ期待値で並べ替える (§9-10)。
+  uncertainty: settings.showExpectedValue
+    ? {
+        policy: WasmUnknownFillPolicy.ChainAverse,
+        samples: 20,
+        max_refills: 2
+      }
+    : undefined,
+  seed
+});
+
+const ignitionPrecisionMap: Record<PaintPrecision, WasmIgnitionPrecision> = {
+  [PaintPrecision.Standard]: WasmIgnitionPrecision.Standard,
+  [PaintPrecision.High]: WasmIgnitionPrecision.High,
+  [PaintPrecision.Ultra]: WasmIgnitionPrecision.Ultra
+};
+
+export const toWasmIgnitionPrecision = (
+  precision: PaintPrecision
+): WasmIgnitionPrecision => ignitionPrecisionMap[precision];
+
+/**
+ * Rust 側の発火塗り案を JS 側の型に変換する。
+ *
+ * 仕込みと発火で `PaintPlan` を共有している。発火では `solution.trace_coords` が
+ * 「なぞったマス」ではなく**塗ったマス**になる点に注意 (なぞらないので)。
+ */
+export const toJsIgnitionPlan = (plan: WasmIgnitionPlan): PaintPlan => ({
   coords: plan.coords.map((c) => PuyoCoord.xyToCoord(c.x, c.y)!),
   value: plan.value,
   expectedValue: plan.expected_value,
