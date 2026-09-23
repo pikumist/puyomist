@@ -57,8 +57,22 @@ pub fn natsuama_field() -> Field {
 pub struct Rng(u64);
 
 impl Rng {
+    /// `seed` を**撹拌してから**初期状態にする。
+    ///
+    /// 状態をそのまま `seed * G + 1` にしてはいけない。[`Rng::next_u64`] の状態更新は
+    /// `+G` の等差なので、`Rng::new(s + 1)` の初期状態が `Rng::new(s)` の1歩後と一致し、
+    /// **連続した seed の乱数列が1個ずれただけの同じ列になる**。
+    /// 盤面生成は1盤面あたり数十回しか引かないので、`--seed 1 --boards 300` が
+    /// 「独立な300盤面」ではなく「1本の列を1個ずつずらした300枚」になってしまう。
+    ///
+    /// 実際、修正前は seed 区画を変えるだけで盤面の統計が大きく振れていた
+    /// (初期盤面の塗り色の最大連結成分が飽和している割合が 25%〜64%)。
+    /// 詳細は docs/research/paint-ignition-search.md §9-0。
     pub fn new(seed: u64) -> Rng {
-        Rng(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15).wrapping_add(1))
+        let mut z = seed.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        Rng(z ^ (z >> 31))
     }
 
     pub fn next_u64(&mut self) -> u64 {
