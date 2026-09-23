@@ -142,6 +142,29 @@ describe('puyoAppStore - 盤面編集系', () => {
     expect(getPuyoAttr(cell as PuyoType)).toBe(expectedAttr);
   });
 
+  it('puyoEdited converts a question puyo like other non-colored puyos (was previously left unchanged)', () => {
+    // convertPuyoType の Question ガード撤去により、盤面編集の色変更ツール
+    // (ToRed〜ToPurple) で ?ぷよも他の非色ぷよ (ハート・プリズム・おじゃま・固ぷよ) と
+    // 同様に色ぷよへ変わるようになった (従来は据え置き=無反応だった)。
+    const field: (PuyoType | undefined)[][] = [
+      ...new Array(PuyoCoord.YNum)
+    ].map(() => [...new Array(PuyoCoord.XNum)].map(() => PuyoType.Red));
+    field[0][0] = PuyoType.Question;
+    const nextPuyos: (PuyoType | undefined)[] = [
+      ...new Array(PuyoCoord.XNum)
+    ].map(() => PuyoType.Red);
+    usePuyoAppStore.setState({
+      boardId: customBoardId,
+      lastScreenshotBoard: { field, nextPuyos },
+      boardEditMode: { howToEdit: HowToEditBoard.ToBlue }
+    });
+
+    const coord = PuyoCoord.xyToCoord(0, 0)!;
+    puyoEdited({ fieldCoord: coord });
+
+    expect(getState().lastScreenshotBoard?.field[0][0]).toBe(PuyoType.Blue);
+  });
+
   it('puyoEdited keeps nextPuyos already defined on the special board', () => {
     const spy = vi.spyOn(boardsModule, 'getSpecialBoard').mockReturnValue({
       field: [...new Array(PuyoCoord.YNum)].map(() =>

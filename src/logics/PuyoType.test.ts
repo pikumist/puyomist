@@ -52,11 +52,13 @@ describe('PuyoType helpers', () => {
     expect(isChancePuyo(PuyoType.Heart)).toBe(false);
   });
 
-  it('isTraceablePuyo is false for ojama/kata/question/undefined', () => {
+  it('isTraceablePuyo is false for ojama/kata/undefined, true for question', () => {
     expect(isTraceablePuyo(undefined)).toBe(false);
+    // おじゃま・固ぷよは trace_mode によらずなぞれない (仕様固定)。
     expect(isTraceablePuyo(PuyoType.Ojama)).toBe(false);
     expect(isTraceablePuyo(PuyoType.Kata)).toBe(false);
-    expect(isTraceablePuyo(PuyoType.Question)).toBe(false);
+    // ?ぷよは trace_mode によらずなぞれるようになった (仕様変更)。
+    expect(isTraceablePuyo(PuyoType.Question)).toBe(true);
     expect(isTraceablePuyo(PuyoType.Red)).toBe(true);
     expect(isTraceablePuyo(PuyoType.Heart)).toBe(true);
     expect(isTraceablePuyo(PuyoType.Prism)).toBe(true);
@@ -132,8 +134,14 @@ describe('PuyoType helpers', () => {
     expect(toPlusColoredType(PuyoType.Heart)).toBe(PuyoType.Heart);
   });
 
-  it('convertPuyoType keeps question and converts colored/non-colored', () => {
+  it('convertPuyoType converts question like other non-colored puyos', () => {
+    // ?ぷよは色ぷよではないので、他の非色ぷよ (ハート等) と同様に toAttr の色へ
+    // そのまま変換される (プラス・チャンスは元が色ぷよのときだけ引き継がれるので
+    // ?ぷよには付与されない)。
     expect(convertPuyoType(PuyoType.Question, PuyoAttr.Red)).toBe(
+      PuyoType.Red
+    );
+    expect(convertPuyoType(PuyoType.Question, PuyoAttr.Question)).toBe(
       PuyoType.Question
     );
     // colored -> colored preserves plus/chance terms

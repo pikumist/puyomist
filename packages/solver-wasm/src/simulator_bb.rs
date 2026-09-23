@@ -51,7 +51,7 @@ pub struct BitBoards {
     ojama: u64,
     /** 固ぷよのビットボード */
     kata: u64,
-    /** パディングのビットボード */
+    /** ?ぷよのビットボード */
     question: u64,
     /** プラス属性のビットボード */
     plus: u64,
@@ -413,6 +413,19 @@ impl<'a> SimulatorBB<'a> {
                 boards.prism &= rest;
                 boards.plus &= rest;
                 boards.chance &= rest;
+                // Normal では色・ハート・プリズムに加えて ?ぷよもなぞって消せる
+                // (おじゃま・固ぷよは Normal ではなぞれないのでここに含める必要はない)。
+                //
+                // To* 側 (下の分岐) はおじゃま・固ぷよも処理しているのに、なぜここは
+                // 非対称に省いているのか: 将来実装予定の「塗り発火探索」はなぞり塗り
+                // (To*) の意味論しか使わない設計であり、Normal 相当の生マスク入力は
+                // 想定していないため。むしろ Normal に生マスクを流し込むのは危険で、
+                // TS 側の `popTracingPuyos` の Normal 分岐は型を一切見ずに
+                // `this.field[c.y][c.x] = undefined` で無条件に消すので、
+                // おじゃま・固ぷよを含む生マスクを Normal で渡すと TS (消える) と
+                // Rust (このコードはおじゃま・固ぷよを素通りさせるので残る) の結果が
+                // 食い違う。塗り発火探索は To* だけを使う限り、この非対称は問題にならない。
+                boards.question &= rest;
                 trace != 0
             }
             TraceMode::ToRed
@@ -420,12 +433,35 @@ impl<'a> SimulatorBB<'a> {
             | TraceMode::ToGreen
             | TraceMode::ToYellow
             | TraceMode::ToPurple => {
+                // なぞり塗りは、色・ハート・プリズム・おじゃま・固ぷよ・?ぷよのマスを
+                // 例外なく色ぷよに変える (TS 版 convertPuyoType と同じ扱い)。
+                //
+                // おじゃま・固ぷよのクリアは現在のなぞり探索 (`is_traceable_type` が
+                // ゲートする) からは到達しないが、`fold_field_phase` は trace を生の
+                // `u64` マスクとして受け取るだけの API であり、将来実装予定の
+                // 「塗り発火探索」がなぞり列挙を経由せず、ぷよ塗り (おじゃま・固ぷよも
+                // 塗れる) の塗り集合を直接ここへ渡す設計のために必要。
+                //
+                // `trace` は「盤面の占有マスの部分集合」であることが呼び出し元の契約
+                // (空きマスは塗れない)。この前提が崩れていないかを debug_assert で
+                // 検査する (release ビルドではコストゼロ)。検討の経緯・計測結果は
+                // docs/research/solver-optimization.md を参照。
+                debug_assert_eq!(
+                    trace & !boards.occupied(),
+                    0,
+                    "trace に空きマスのビットが含まれています: {:#066b}",
+                    trace & !boards.occupied()
+                );
+
                 let rest = !trace;
                 for c in 0..boards.colors.len() {
                     boards.colors[c] &= rest;
                 }
                 boards.heart &= rest;
                 boards.prism &= rest;
+                boards.ojama &= rest;
+                boards.kata &= rest;
+                boards.question &= rest;
                 let c = self.environment.trace_mode.to_usize().unwrap()
                     - TraceMode::ToRed.to_usize().unwrap();
                 boards.colors[c] |= trace;
@@ -1160,6 +1196,44 @@ impl<'a> SimulatorBB<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `boards` の各属性ビットボード (色5枚・ハート・プリズム・おじゃま・固ぷよ・?ぷよの計9枚)
+    /// が、どの2枚を取っても pairwise AND が 0 であることを検査する。
+    /// つまり「同じマスが2つ以上の属性として二重占有されていない」ことを直接保証する。
+    ///
+    /// プラス・チャンスの2枚 (`plus` / `chance`) は色ぷよの上に乗る修飾ビットであり、
+    /// 色ビットボードと重なるのが正常な設計なのでここには含めない。
+    fn assert_no_double_occupancy(boards: &BitBoards) {
+        let planes: [(&str, u64); 9] = [
+            ("red", boards.colors[0]),
+            ("blue", boards.colors[1]),
+            ("green", boards.colors[2]),
+            ("yellow", boards.colors[3]),
+            ("purple", boards.colors[4]),
+            ("heart", boards.heart),
+            ("prism", boards.prism),
+            ("ojama", boards.ojama),
+            ("kata", boards.kata),
+        ];
+
+        for i in 0..planes.len() {
+            for j in (i + 1)..planes.len() {
+                let (name_i, board_i) = planes[i];
+                let (name_j, board_j) = planes[j];
+                let overlap = board_i & board_j;
+                assert_eq!(
+                    overlap, 0,
+                    "{name_i} と {name_j} が二重占有しています: {overlap:#066b}"
+                );
+            }
+            let (name_i, board_i) = planes[i];
+            let overlap = board_i & boards.question;
+            assert_eq!(
+                overlap, 0,
+                "{name_i} と question が二重占有しています: {overlap:#066b}"
+            );
+        }
+    }
 
     /// 決定論プレフィックスを共有する [`SimulatorBB::do_chains_aggregate_multi`] が、
     /// サンプルごとに独立して回した従来の結果と**完全に一致**すること。
@@ -2668,6 +2742,292 @@ mod tests {
 
         // Act & Assert
         assert!(!boards.is_field_all_cleared());
+    }
+
+    /// Normal で ?ぷよをなぞると消えることの回帰テスト (`boards.question &= rest;`)。
+    #[test]
+    fn test_trace_paint_normal_pops_question() {
+        // Arrange
+        let r = Some(PuyoType::Red);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let o = Some(PuyoType::Ojama);
+        let q = Some(PuyoType::Question);
+
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        // 対角ストライプにしてあるので、縦横に隣接する同色は一切無い。
+        // おじゃまは (0,4)-(1,5) の 2x2 だけ、?ぷよは (0,0) の1マスだけに置いてある。
+        let field = [
+            [q, g, y, p, r, g, y, p],
+            [g, y, p, r, g, y, p, r],
+            [y, p, r, g, y, p, r, g],
+            [p, r, g, y, p, r, g, y],
+            [o, o, y, p, r, g, y, p],
+            [o, o, p, r, g, y, p, r],
+        ];
+        let next_puyos = [r, g, y, p, r, g, y, p];
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+        // ?ぷよの (0,0) だけをなぞる。おじゃまの 2x2 はなぞらない (どのみち Normal では
+        // おじゃまはなぞれないので、対照として盤面に残ることを別途確認する)。
+        let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 0, y: 0 }];
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
+
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut boards, trace);
+
+        // Assert: Normal でなぞって消したセル自体は `Chain` を生まない
+        // (このリポジトリの Normal モードの既存仕様。TS 版 `popTracingPuyos` も
+        // 同様で、なぞり消し直後は blocks を経由しないため Chain が生成されない)。
+        // ここでは「?ぷよが盤面から消えている」ことそのものを検証する。
+        assert_eq!(actual.len(), 0);
+        assert_eq!(boards.question & FIELD_MASK, 0);
+
+        // おじゃまはなぞっていないので、そのまま盤面に残っている。
+        assert_eq!((boards.ojama & FIELD_MASK).count_ones(), 4);
+
+        assert_no_double_occupancy(&boards);
+    }
+
+    /// なぞり塗り (To*) でおじゃま・固ぷよが二重占有なく色ぷよへ変換されることの
+    /// 回帰テスト (`boards.ojama &= rest;` / `boards.kata &= rest;`)。現在のなぞり
+    /// 探索からは到達しないが、将来の塗り発火探索のための契約。詳細は
+    /// docs/research/solver-optimization.md。
+    #[test]
+    fn test_trace_paint_converts_ojama_and_kata_without_double_occupancy() {
+        // Arrange
+        let r = Some(PuyoType::Red);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let b = Some(PuyoType::Blue);
+        let o = Some(PuyoType::Ojama);
+        let z = Some(PuyoType::Kata);
+
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::ToBlue,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        // 左上2マス (0,4)-(1,5) の2x2以外は「対角ストライプ」(各行を1色ずつずらす)
+        // にしてあるので、縦横に隣接する同色は一切無い。青もこの2x2にしか無い。
+        let field = [
+            [r, g, y, p, r, g, y, p],
+            [g, y, p, r, g, y, p, r],
+            [y, p, r, g, y, p, r, g],
+            [p, r, g, y, p, r, g, y],
+            [b, o, y, p, r, g, y, p],
+            [z, b, p, r, g, y, p, r],
+        ];
+        let next_puyos = [r, g, y, p, r, g, y, p];
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+        // (0,4)=青, (1,4)=おじゃま, (0,5)=固, (1,5)=青 をなぞって青に塗る。
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 0, y: 4 },
+            PuyoCoord { x: 1, y: 4 },
+            PuyoCoord { x: 0, y: 5 },
+            PuyoCoord { x: 1, y: 5 },
+        ];
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
+
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+
+        // Act: 公開 API の do_chains を通す (TS 側の doChains() 相当)。
+        // next_puyos がこの盤面で連鎖を継続させないことは手計算で確認済み
+        // (列0・列1が popup 後に落下・ネクスト補充されても新たな4連結は発生しない)。
+        let actual = simulator.do_chains(&mut boards, trace);
+
+        // Assert
+        assert_eq!(actual.len(), 1);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 4,
+                boost_count: 0,
+                puyo_tsukai_count: 4,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 1.0,
+                        popped_count: 4,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+
+        // 盤面上にもおじゃま・固ぷよが (このテストの盤面には元々ここにしか無いので)
+        // 一切残っていないこと。
+        assert_eq!(boards.ojama & FIELD_MASK, 0);
+        assert_eq!(boards.kata & FIELD_MASK, 0);
+
+        // 二重占有 (同じマスが2つ以上の属性ビットボードに同時に立っている状態) が無いこと。
+        assert_no_double_occupancy(&boards);
+    }
+
+    /// なぞり塗り (To*) で ?ぷよが他の色ぷよ同様に指定色へ変換される回帰テスト
+    /// (`boards.question &= rest;`)。TS 側 `Simulator.spec.ts` の同一盤面ミラーと対。
+    #[test]
+    fn test_trace_paint_converts_question() {
+        // Arrange
+        let r = Some(PuyoType::Red);
+        let g = Some(PuyoType::Green);
+        let y = Some(PuyoType::Yellow);
+        let p = Some(PuyoType::Purple);
+        let q = Some(PuyoType::Question);
+        let z = Some(PuyoType::Kata);
+        let n: Option<PuyoType> = None;
+
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 8,
+            trace_mode: TraceMode::ToBlue,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        // 4色巡回の市松模様 (color_index = (x + 2y) % 4) にしてあるので、縦横に隣接する
+        // 同色は一切無い。(0,5) だけ ?ぷよ、(1,5) だけ空きマスで上書きしてある
+        // ((1,5) はなぞらないので、ただ盤面に存在するだけで結果には関与しない)。
+        let field = [
+            [r, g, y, p, r, g, y, p],
+            [y, p, r, g, y, p, r, g],
+            [r, g, y, p, r, g, y, p],
+            [y, p, r, g, y, p, r, g],
+            [r, g, y, p, r, g, y, p],
+            [q, n, r, g, y, p, r, g],
+        ];
+        // 列0,2,3 はなぞり消し後に2升ずつ空くが、ネクストは1個ずつしか無いので
+        // 最上段は補充されずに空きマスのまま残る (unknown_fill が None なので
+        // ランダム補充もされない)。固ぷよは色と一切マッチしないので、これ以上の
+        // 連鎖が誘発されないことが保証できる。
+        let next_puyos = [z, z, z, z, r, g, y, p];
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+        // (0,4)-(3,4) の4色と (2,5)-(3,5) の2色、および (0,5)=?ぷよをなぞる
+        // ((1,5) は空きマスなので trace には含めない)。
+        // ?ぷよの (0,5) も青に変換されて連結に参加する (縦に (0,4) と隣接)。
+        let trace_coords: Vec<PuyoCoord> = vec![
+            PuyoCoord { x: 0, y: 4 },
+            PuyoCoord { x: 1, y: 4 },
+            PuyoCoord { x: 2, y: 4 },
+            PuyoCoord { x: 3, y: 4 },
+            PuyoCoord { x: 0, y: 5 },
+            PuyoCoord { x: 2, y: 5 },
+            PuyoCoord { x: 3, y: 5 },
+        ];
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
+
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+
+        // Act
+        let actual = simulator.do_chains(&mut boards, trace);
+
+        // Assert: (0,4)-(3,4) の4マスと (0,5)=?ぷよ, (2,5)-(3,5) の計7マスが青として
+        // 連結して消える。
+        assert_eq!(actual.len(), 1);
+        assert_eq!(
+            actual[0],
+            Chain {
+                chain_num: 1,
+                simultaneous_num: 7,
+                boost_count: 0,
+                puyo_tsukai_count: 7,
+                attributes: HashMap::from([(
+                    PuyoAttr::Blue,
+                    AttributeChain {
+                        strength: 1.45,
+                        popped_count: 7,
+                        separated_blocks_num: 1
+                    }
+                )]),
+                popped_chance_num: 0,
+                is_all_cleared: false
+            }
+        );
+
+        // 7マス全部が消えたので、青ぷよは (ネクストは固ぷよしか補充されないため) もう残っていない。
+        assert_eq!(boards.colors[1] & FIELD_MASK, 0);
+        // ?ぷよも青に変換されて一緒に消えたので、盤面上にもう残っていない。
+        assert_eq!(boards.question & FIELD_MASK, 0);
+
+        // 二重占有 (同じマスが2つ以上の属性ビットボードに同時に立っている状態) が無いこと。
+        assert_no_double_occupancy(&boards);
+    }
+
+    /// `fold_field_phase` の契約 (trace は占有マスの部分集合) 違反を debug_assert で
+    /// 検出することの回帰テスト。契約の背景は docs/research/solver-optimization.md。
+    #[test]
+    #[cfg(debug_assertions)]
+    #[should_panic(expected = "空きマス")]
+    fn test_trace_paint_rejects_trace_including_empty_cell() {
+        // Arrange: 全マス赤で埋めた盤面から (0,5) だけ空けておく。
+        let r = Some(PuyoType::Red);
+        let n: Option<PuyoType> = None;
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 4,
+            max_trace_num: 5,
+            trace_mode: TraceMode::ToBlue,
+            popping_leverage: 1.0,
+            chain_leverage: 1.0,
+        };
+        let field = [
+            [r; 8],
+            [r; 8],
+            [r; 8],
+            [r; 8],
+            [r; 8],
+            [n, r, r, r, r, r, r, r],
+        ];
+        let next_puyos = [r; 8];
+        let mut boards = SimulatorBB::create_bit_boards(&field, &next_puyos);
+
+        // (0,5) は空きマス。これを含む trace は契約違反。
+        let trace_coords: Vec<PuyoCoord> = vec![PuyoCoord { x: 0, y: 5 }];
+        let trace = SimulatorBB::coords_to_board(trace_coords.iter());
+
+        let simulator = SimulatorBB {
+            environment: &environment,
+            boost_area: 0,
+            unknown_fill: None,
+            refills_done: std::cell::Cell::new(0),
+        };
+
+        // Act: debug_assert が発火してパニックするはず。
+        simulator.do_chains(&mut boards, trace);
     }
 
     #[test]

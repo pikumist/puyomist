@@ -33,6 +33,12 @@ pub enum PuyoType {
     Prism = 22,
     Ojama = 23,
     Kata = 24,
+    /// ?ぷよ (中身不明。なぞれるが、ひっつき消しには参加せず連鎖を止める)
+    ///
+    /// 出自は2つある。1つはスクリーンショット認識に失敗したマス
+    /// (`src/logics/board-detection.ts`)。もう1つはネクスト不足時の補充パディング
+    /// (`src/logics/Simulator.ts` の `dropNextIntoField`)。なぞり時点の盤面に
+    /// 現れるのは前者だけ (後者はなぞり終了後の落下・補充フェーズで生じる)。
     Question = 25,
 }
 
@@ -98,7 +104,9 @@ pub fn is_traceable_type(puyo_type: PuyoType) -> bool {
     match puyo_type {
         PuyoType::Ojama => false,
         PuyoType::Kata => false,
-        PuyoType::Question => false,
+        // ?ぷよはおじゃま・固ぷよと違い、Normal / To* のどちらの trace_mode でも
+        // なぞることができる (仕様: ?ぷよは Normal でなぞると消え、To* でなぞると
+        // 指定色に変わる)。
         _ => true,
     }
 }
@@ -281,9 +289,11 @@ mod tests {
         assert_eq!(is_traceable_type(PuyoType::PurpleChancePlus), true);
         assert_eq!(is_traceable_type(PuyoType::Heart), true);
         assert_eq!(is_traceable_type(PuyoType::Prism), true);
+        // おじゃま・固ぷよは Normal / To* のどちらでもなぞれないまま (仕様固定)。
         assert_eq!(is_traceable_type(PuyoType::Ojama), false);
         assert_eq!(is_traceable_type(PuyoType::Kata), false);
-        assert_eq!(is_traceable_type(PuyoType::Question), false);
+        // ?ぷよは Normal / To* のどちらでもなぞれるようになった (仕様変更)。
+        assert_eq!(is_traceable_type(PuyoType::Question), true);
     }
 
     #[test]

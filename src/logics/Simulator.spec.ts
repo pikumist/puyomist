@@ -19,6 +19,7 @@ const Pp = PuyoType.PurplePlus;
 const Pc = PuyoType.PurpleChance;
 const O = PuyoType.Ojama;
 const Z = PuyoType.Kata;
+const Q = PuyoType.Question;
 
 describe('Simulator', () => {
   beforeEach(() => {
@@ -1007,7 +1008,65 @@ describe('Simulator', () => {
             is_all_cleared: false
           }
         ] satisfies Chain[]
-      }
+      },
+      {
+        // なぞり塗りで ?ぷよが指定色へ変換される回帰テスト。Rust 側
+        // test_trace_paint_converts_question と同一盤面・同一なぞり
+        // (Rust 版の期待値の正典として機能する)。
+        maxTraceNum: 8,
+        poppingLeverage: 1.0,
+        // 4色巡回の市松模様 (color_index = (x + 2y) % 4) にしてあるので、縦横に隣接する
+        // 同色は一切無い。(0,5) だけ ?ぷよ、(1,5) だけ空きマスで上書きしてある
+        // ((1,5) はなぞらないので、ただ盤面に存在するだけで結果には関与しない)。
+        board: {
+          // biome-ignore format:
+          field: [
+            [R, G, Y, P, R, G, Y, P],
+            [Y, P, R, G, Y, P, R, G],
+            [R, G, Y, P, R, G, Y, P],
+            [Y, P, R, G, Y, P, R, G],
+            [R, G, Y, P, R, G, Y, P],
+            [Q, E, R, G, Y, P, R, G]
+          ],
+          // 列0,2,3 はなぞり消し後に2升ずつ空くが、ネクストは1個ずつしか無い。TS の
+          // `Simulator.dropNextIntoField` はネクスト不足分を PuyoType.Question の
+          // ぷよで埋めるので、最上段は空きマスではなく ?ぷよになる。?ぷよは色ぷよ
+          // ではなく連結消しに参加しないので、このテストの `expected` には影響しない。
+          // 固ぷよは色と一切マッチしないので、これ以上の連鎖が誘発されないことが保証できる。
+          nextPuyos: [Z, Z, Z, Z, R, G, Y, P],
+          traceMode: TraceMode.ToBlue,
+          minimumPuyoNumForPopping: 4
+        } satisfies Board,
+        // (0,4)-(3,4) の4色と (2,5)-(3,5) の2色、および (0,5)=?ぷよをなぞる
+        // ((1,5) は空きマスなのでなぞらない)。
+        // ?ぷよの (0,5) も青に変換されて連結に参加する (縦に (0,4) と隣接)。
+        traceCoords: [
+          PuyoCoord.xyToCoord(0, 4),
+          PuyoCoord.xyToCoord(1, 4),
+          PuyoCoord.xyToCoord(2, 4),
+          PuyoCoord.xyToCoord(3, 4),
+          PuyoCoord.xyToCoord(0, 5),
+          PuyoCoord.xyToCoord(2, 5),
+          PuyoCoord.xyToCoord(3, 5)
+        ],
+        expected: [
+          {
+            chain_num: 1,
+            simultaneous_num: 7,
+            boost_count: 0,
+            puyo_tsukai_count: 7,
+            attributes: {
+              [PuyoAttr.Blue]: {
+                strength: 1.45,
+                popped_count: 7,
+                separated_blocks_num: 1
+              }
+            },
+            popped_chance_num: 0,
+            is_all_cleared: false
+          }
+        ] satisfies Chain[]
+      },
     ])(
       'should calculate chains',
       ({

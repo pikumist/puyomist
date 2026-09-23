@@ -50,7 +50,14 @@ export enum PuyoType {
   Ojama = 23,
   /** 固ぷよ */
   Kata = 24,
-  /** ?ぷよ (何が来るか不明なため、なぞれず消えず連鎖もとめるぷよ) */
+  /**
+   * ?ぷよ (中身不明。なぞれるが、ひっつき消しには参加せず連鎖を止める)
+   *
+   * 出自は2つある。1つはスクリーンショット認識に失敗したマス (board-detection.ts)。
+   * もう1つはネクスト不足時の補充パディング (Simulator.ts の dropNextIntoField)。
+   * なぞり時点の盤面に現れるのは前者だけ (後者はなぞり終了後の落下・補充フェーズで
+   * 生じる)。
+   */
   Question = 25
 }
 
@@ -194,7 +201,11 @@ export const isChancePuyo = (
 /** なぞり可能なぷよかどうか (星魔のような塗りは考慮していない) */
 export const isTraceablePuyo = (
   puyoType: PuyoType | undefined
-): puyoType is ColoredPuyoType | PuyoType.Heart | PuyoType.Prism => {
+): puyoType is
+  | ColoredPuyoType
+  | PuyoType.Heart
+  | PuyoType.Prism
+  | PuyoType.Question => {
   if (!puyoType) {
     return false;
   }
@@ -202,9 +213,11 @@ export const isTraceablePuyo = (
   switch (puyoType) {
     case PuyoType.Ojama:
     case PuyoType.Kata:
-    case PuyoType.Question:
       return false;
     default:
+      // ?ぷよはおじゃま・固ぷよと違い、Normal / To* のどちらの trace_mode でも
+      // なぞることができる (仕様: ?ぷよは Normal でなぞると消え、To* でなぞると
+      // 指定色に変わる)。
       return true;
   }
 };
@@ -350,10 +363,9 @@ export const convertPuyoType = (
   puyoType: PuyoType,
   toAttr: PuyoAttr
 ): PuyoType => {
-  if (puyoType === PuyoType.Question) {
-    return puyoType;
-  }
-
+  // ?ぷよは色ぷよではないので isColoredPuyoType(puyoType) が false になり、
+  // このあとの分岐で他の非色ぷよ (ハート・プリズム・おじゃま・固ぷよ) と同様に
+  // toAttr の色にそのまま変換される (プラス・チャンスは引き継がれない)。
   if (isColoredPuyoType(puyoType)) {
     if (isColoredPuyoAttr(toAttr)) {
       const isPlusTerm = isPlusPuyo(puyoType) ? 1 : 0;

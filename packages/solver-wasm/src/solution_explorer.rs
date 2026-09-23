@@ -2802,6 +2802,89 @@ mod tests {
         assert_eq!(s0.is_all_cleared, false);
     }
 
+    /// `test_solve_all_traces_special_rule_1_1_modified` のおじゃま (4,2) を ?ぷよに
+    /// 置き換えると、なぞり候補として列挙されるようになり `candidates_num` が変わる。
+    /// 探索器を端から端まで通す回帰テスト。詳細経緯は docs/research/solver-optimization.md。
+    #[test]
+    fn test_solve_all_traces_candidates_num_changes_with_question_puyo() {
+        // Arrange
+        let exploration_target = ExplorationTarget {
+            category: ExplorationCategory::Damage,
+            preference_priorities: Vec::from([
+                PreferenceKind::BiggerValue,
+                PreferenceKind::ChancePop,
+                PreferenceKind::PrismPop,
+                PreferenceKind::AllClear,
+                PreferenceKind::SmallerTraceNum,
+            ]),
+            optimal_solution_count: 2,
+            main_attr: Some(PuyoAttr::Green),
+            sub_attr: None,
+            main_sub_ratio: None,
+            counting_bonus: None,
+        };
+        let environment = SimulationEnvironment {
+            is_chance_mode: false,
+            minimum_puyo_num_for_popping: 3,
+            max_trace_num: 3,
+            trace_mode: TraceMode::Normal,
+            popping_leverage: 1.0,
+            chain_leverage: 7.0,
+        };
+        let boost_area_coord_set: HashSet<PuyoCoord> = HashSet::new();
+        let r = PuyoType::Red;
+        let b = PuyoType::Blue;
+        let g = PuyoType::Green;
+        let y = PuyoType::Yellow;
+        let p = PuyoType::Purple;
+        let pc = PuyoType::PurpleChance;
+        let h = PuyoType::Heart;
+        let q = PuyoType::Question;
+        let z = PuyoType::Kata;
+        let mut id_counter = 0;
+        // `test_solve_all_traces_special_rule_1_1_modified` と同じ盤面から、
+        // (4,2) のおじゃまだけを ?ぷよに置き換えてある。
+        let field = [
+            [r, p, z, p, y, g, y, y],
+            [r, y, p, h, y, g, pc, g],
+            [b, y, g, b, q, y, g, pc],
+            [b, r, b, r, p, b, r, pc],
+            [y, g, p, p, r, b, g, g],
+            [b, g, b, r, b, y, r, r],
+        ]
+        .map(|row| {
+            row.map(|puyo_type| {
+                id_counter += 1;
+                Some(Puyo {
+                    id: id_counter,
+                    puyo_type,
+                })
+            })
+        });
+        let next_puyos = [g, g, g, g, g, g, g, g].map(|puyo_type| {
+            id_counter += 1;
+            Some(Puyo {
+                id: id_counter,
+                puyo_type,
+            })
+        });
+        let explorer = SolutionExplorer::new(
+            &exploration_target,
+            &environment,
+            &boost_area_coord_set,
+            &field,
+            &next_puyos,
+        );
+
+        // Act
+        let actual = explorer.solve_all_traces();
+
+        // Assert: おじゃまのままなら 703 (`test_solve_all_traces_special_rule_1_1_modified`)。
+        // ?ぷよに変えたことでなぞり候補が増え、771 になる (実測)。
+        assert_ne!(actual.candidates_num, 703);
+        assert_eq!(actual.candidates_num, 771);
+    }
+
     #[test]
     fn test_solve_all_traces_special_rule_2_1_preferring_prism_and_all_clear() {
         // Arrange

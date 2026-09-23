@@ -140,8 +140,10 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
   });
 
   it('tracingCoordAdded は最初の座標がなぞれないぷよなら追加しない', () => {
+    // おじゃま・固ぷよは trace_mode によらずなぞれない (仕様固定)。?ぷよは
+    // なぞれるようになったので、ここでは例としておじゃまを使う。
     const sim = makeRedSimulationData();
-    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Question };
+    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Ojama };
     usePuyoAppStore.setState({ simulationData: sim });
 
     tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
@@ -149,14 +151,36 @@ describe('puyoAppStore - キャンバス/なぞり系', () => {
   });
 
   it('tracingCoordAdded は隣接座標がなぞれないぷよなら追加しない', () => {
+    // おじゃま・固ぷよは trace_mode によらずなぞれない (仕様固定)。?ぷよは
+    // なぞれるようになったので、ここでは例としておじゃまを使う。
     const sim = makeRedSimulationData();
-    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Question };
+    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Ojama };
     usePuyoAppStore.setState({ simulationData: sim });
 
     tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
     tracingCoordAdded(PuyoCoord.xyToCoord(1, 0)!);
     expect(getState().simulationData.traceCoords).toEqual([
       PuyoCoord.xyToCoord(0, 0)!
+    ]);
+  });
+
+  it('tracingCoordAdded は?ぷよをなぞりに追加する', () => {
+    // ?ぷよは trace_mode によらずなぞれるようになった (仕様変更)。
+    // 最初の座標・隣接座標のどちらに置いても追加されることを確認する。
+    const sim = makeRedSimulationData();
+    sim.field[0][0] = { id: generatePuyoId(), type: PuyoType.Question };
+    sim.field[0][1] = { id: generatePuyoId(), type: PuyoType.Question };
+    usePuyoAppStore.setState({ simulationData: sim });
+
+    tracingCoordAdded(PuyoCoord.xyToCoord(0, 0)!);
+    expect(getState().simulationData.traceCoords).toEqual([
+      PuyoCoord.xyToCoord(0, 0)!
+    ]);
+
+    tracingCoordAdded(PuyoCoord.xyToCoord(1, 0)!);
+    expect(getState().simulationData.traceCoords).toEqual([
+      PuyoCoord.xyToCoord(0, 0)!,
+      PuyoCoord.xyToCoord(1, 0)!
     ]);
   });
 

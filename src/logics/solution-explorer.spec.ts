@@ -1355,6 +1355,43 @@ describe('solution-explorer', () => {
         }
       );
 
+      it('should find more candidates when a puyo is replaced by a traceable question puyo', () => {
+        // ?ぷよはなぞれるようになった (仕様変更)。上の 'avoiding untraceable puyo'
+        // テストと同じ盤面・座標に、おじゃま/固ぷよの代わりに ?ぷよを置く。
+        // candidates_num の変化 (11256 → 15359) でなぞり候補が増えたことを固定する。
+        // Arrange
+        const board = structuredClone(getSpecialBoard('specialRule1/1'));
+        board.field[2][5] = PuyoType.Question;
+        board.field[2][6] = PuyoType.Question;
+        const nextPuyos = createNextPuyosAsSameType(PuyoType.Green);
+        const simulationData = createSimulationData(board, {
+          maxTraceNum: 5,
+          poppingLeverage: 1.0,
+          nextPuyos
+        });
+        const simulator = new Simulator(simulationData);
+        const explorationTarget = {
+          category: ExplorationCategory.Damage as const,
+          preference_priorities: [
+            PreferenceKind.BiggerValue,
+            PreferenceKind.ChancePop,
+            PreferenceKind.PrismPop,
+            PreferenceKind.AllClear,
+            PreferenceKind.SmallerTraceNum
+          ],
+          optimal_solution_count: 1,
+          main_attr: PuyoAttr.Green as const
+        } satisfies ExplorationTarget;
+
+        // Act
+        const actual = solveAllTraces(simulator, explorationTarget)!;
+
+        // Assert: おじゃま/固ぷよのままなら 11256 (上のテスト)。
+        // ?ぷよはなぞれるので候補が増え、11256 とは異なる値になる (実測: 15359)。
+        expect(actual.candidates_num).not.toBe(11256);
+        expect(actual.candidates_num).toBe(15359);
+      });
+
       it('chance_mode, damage wild, preferring_all_clear, optimal_solution_count=2', () => {
         // Arrange
         const explorationTarget: ExplorationTarget = {
