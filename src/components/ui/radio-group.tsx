@@ -51,4 +51,47 @@ function RadioGroupChip({ className, ...props }: RadioPrimitive.Root.Props) {
   );
 }
 
-export { RadioGroup, RadioGroupChip, RadioGroupItem };
+/**
+ * 2〜3択のモード切替 (セグメンテッドコントロール) の器。
+ *
+ * **枠線を使わない。** 1px の枠線は画面密度が 150% のような中途半端な値だと
+ * 物理ピクセルに割り切れず、辺ごとに太さが変わって汚く見える。
+ * 代わりに「地の器 + 選択中だけ浮かせる塗り」で示す。
+ */
+function RadioGroupSegments({
+  className,
+  ...props
+}: RadioGroupPrimitive.Props) {
+  return (
+    <RadioGroupPrimitive
+      data-slot="radio-group-segments"
+      className={cn(
+        'inline-flex w-fit items-center gap-0.5 rounded-lg bg-muted p-0.5',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+/** [`RadioGroupSegments`] の選択肢1つ。 */
+function RadioGroupSegment({ className, ...props }: RadioPrimitive.Root.Props) {
+  return (
+    <RadioPrimitive.Root
+      data-slot="radio-group-segment"
+      className={cn(
+        'inline-flex cursor-pointer items-center justify-center rounded-md px-3 py-1 text-xs font-medium text-muted-foreground transition-colors outline-none select-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-checked:bg-background data-checked:font-semibold data-checked:text-foreground data-checked:shadow-sm',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export {
+  RadioGroup,
+  RadioGroupChip,
+  RadioGroupItem,
+  RadioGroupSegment,
+  RadioGroupSegments
+};

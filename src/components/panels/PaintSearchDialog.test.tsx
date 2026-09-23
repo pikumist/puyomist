@@ -1,12 +1,21 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ExplorationCategory } from '@/logics/ExplorationTarget';
 import { PuyoAttr } from '@/logics/PuyoAttr';
 import { PuyoCoord } from '@/logics/PuyoCoord';
 import { PuyoType } from '@/logics/PuyoType';
 import {
+  PaintGoal,
   type PaintSearchResult,
   enumeratePaintableCoords,
+  paintGoalDescriptionMap,
   paintSearchSignatureOf
 } from '@/logics/paint-search';
 import { SolutionMethod } from '@/logics/solution';
@@ -14,9 +23,13 @@ import { usePuyoAppStore } from '@/store/puyoAppStore';
 import { INITIAL_PUYO_APP_STATE } from '@/store/types';
 import PaintSearchDialog from './PaintSearchDialog';
 
-// 実際の探索は WASM ワーカーを起こすので、ここでは差し替えてダイアログの振る舞い
-// だけを見る。探索そのものの担保は Rust 側 (split_evaluation_matches_sequential_search)。
-vi.mock('@/store/actions', () => ({
+// 実際の探索は WASM ワーカーを起こすので、**探索の起動だけ**差し替えて
+// ダイアログの振る舞いを見る。探索そのものの担保は Rust 側
+// (split_evaluation_matches_sequential_search)。
+// 適用まわり (paintPlanApplyClicked) は実物を通す。盤面への反映と、
+// 発火の案なら連鎖まで走ることがこのダイアログの振る舞いの一部なので。
+vi.mock('@/store/actions', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/store/actions')>()),
   paintSearchButtonClicked: () => {
     const state = usePuyoAppStore.getState();
     state.paintSearchStarted();
@@ -151,6 +164,75 @@ describe('PaintSearchDialog', () => {
     expect(screen.queryByRole('option', { name: '超高精度' })).toBeNull();
   });
 
+  it('switches the goal in the store', () => {
+    renderDialog();
+    fireEvent.click(screen.getByRole('radio', { name: '発火' }));
+    expect(usePuyoAppStore.getState().paintSearchSettings.goal).toBe(
+      PaintGoal.Ignite
+    );
+    fireEvent.click(screen.getByRole('radio', { name: '仕込み' }));
+    expect(usePuyoAppStore.getState().paintSearchSettings.goal).toBe(
+      PaintGoal.Setup
+    );
+  });
+
+  it('describes the goal that is selected', () => {
+    renderDialog();
+    expect(
+      screen.getByText(paintGoalDescriptionMap.get(PaintGoal.Setup)!)
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: '発火' }));
+    expect(
+      screen.getByText(paintGoalDescriptionMap.get(PaintGoal.Ignite)!)
+    ).toBeInTheDocument();
+  });
+
+  // 発火は塗った時点で連鎖が終わるので、なぞり数そのものが無い。
+  // ただし**行は消さない**。狙いを切り替えるたびに行が増減すると、
+  // 見ていた行の位置がずれて読み直しになる。
+  it('disables the trace number when igniting but keeps the row', () => {
+    renderDialog();
+    expect(screen.getByLabelText('最大なぞり数')).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('radio', { name: '発火' }));
+    const stepper = screen.getByLabelText('最大なぞり数');
+    expect(stepper).toBeInTheDocument();
+    expect(stepper).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('radio', { name: '仕込み' }));
+    expect(screen.getByLabelText('最大なぞり数')).toBeEnabled();
+  });
+
+  // 設定行の増減はダイアログの高さを変えてしまうので、狙いを切り替えても
+  // 行の数が変わらないことを固定する。
+  it('keeps the same settings rows when the goal changes', () => {
+    renderDialog();
+    // 設定行はどれもラベルを持つので、ラベルの並びで数える。
+    const rowLabels = () =>
+      ['狙い', '塗り色', '塗り上限', '最大なぞり数', '探索精度', '期待値も表示']
+        .map((label) =>
+          screen.queryAllByText(label).length > 0 ? label : null
+        )
+        .filter((label) => label !== null);
+
+    const before = rowLabels();
+    expect(before).toHaveLength(6);
+
+    fireEvent.click(screen.getByRole('radio', { name: '発火' }));
+    expect(rowLabels()).toEqual(before);
+  });
+
+  // 発火は wasm の超高精度でも約5.6秒なので、探索法に関係なく全部出す。
+  it('offers the ultra precision when igniting even on wasm', () => {
+    renderDialog();
+    fireEvent.click(screen.getByRole('radio', { name: '発火' }));
+    fireEvent.click(screen.getByLabelText('探索精度の選択'));
+    expect(
+      screen.getByRole('option', { name: '超高精度' })
+    ).toBeInTheDocument();
+  });
+
   it('offers the ultra precision on the rust backend', () => {
     usePuyoAppStore.setState({
       solutionMethod: SolutionMethod.solveAllByRustBackend
@@ -169,7 +251,8 @@ describe('PaintSearchDialog', () => {
     // 色そのものが選択肢なので、選択状態はチップ全体のスタイル
     // (`data-checked:` と `group-data-checked/chip:`) で示している。
     // その足場となる data-checked が選んだ色にだけ立っていることを確かめる。
-    const checked = screen
+    // 「狙い」も同じチップなので、色のグループに絞って数える。
+    const checked = within(screen.getByRole('radiogroup', { name: '塗り色' }))
       .getAllByRole('radio')
       .filter((radio) => radio.hasAttribute('data-checked'));
     expect(checked).toHaveLength(1);
@@ -337,6 +420,111 @@ describe('PaintSearchDialog', () => {
     expect(
       await screen.findByText(`期待値 ${plan.expectedValue}`)
     ).toBeInTheDocument();
+  });
+
+  // ダメージは小数点第3位まで (第4位を四捨五入)。素の浮動小数を出すと
+  // 240.29999999999998 のような見た目が漏れる。
+  it('shows damage values to three decimal places', () => {
+    const state = usePuyoAppStore.getState();
+    usePuyoAppStore.setState({
+      explorationTarget: {
+        category: ExplorationCategory.Damage,
+        preference_priorities: state.explorationTarget.preference_priorities,
+        optimal_solution_count: state.explorationTarget.optimal_solution_count,
+        main_attr: PuyoAttr.Red
+      },
+      paintSearchSettings: {
+        ...state.paintSearchSettings,
+        showExpectedValue: true
+      }
+    });
+    const updated = usePuyoAppStore.getState();
+    const candidates = enumeratePaintableCoords(
+      updated.simulationData,
+      updated.paintSearchSettings.color
+    );
+    const solution = {
+      trace_coords: [],
+      chains: [],
+      value: 0,
+      popped_chance_num: 0,
+      popped_heart_num: 0,
+      popped_prism_num: 0,
+      popped_ojama_num: 0,
+      popped_kata_num: 0,
+      is_all_cleared: false
+    };
+    usePuyoAppStore.setState({
+      paintSearchResult: {
+        plans: [
+          {
+            coords: candidates.slice(0, 2),
+            // 第4位が5以上 → 繰り上げ
+            value: 240.12356,
+            // 第4位が5未満 → 切り捨て
+            expectedValue: 280.98741,
+            solution: { ...solution, value: 240.12356 }
+          }
+        ],
+        elapsedTime: 10,
+        signature: paintSearchSignatureOf(
+          updated.simulationData,
+          updated.explorationTarget,
+          updated.paintSearchSettings
+        )
+      }
+    });
+
+    renderDialog();
+
+    expect(screen.getByText('240.124')).toBeInTheDocument();
+    expect(screen.getByText('期待値 280.987')).toBeInTheDocument();
+  });
+
+  // 個数の探索対象 (ぷよ使いカウント・スキル溜め) は整数で出す。
+  it('shows count values as integers', () => {
+    // 既定の探索対象はぷよ使いカウント。
+    expect(usePuyoAppStore.getState().explorationTarget.category).toBe(
+      ExplorationCategory.PuyotsukaiCount
+    );
+    const state = usePuyoAppStore.getState();
+    const candidates = enumeratePaintableCoords(
+      state.simulationData,
+      state.paintSearchSettings.color
+    );
+    const solution = {
+      trace_coords: [],
+      chains: [],
+      value: 0,
+      popped_chance_num: 0,
+      popped_heart_num: 0,
+      popped_prism_num: 0,
+      popped_ojama_num: 0,
+      popped_kata_num: 0,
+      is_all_cleared: false
+    };
+    usePuyoAppStore.setState({
+      paintSearchResult: {
+        plans: [
+          {
+            coords: candidates.slice(0, 2),
+            value: 42,
+            solution: { ...solution, value: 42 }
+          }
+        ],
+        elapsedTime: 10,
+        signature: paintSearchSignatureOf(
+          state.simulationData,
+          state.explorationTarget,
+          state.paintSearchSettings
+        )
+      }
+    });
+
+    renderDialog();
+
+    expect(screen.getByText('42')).toBeInTheDocument();
+    expect(screen.queryByText('42.000')).toBeNull();
   });
 
   it('offers a cancel button while searching, and aborts with it', () => {
