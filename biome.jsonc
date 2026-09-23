@@ -12,7 +12,8 @@
       "dist",
       "coverage",
       "storybook-static",
-      "packages/solver-wasm/pkg"
+      "packages/solver-wasm/pkg",
+      "packages/solver-wasm/target"
     ]
   },
   "organizeImports": {
