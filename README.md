@@ -13,7 +13,7 @@
 ![zustand 5.0.14](https://img.shields.io/badge/zustand-5.0.14-764ABC?logo=react&logoColor=white)
 ![Rust 1.96.1](https://img.shields.io/badge/Rust-1.96.1-DEA584?logo=rust&logoColor=000000)
 ![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?logo=webassembly&logoColor=white)
-![Vitest 4.1.9](https://img.shields.io/badge/Vitest-4.1.9-6E9F18?logo=vitest&logoColor=white)
+![Vitest 4.1.11](https://img.shields.io/badge/Vitest-4.1.11-6E9F18?logo=vitest&logoColor=white)
 ![Storybook 10.4.6](https://img.shields.io/badge/Storybook-10.4.6-FF4785?logo=storybook&logoColor=white)
 ![Biome 1.9.4](https://img.shields.io/badge/Biome-1.9.4-60A5FA?logo=biome&logoColor=white)
 ![Node.js 24.18.0](https://img.shields.io/badge/Node.js-24.18.0-5FA04E?logo=nodedotjs&logoColor=white)
