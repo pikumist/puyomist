@@ -318,5 +318,27 @@ export const boostAreaKeyMap: ReadonlyMap<string, BoostArea> = new Map([
         )
       )
     }
+  ],
+  [
+    'nina',
+    {
+      name: 'ニナ',
+      coordSet: new Set(
+        ['C2', 'A3', 'A4', 'B4', 'A5', 'B6', 'C6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
+  ],
+  [
+    'lux',
+    {
+      name: 'ルクス',
+      coordSet: new Set(
+        ['H2', 'F3', 'G3', 'E4', 'E5', 'G5', 'H6'].map(
+          (addr) => PuyoCoord.cellAddrToCoord(addr)!
+        )
+      )
+    }
   ]
 ]);
